@@ -11,7 +11,7 @@ pub trait RedisManager {
     fn prefix() -> String;
 
     fn get(key: u32) -> Option<Self::Item> {
-        let conn = Self::connect();
+        let mut conn = Self::connect();
         let result: Result<String, _> = conn.get(Self::key(key));
         match result {
             Ok(data) => {
@@ -32,7 +32,7 @@ pub trait RedisManager {
     }
 
     fn set(key: u32, value: &Self::Item) {
-        let conn = Self::connect();
+        let mut conn = Self::connect();
         let json_value = serde_json::to_string(value).expect("Failed to serialize item as JSON");
         let _: () = conn
             .set(Self::key(key), json_value)
@@ -40,7 +40,7 @@ pub trait RedisManager {
     }
 
     fn delete(key: u32) {
-        let conn = Self::connect();
+        let mut conn = Self::connect();
         let _: () = conn
             .del(Self::key(key))
             .expect("Failed to delete item from Redis");
