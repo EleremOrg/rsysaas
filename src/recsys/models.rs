@@ -5,7 +5,7 @@ use rec_rsys::algorithms::euclidean_knn;
 use rec_rsys::models::Item;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct RecRequest {
     pub user_id: u32,
     pub prod_id: u32,

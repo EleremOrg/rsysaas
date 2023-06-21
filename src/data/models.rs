@@ -1,10 +1,11 @@
 //! Generic models to perform calculations
-use std::{collections::HashMap, sync::Arc};
-
 use super::RedisManager;
+use crate::data::CRUDError;
 use crate::recsys::{RecRequest, Recommendation};
-use rec_rsys::models::{one_hot_encode, Item, ItemAdapter};
+
+use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, Item, ItemAdapter};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Customer {
@@ -19,14 +20,17 @@ impl Customer {
             domain: "invfin".into(),
         }
     }
-    pub fn get_recommendations(&self, rec_request: RecRequest) -> Vec<Recommendation> {
+    pub fn get_recommendations(
+        &self,
+        rec_request: RecRequest,
+    ) -> Result<Vec<Recommendation>, CRUDError> {
         match Company::get(rec_request.prod_id) {
-            Some(item) => Recommendation::generate_recommendations(
+            Ok(item) => Ok(Recommendation::generate_recommendations(
                 self.domain.clone(),
                 item.to_item(),
                 rec_request.num_recs,
-            ),
-            None => panic!(),
+            )),
+            Err(err) => Err(err),
         }
     }
     pub fn get(token: String) -> Option<Self> {
@@ -65,7 +69,6 @@ pub struct Company {
 }
 
 impl Company {
-    // encode the strings
     pub fn new(
         id: u32,
         ticker: String,
@@ -87,64 +90,73 @@ impl Company {
             growth,
         }
     }
-    fn encode_sector(self) -> Vec<f32> {
+    fn encode_sector(&self) -> Vec<f32> {
         let sectors = vec![
-            "healthcare",
-            "unknow",
-            "technology",
-            "communication_services",
-            "basic_materials",
-            "consumer_cyclical",
-            "industrials",
-            "financial_services",
-            "energy",
-            "utilities",
-            "real_estate",
-            "consumer_defensive",
+            "Healthcare",
+            "Unknown",
+            "Technology",
+            "Communication Services",
+            "Basic Materials",
+            "Consumer Cyclical",
+            "Industrials",
+            "Financial Services",
+            "Energy",
+            "Utilities",
+            "Real Estate",
+            "Consumer Defensive",
         ];
         match one_hot_encode(&sectors).get(&self.sector) {
             Some(val) => val.to_vec(),
             None => panic!(),
         }
     }
-    fn encode_industry(self) -> Vec<f32> {
-        let industries = vec![""];
+    fn encode_industry(&self) -> Vec<f32> {
+        let industries: Vec<&str> = vec![
+            "Technology",
+            "Healthcare",
+            "Finance",
+            "Energy",
+            "Retail",
+            "Manufacturing",
+            "Telecommunications",
+            "Automotive",
+            "Hospitality",
+            "Media",
+        ];
+
         match one_hot_encode(&industries).get(&self.industry) {
             Some(val) => val.to_vec(),
             None => panic!(),
         }
     }
-    fn encode_exchange(self) -> Vec<f32> {
-        let exchanges = vec!["NYSE", "NASDAQ", "EURO", "LSE"];
+    fn encode_exchange(&self) -> Vec<f32> {
+        let exchanges = vec![
+            "NYSE",
+            "NASDAQ",
+            "LSE",
+            "FWB",
+            "TSE",
+            "Euronext",
+            "BSE",
+            "BM&FBOVESPA",
+            "SSE",
+            "NSE",
+        ];
         match one_hot_encode(&exchanges).get(&self.exchange) {
             Some(val) => val.to_vec(),
             None => panic!(),
         }
     }
-    fn encode_country(self) -> Vec<f32> {
+    fn encode_country(&self) -> Vec<f32> {
         let countries = vec!["USA", "FR", "ESP"];
         match one_hot_encode(&countries).get(&self.country) {
             Some(val) => val.to_vec(),
             None => panic!(),
         }
     }
-    fn encode_adj(self) -> Vec<f32> {
+    fn encode_adjs(&self) -> Vec<f32> {
         let adjs = vec!["growth", "divs", "value", "zombie"];
-        Company::sum_encoding_vectors(&one_hot_encode(&adjs), &self.adj)
-    }
-
-    fn sum_encoding_vectors(encoding_map: &HashMap<String, Vec<f32>>, adjs: &[String]) -> Vec<f32> {
-        let mut sum_vector = vec![0.0; encoding_map.values().next().map_or(0, |v| v.len())];
-
-        for adj in adjs {
-            if let Some(encoding) = encoding_map.get(adj) {
-                for (sum_value, &enc_value) in sum_vector.iter_mut().zip(encoding.iter()) {
-                    *sum_value += enc_value;
-                }
-            }
-        }
-
-        sum_vector
+        sum_encoding_vectors(&one_hot_encode(&adjs), &self.adj)
     }
 }
 
@@ -154,6 +166,19 @@ impl RedisManager for Company {
     fn prefix() -> String {
         String::from("c")
     }
+
+    fn handle_not_found() -> Result<Self::Item, CRUDError> {
+        Ok(Company::new(
+            1,
+            "INTC".to_string(),
+            "Technology".to_string(),
+            "Technology".to_string(),
+            "NASDAQ".to_string(),
+            "USA".to_string(),
+            vec!["growth".to_string(), "divs".to_string()],
+            0.3,
+        ))
+    }
 }
 
 impl ItemAdapter for Company {
@@ -161,7 +186,17 @@ impl ItemAdapter for Company {
         Item::new(self.id, self.create_values(), None)
     }
     fn create_values(&self) -> Vec<f32> {
-        return vec![0.0];
+        let mut values = vec![self.growth];
+        [
+            self.encode_sector(),
+            self.encode_industry(),
+            self.encode_exchange(),
+            self.encode_country(),
+            self.encode_adjs(),
+        ]
+        .iter()
+        .for_each(|f| values.extend(f));
+        values
     }
 }
 
@@ -170,7 +205,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_encode_adj() {
+    fn test_encode_adjs() {
         let company = Company::new(
             1,
             "INTC".to_string(),
@@ -181,6 +216,6 @@ mod tests {
             vec!["growth".to_string(), "divs".to_string()],
             0.3,
         );
-        assert_eq!(company.encode_adj(), vec![1.0, 1.0, 0.0, 0.0]);
+        assert_eq!(company.encode_adjs(), vec![1.0, 1.0, 0.0, 0.0]);
     }
 }

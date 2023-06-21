@@ -23,10 +23,36 @@ impl ResponseModel {
         )
             .into_response()
     }
+    pub fn not_found(id_not_found: &u32) -> Response {
+        (
+            StatusCode::NOT_FOUND,
+            Json(json!({ "message": format!("{id_not_found} not found") })),
+        )
+            .into_response()
+    }
+    pub fn our_fault() -> Response {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({"message": "oupsi"})),
+        )
+            .into_response()
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RequestModel {
     pub token: String,
-    pub rec_data: RecRequest,
+    pub user_id: u32,
+    pub prod_id: u32,
+    pub num_recs: u8,
+}
+
+impl RequestModel {
+    pub fn rec_data(self) -> RecRequest {
+        RecRequest {
+            user_id: self.user_id,
+            prod_id: self.prod_id,
+            num_recs: self.num_recs,
+        }
+    }
 }
