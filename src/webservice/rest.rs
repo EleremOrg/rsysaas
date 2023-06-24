@@ -31,7 +31,8 @@ fn get_response(customer: &Customer, rec_request: RecRequest) -> Response {
         Ok(recs) => ResponseModel::success(recs),
         Err(err) => match err {
             CRUDError::NotFound => ResponseModel::not_found(&rec_request.prod_id),
-            CRUDError::MaxRetryError => ResponseModel::our_fault(),
+            CRUDError::MaxRetry => ResponseModel::our_fault(),
+            _ => ResponseModel::our_fault(),
         },
     }
 }

@@ -1,10 +1,12 @@
-use redis::{Client, Commands, Connection};
+use redis::{Client, Commands, Connection, RedisError};
 use serde::{de::DeserializeOwned, Serialize};
 
 #[derive(Debug)]
 pub enum CRUDError {
     NotFound,
-    MaxRetryError,
+    MaxRetry,
+    Write,
+    Delete,
 }
 
 pub trait RedisManager {
@@ -43,22 +45,39 @@ pub trait RedisManager {
     }
 
     fn handle_deserialization_failed() -> Result<Self::Item, CRUDError> {
-        Err(CRUDError::MaxRetryError)
+        Err(CRUDError::MaxRetry)
     }
 
-    fn set(key: u32, value: &Self::Item) {
+    fn set(key: u32, value: &Self::Item) -> Result<&Self::Item, CRUDError> {
         let mut conn = Self::connect();
-        let json_value = serde_json::to_string(value).expect("Failed to serialize item as JSON");
-        let _: () = conn
-            .set(Self::key(key), json_value)
-            .expect("Failed to set item in Redis");
+        match serde_json::to_string(value) {
+            Ok(json_value) => {
+                let result: Result<u32, RedisError> = conn.set(Self::key(key), json_value);
+                match result {
+                    Ok(_) => Ok(&value),
+                    Err(err) => {
+                        eprintln!("Failed to fetch item data: {:?}", err);
+                        return Err(CRUDError::Write);
+                    }
+                }
+            }
+            Err(err) => {
+                eprintln!("Failed to fetch item data: {:?}", err);
+                return Err(CRUDError::Write);
+            }
+        }
     }
-
-    fn delete(key: u32) {
+    fn delete(key: u32) -> Result<(String, u32), CRUDError> {
         let mut conn = Self::connect();
-        let _: () = conn
-            .del(Self::key(key))
-            .expect("Failed to delete item from Redis");
+        let redis_key = Self::key(key);
+        let result: Result<u32, RedisError> = conn.del(redis_key.clone());
+        match result {
+            Ok(_) => Ok((redis_key, key)),
+            Err(err) => {
+                eprintln!("Failed to delete item: {:?}", err);
+                return Err(CRUDError::Delete);
+            }
+        }
     }
 
     fn connect() -> Connection {

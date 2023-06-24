@@ -1280,7 +1280,6 @@ dependencies = [
 [[package]]
 name = "rec_rsys"
 version = "0.1.1"
-source = "git+https://github.com/lucas-montes/rec_rsys.git#263f666f1f4c08cdae61934ef1001b6c9de14fd3"
 dependencies = [
  "criterion",
  "ndarray",

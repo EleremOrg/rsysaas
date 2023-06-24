@@ -1,3 +1,4 @@
+use crate::data::Company;
 use rec_rsys::models::Item;
 
 pub fn create_example(id: u32, values: Vec<f32>, result: Option<f32>) -> Item {
@@ -11,13 +12,130 @@ pub fn create_example(id: u32, values: Vec<f32>, result: Option<f32>) -> Item {
     }
 }
 
-pub fn items_examples() -> Vec<Item> {
+pub fn example_companies() -> Vec<Company> {
     vec![
-        create_example(2, vec![0.5, 0.3], None),
-        create_example(8, vec![0.9, 0.3], None),
-        create_example(7, vec![0.5, 0.3], None),
-        create_example(9, vec![0.4, 0.3], None),
-        create_example(6, vec![0.2, 0.3], None),
-        create_example(5, vec![0.7, 0.3], None),
+        Company {
+            id: 1,
+            ticker: "AAPL".to_string(),
+            sector: "Technology".to_string(),
+            industry: "Healthcare".to_string(),
+            exchange: "NASDAQ".to_string(),
+            country: "USA".to_string(),
+            adj: vec!["growth".to_string(), "divs".to_string()],
+            growth: 0.1,
+        },
+        Company {
+            id: 2,
+            ticker: "GOOGL".to_string(),
+            sector: "Technology".to_string(),
+            industry: "Telecommunications".to_string(),
+            exchange: "NASDAQ".to_string(),
+            country: "USA".to_string(),
+            adj: vec![
+                "value".to_string(),
+                "growth".to_string(),
+                "divs".to_string(),
+            ],
+            growth: 0.5,
+        },
+        Company {
+            id: 3,
+            ticker: "MSFT".to_string(),
+            sector: "Technology".to_string(),
+            industry: "Finance".to_string(),
+            exchange: "NASDAQ".to_string(),
+            country: "USA".to_string(),
+            adj: vec!["growth".to_string(), "zombie".to_string()],
+            growth: 0.3,
+        },
+        Company {
+            id: 4,
+            ticker: "AMZN".to_string(),
+            sector: "Technology".to_string(),
+            industry: "Retail".to_string(),
+            exchange: "NASDAQ".to_string(),
+            country: "USA".to_string(),
+            adj: vec![
+                "value".to_string(),
+                "growth".to_string(),
+                "divs".to_string(),
+                "zombie".to_string(),
+            ],
+            growth: 0.25,
+        },
+        Company {
+            id: 5,
+            ticker: "FB".to_string(),
+            sector: "Technology".to_string(),
+            industry: "Media".to_string(),
+            exchange: "NASDAQ".to_string(),
+            country: "USA".to_string(),
+            adj: vec![
+                "growth".to_string(),
+                "divs".to_string(),
+                "zombie".to_string(),
+            ],
+            growth: 0.12,
+        },
+        Company {
+            id: 6,
+            ticker: "TSLA".to_string(),
+            sector: "Automotive".to_string(),
+            industry: "Automotive".to_string(),
+            exchange: "NASDAQ".to_string(),
+            country: "USA".to_string(),
+            adj: vec!["growth".to_string()],
+            growth: 0.33,
+        },
+        Company {
+            id: 7,
+            ticker: "JPM".to_string(),
+            sector: "Financial Services".to_string(),
+            industry: "Unknown".to_string(),
+            exchange: "NYSE".to_string(),
+            country: "USA".to_string(),
+            adj: vec!["value".to_string(), "zombie".to_string()],
+            growth: 0.05,
+        },
+        Company {
+            id: 8,
+            ticker: "BAC".to_string(),
+            sector: "Financial Services".to_string(),
+            industry: "Unknown".to_string(),
+            exchange: "NYSE".to_string(),
+            country: "USA".to_string(),
+            adj: vec!["growth".to_string(), "zombie".to_string()],
+            growth: 0.09,
+        },
+        Company {
+            id: 9,
+            ticker: "WMT".to_string(),
+            sector: "Consumer Cyclical".to_string(),
+            industry: "Unknown".to_string(),
+            exchange: "NYSE".to_string(),
+            country: "USA".to_string(),
+            adj: vec!["value".to_string(), "divs".to_string()],
+            growth: 0.012,
+        },
+        Company {
+            id: 10,
+            ticker: "GE".to_string(),
+            sector: "Automotive".to_string(),
+            industry: "Unknown".to_string(),
+            exchange: "NYSE".to_string(),
+            country: "USA".to_string(),
+            adj: vec!["growth".to_string(), "zombie".to_string()],
+            growth: -0.1,
+        },
+        Company {
+            id: 12,
+            ticker: "FIRST".to_string(),
+            sector: "Technology".to_string(),
+            industry: "Technology".to_string(),
+            exchange: "NASDAQ".to_string(),
+            country: "USA".to_string(),
+            adj: vec!["growth".to_string(), "divs".to_string()],
+            growth: 0.3,
+        },
     ]
 }

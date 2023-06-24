@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use crate::data::items_examples;
 use rec_rsys::algorithms::euclidean_knn;
 use rec_rsys::models::Item;
 use serde::{Deserialize, Serialize};
@@ -30,9 +29,10 @@ impl Recommendation {
     pub fn generate_recommendations(
         domain: Arc<str>,
         item: Item,
+        references: Vec<Item>,
         num_recs: u8,
     ) -> Vec<Recommendation> {
-        euclidean_knn(item, items_examples(), num_recs)
+        euclidean_knn(item, references, num_recs)
             .into_iter()
             .map(|item| Recommendation::new(item.id, item.result, domain.clone()))
             .collect()

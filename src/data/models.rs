@@ -1,6 +1,6 @@
 //! Generic models to perform calculations
 use super::RedisManager;
-use crate::data::CRUDError;
+use crate::data::{example_companies, CRUDError};
 use crate::recsys::{RecRequest, Recommendation};
 
 use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, Item, ItemAdapter};
@@ -28,6 +28,7 @@ impl Customer {
             Ok(item) => Ok(Recommendation::generate_recommendations(
                 self.domain.clone(),
                 item.to_item(),
+                item.get_references(),
                 rec_request.num_recs,
             )),
             Err(err) => Err(err),
@@ -58,14 +59,14 @@ impl User {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Company {
-    id: u32,
-    ticker: String,
-    sector: String,
-    industry: String,
-    exchange: String,
-    country: String,
-    adj: Vec<String>,
-    growth: f32,
+    pub id: u32,
+    pub ticker: String,
+    pub sector: String,
+    pub industry: String,
+    pub exchange: String,
+    pub country: String,
+    pub adj: Vec<String>,
+    pub growth: f32,
 }
 
 impl Company {
@@ -94,6 +95,7 @@ impl Company {
         let sectors = vec![
             "Healthcare",
             "Unknown",
+            "Automotive",
             "Technology",
             "Communication Services",
             "Basic Materials",
@@ -116,6 +118,7 @@ impl Company {
             "Healthcare",
             "Finance",
             "Energy",
+            "Unknown",
             "Retail",
             "Manufacturing",
             "Telecommunications",
@@ -169,7 +172,7 @@ impl RedisManager for Company {
 
     fn handle_not_found() -> Result<Self::Item, CRUDError> {
         Ok(Company::new(
-            1,
+            11,
             "INTC".to_string(),
             "Technology".to_string(),
             "Technology".to_string(),
@@ -197,6 +200,10 @@ impl ItemAdapter for Company {
         .iter()
         .for_each(|f| values.extend(f));
         values
+    }
+
+    fn get_references(&self) -> Vec<Item> {
+        example_companies().iter().map(|c| c.to_item()).collect()
     }
 }
 

@@ -1,6 +1,6 @@
 pub mod db;
 pub mod examples;
-pub use examples::items_examples;
+pub use examples::example_companies;
 pub mod cache;
 pub mod models;
 pub use cache::{CRUDError, RedisManager};
