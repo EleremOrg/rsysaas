@@ -6,4 +6,4 @@ pub mod managers;
 pub mod models;
 pub use cache::RedisManager;
 pub use managers::{CRUDError, Manager};
-pub use models::{Company, Customer, User};
+pub use models::{Company, User};

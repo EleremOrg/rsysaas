@@ -1,16 +1,12 @@
-use std::sync::Arc;
-
-use rec_rsys::algorithms::knn::KNN;
-use rec_rsys::models::Item;
-use rec_rsys::similarity::SimilarityAlgos;
+use super::RecommendationRequest;
+use crate::data::{CRUDError, Company, RedisManager};
+use rec_rsys::{
+    algorithms::knn::KNN,
+    models::{Item, ItemAdapter},
+    similarity::SimilarityAlgos,
+};
 use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
-pub struct RecRequest {
-    pub user_id: u32,
-    pub prod_id: u32,
-    pub num_recs: u8,
-}
+use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Recommendation {
@@ -62,5 +58,40 @@ impl Recommendation {
     }
     fn generate_path(domain: Arc<str>, prod_id: u32) -> String {
         format!("my/path/{domain}/{prod_id}/")
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Customer {
+    pub key: String,
+    pub domain: Arc<str>,
+}
+
+impl Customer {
+    fn new(token: String) -> Self {
+        Customer {
+            key: token,
+            domain: "invfin".into(),
+        }
+    }
+    pub fn get_recommendations(
+        &self,
+        rec_request: RecommendationRequest,
+    ) -> Result<Vec<Recommendation>, CRUDError> {
+        match <Company as RedisManager>::get::<Company>(rec_request.prod_id) {
+            Ok(item) => Ok(Recommendation::generate_recommendations(
+                self.domain.clone(),
+                item.to_item(),
+                item.get_references(),
+                rec_request.num_recs,
+            )),
+            Err(err) => Err(err),
+        }
+    }
+    pub fn get(token: String) -> Option<Self> {
+        if token == "cool" {
+            return Some(Customer::new(token));
+        }
+        return None;
     }
 }

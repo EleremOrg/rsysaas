@@ -1,7 +1,9 @@
-use super::models::RequestModel;
-use super::responses::{max_limit, non_auth, not_found, our_fault, success};
-use crate::data::{CRUDError, Customer};
-use crate::recsys::RecRequest;
+use super::{Customer, RecommendationRequest};
+use crate::data::CRUDError;
+use crate::web::{
+    responses::{max_limit, non_auth, not_found, our_fault, success},
+    RequestModel,
+};
 use axum::response::Response;
 
 pub async fn auth(payload: RequestModel) -> Response {
@@ -11,7 +13,7 @@ pub async fn auth(payload: RequestModel) -> Response {
     }
 }
 
-async fn throttle(customer: &Customer, rec_request: RecRequest) -> Response {
+async fn throttle(customer: &Customer, rec_request: RecommendationRequest) -> Response {
     if can_request(customer).await {
         return get_response(&customer, rec_request).await;
     };
@@ -22,7 +24,7 @@ async fn can_request(customer: &Customer) -> bool {
     true
 }
 
-async fn get_response(customer: &Customer, rec_request: RecRequest) -> Response {
+async fn get_response(customer: &Customer, rec_request: RecommendationRequest) -> Response {
     match customer.get_recommendations(rec_request) {
         Ok(recs) => success(recs),
         Err(err) => match err {

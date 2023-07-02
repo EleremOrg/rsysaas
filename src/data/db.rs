@@ -1,5 +1,3 @@
-use rusqlite::{Connection, Result};
-
 #[derive(Debug)]
 pub enum CRUDError {
     NotFound,
@@ -21,22 +19,22 @@ pub trait SqliteManager {
     //     let item: Self::Item = serde_json::from_str(&row.to_json())?;
     //     Ok(item)
     // }
-    fn read(key: u32) -> Result<Vec<Self::Item>, CRUDError> {
-        let conn = Self::connect();
-        let query = format!("SELECT * FROM {}", Self::table_name());
-        let mut stmt = conn.prepare(&query).unwrap();
+    // fn read(key: u32) -> Result<Vec<Self::Item>, CRUDError> {
+    //     let conn = Self::connect();
+    //     let query = format!("SELECT * FROM {}", Self::table_name());
+    //     let mut stmt = conn.prepare(&query).unwrap();
 
-        // let rows = stmt.query_map([], |row| row.get("title")).unwrap();
+    //     // let rows = stmt.query_map([], |row| row.get("title")).unwrap();
 
-        // let mut result = Vec::new();
+    //     // let mut result = Vec::new();
 
-        // for row in rows {
-        //     if let Ok(row) = row {
-        //         result.push(row);
-        //     }
-        // }
-        return Err(CRUDError::Write);
-    }
+    //     // for row in rows {
+    //     //     if let Ok(row) = row {
+    //     //         result.push(row);
+    //     //     }
+    //     // }
+    //     return Err(CRUDError::Write);
+    // }
 
     // fn insert(key: u32, value: &Self::Item) -> Result<(), CRUDError> {
     //     let conn = Self::connect();
@@ -65,18 +63,18 @@ pub trait SqliteManager {
     //     return result;
     // }
 
-    fn delete(table: String, id: i16) -> Result<i16, CRUDError> {
-        let connection = Self::connect();
-        match connection.execute(&format!("DELETE FROM {table} WHERE id = {id}"), ()) {
-            Ok(deleted) => {
-                println!("{} rows were deleted", deleted);
-                Ok(id)
-            }
-            Err(err) => Err(CRUDError::Delete),
-        }
-    }
+    // fn delete(table: String, id: i16) -> Result<i16, CRUDError> {
+    //     let connection = Self::connect();
+    //     match connection.execute(&format!("DELETE FROM {table} WHERE id = {id}"), ()) {
+    //         Ok(deleted) => {
+    //             println!("{} rows were deleted", deleted);
+    //             Ok(id)
+    //         }
+    //         Err(err) => Err(CRUDError::Delete),
+    //     }
+    // }
 
-    fn connect() -> Connection {
-        Connection::open_in_memory().unwrap()
-    }
+    // fn connect() -> Connection {
+    //     Connection::open_in_memory().unwrap()
+    // }
 }

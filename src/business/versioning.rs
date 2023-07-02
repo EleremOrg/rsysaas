@@ -10,8 +10,6 @@ use std::collections::HashMap;
 #[derive(Debug)]
 pub enum Version {
     V1,
-    V2,
-    V3,
 }
 
 #[async_trait]
@@ -31,8 +29,6 @@ where
 
         match version.as_str() {
             "v1" => Ok(Version::V1),
-            "v2" => Ok(Version::V2),
-            "v3" => Ok(Version::V3),
             _ => Err((StatusCode::NOT_FOUND, "unknown version").into_response()),
         }
     }

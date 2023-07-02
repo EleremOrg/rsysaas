@@ -1,44 +1,7 @@
 use super::{example_companies, CRUDError, Manager, RedisManager};
-use crate::recsys::{RecRequest, Recommendation};
 
 use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, Item, ItemAdapter};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Customer {
-    pub key: String,
-    pub domain: Arc<str>,
-}
-
-impl Customer {
-    fn new(token: String) -> Self {
-        Customer {
-            key: token,
-            domain: "invfin".into(),
-        }
-    }
-    pub fn get_recommendations(
-        &self,
-        rec_request: RecRequest,
-    ) -> Result<Vec<Recommendation>, CRUDError> {
-        match <Company as RedisManager>::get::<Company>(rec_request.prod_id) {
-            Ok(item) => Ok(Recommendation::generate_recommendations(
-                self.domain.clone(),
-                item.to_item(),
-                item.get_references(),
-                rec_request.num_recs,
-            )),
-            Err(err) => Err(err),
-        }
-    }
-    pub fn get(token: String) -> Option<Self> {
-        if token == "cool" {
-            return Some(Customer::new(token));
-        }
-        return None;
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
