@@ -7,11 +7,19 @@ edition = "2021"
 
 [dependencies]
 axum = { version = "0.6.18", features = ["headers", "http2", "macros", "tracing", "ws"] }
+futures = "0.3"
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+headers = "0.3"
 hyper = { version = "0.14.26", features = ["full"] }
 #rec_rsys = { git = "https://github.com/lucas-montes/rec_rsys.git" }
 rec_rsys = {path = "../rec_rsys/"}
 redis = "0.23.0"
+rusqlite = "0.29.0"
 serde = { version = "1.0.163", features = ["derive", "rc"] }
 serde_json = "1.0.96"
 tokio = { version = "1.28.2", features = ["full"] }
-tower = "0.4.13"
+tokio-tungstenite = "0.19"
+tower = { version = "0.4", features = ["util"] }
+tower-http = { version = "0.4.0", features = ["fs", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

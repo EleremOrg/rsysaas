@@ -20,7 +20,7 @@ pub trait RedisManager {
 
     fn get(key: u32) -> Result<Self::Item, CRUDError> {
         let mut conn = Self::connect();
-        let result: Result<String, _> = conn.get(Self::key(key));
+        let result: Result<String, _> = conn.hgetall(Self::key(key));
         match result {
             Ok(data) => {
                 let item: Result<Self::Item, _> = serde_json::from_str(&data);
@@ -52,7 +52,7 @@ pub trait RedisManager {
         let mut conn = Self::connect();
         match serde_json::to_string(value) {
             Ok(json_value) => {
-                let result: Result<u32, RedisError> = conn.set(Self::key(key), json_value);
+                let result: Result<u32, RedisError> = conn.set(Self::key(key), json_value); // use hset_multiple
                 match result {
                     Ok(_) => Ok(&value),
                     Err(err) => {

@@ -1,8 +1,8 @@
 mod data;
 mod recsys;
-mod webservice;
+mod web;
 
-use webservice::routes::routes;
+use web::routes::routes;
 
 #[tokio::main]
 async fn main() {

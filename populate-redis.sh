@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Redis configuration
-REDIS_HOST="172.17.0.2"
+REDIS_HOST="0.0.0.0"
 REDIS_PORT="6379"
 REDIS_PASSWORD=""  # Set your Redis password if applicable
 
@@ -30,7 +30,7 @@ save_company() {
         exchange \"$exchange\" country \"$country\" growth \"$growth\" adj \"${adj[*]}\""
 
     # Execute Redis command
-    redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" eval "$redis_command"
+    redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" eval "$redis_command" 0
 
     echo "Saved company: $ticker"
 }
