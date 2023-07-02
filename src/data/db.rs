@@ -1,4 +1,4 @@
-use rusqlite::{Connection, Error, Result};
+use rusqlite::{Connection, Result};
 
 #[derive(Debug)]
 pub enum CRUDError {
@@ -26,7 +26,7 @@ pub trait SqliteManager {
         let query = format!("SELECT * FROM {}", Self::table_name());
         let mut stmt = conn.prepare(&query).unwrap();
 
-        let rows = stmt.query_map([], |row| row.get("title")).unwrap();
+        // let rows = stmt.query_map([], |row| row.get("title")).unwrap();
 
         // let mut result = Vec::new();
 

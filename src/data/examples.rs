@@ -1,16 +1,4 @@
 use crate::data::Company;
-use rec_rsys::models::Item;
-
-pub fn create_example(id: u32, values: Vec<f32>, result: Option<f32>) -> Item {
-    Item {
-        id,
-        values,
-        result: match result {
-            Some(value) => value,
-            None => f32::NAN,
-        },
-    }
-}
 
 pub fn example_companies() -> Vec<Company> {
     vec![

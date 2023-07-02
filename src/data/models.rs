@@ -1,6 +1,4 @@
-//! Generic models to perform calculations
-use super::RedisManager;
-use crate::data::{example_companies, CRUDError};
+use super::{example_companies, CRUDError, Manager, RedisManager};
 use crate::recsys::{RecRequest, Recommendation};
 
 use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, Item, ItemAdapter};
@@ -24,7 +22,7 @@ impl Customer {
         &self,
         rec_request: RecRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {
-        match Company::get(rec_request.prod_id) {
+        match <Company as RedisManager>::get::<Company>(rec_request.prod_id) {
             Ok(item) => Ok(Recommendation::generate_recommendations(
                 self.domain.clone(),
                 item.to_item(),
@@ -52,8 +50,25 @@ impl User {
     pub fn new(id: u32) -> Self {
         User { id, items: vec![] }
     }
-    pub fn get(id: String) -> Option<Self> {
-        return Some(User::new(id.parse::<u32>().unwrap()));
+}
+
+impl Manager for User {
+    type Item = Self;
+    fn get(id: u32) -> Result<Self::Item, CRUDError> {
+        // <Company as RedisManager>::get::<Company>(id)
+        return Ok(User::new(id));
+    }
+    fn find() {
+        todo!()
+    }
+    fn create() {
+        todo!()
+    }
+    fn update() {
+        todo!()
+    }
+    fn delete() {
+        todo!()
     }
 }
 
@@ -181,6 +196,25 @@ impl RedisManager for Company {
             vec!["growth".to_string(), "divs".to_string()],
             0.3,
         ))
+    }
+}
+
+impl Manager for Company {
+    type Item = Self;
+    fn get(id: u32) -> Result<Self::Item, CRUDError> {
+        <Company as RedisManager>::get::<Company>(id)
+    }
+    fn find() {
+        todo!()
+    }
+    fn create() {
+        todo!()
+    }
+    fn update() {
+        todo!()
+    }
+    fn delete() {
+        todo!()
     }
 }
 

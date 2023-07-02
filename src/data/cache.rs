@@ -1,13 +1,6 @@
+use super::managers::CRUDError;
 use redis::{Client, Commands, Connection, RedisError};
 use serde::{de::DeserializeOwned, Serialize};
-
-#[derive(Debug)]
-pub enum CRUDError {
-    NotFound,
-    MaxRetry,
-    Write,
-    Delete,
-}
 
 pub trait RedisManager {
     type Item: DeserializeOwned + Serialize;
@@ -18,7 +11,7 @@ pub trait RedisManager {
 
     fn prefix() -> String;
 
-    fn get(key: u32) -> Result<Self::Item, CRUDError> {
+    fn get<T>(key: u32) -> Result<Self::Item, CRUDError> {
         let mut conn = Self::connect();
         let result: Result<String, _> = conn.hgetall(Self::key(key));
         match result {

@@ -51,11 +51,11 @@ impl Recommendation {
         result
     }
     fn calculate_recommendations(
-        algo: SimilarityAlgos,
+        algorithm: SimilarityAlgos,
         knn: &KNN,
         domain: Arc<str>,
     ) -> Vec<Recommendation> {
-        knn.vectors_comparaison(algo)
+        knn.result(algorithm)
             .into_iter()
             .map(|item| Recommendation::new(item.id, item.result, domain.clone()))
             .collect()

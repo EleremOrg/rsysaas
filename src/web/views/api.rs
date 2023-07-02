@@ -1,50 +1,63 @@
-use super::models::RequestModel;
-use crate::web::{models::RequestModel, utils::auth};
-use axum::response::{Html, IntoResponse, Response};
+use crate::data::{Company, Manager, User};
+use crate::web::{
+    models::RequestModel,
+    responses::{not_found, success},
+    utils::auth,
+    Version,
+};
 use axum::{
     async_trait,
-    extract::{FromRequestParts, Path, Query},
-    http::{request::Parts, StatusCode},
+    extract::{Path, Query},
+    http::StatusCode,
     response::{Html, IntoResponse, Response},
-    RequestPartsExt,
 };
-use axum::{extract::Query, http::StatusCode};
-use serde::Serialize;
 use std::collections::HashMap;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-pub async fn handle_recommendations(Query(payload): Query<RequestModel>) -> Response {
-    auth(payload)
+pub async fn get_recommendations(Query(payload): Query<RequestModel>) -> Response {
+    // auth(payload)
+    (StatusCode::OK, Html(format!("{:?}", payload))).into_response()
 }
 
-pub async fn handle_items(Query(payload): Query<RequestModel>) -> Response {
-    auth(payload)
+pub async fn get_items(version: Version, Path(id): Path<u32>) -> Response {
+    match Company::get(id) {
+        Ok(u) => success(u),
+        Err(err) => not_found(&id),
+    }
+}
+pub async fn list_items(version: Version, Query(payload): Query<RequestModel>) -> Response {
+    (StatusCode::OK, Html(format!("{:?}", payload))).into_response()
+}
+pub async fn post_items(version: Version) -> Response {
+    todo!()
+}
+pub async fn put_items(version: Version, Path(id): Path<u8>) -> Response {
+    todo!()
+}
+pub async fn patch_items(version: Version, Path(id): Path<u8>) -> Response {
+    todo!()
+}
+pub async fn delete_items(version: Version, Path(id): Path<u8>) -> Response {
+    todo!()
 }
 
-pub async fn handle_users(Query(payload): Query<RequestModel>) -> Response {
-    auth(payload)
+pub async fn get_users(version: Version, Path(id): Path<u32>) -> Response {
+    match User::get(id) {
+        Ok(u) => success(u),
+        Err(err) => not_found(&id),
+    }
 }
-
-#[async_trait]
-trait View {
-    type ListQuery: Serialize + Send + Sync;
-
-    async fn get() -> Response {
-        todo!()
-    }
-    async fn list(Query(payload): Query<Self::ListQuery>) -> Response {
-        todo!()
-    }
-    async fn post() -> Response {
-        todo!()
-    }
-    async fn put() -> Response {
-        todo!()
-    }
-    async fn patch() -> Response {
-        todo!()
-    }
-    async fn delete() -> Response {
-        todo!()
-    }
+pub async fn list_users(version: Version, Query(payload): Query<RequestModel>) -> Response {
+    (StatusCode::OK, Html(format!("{:?}", payload))).into_response()
+}
+pub async fn post_users(version: Version) -> Response {
+    todo!()
+}
+pub async fn put_users(version: Version, Path(id): Path<u8>) -> Response {
+    todo!()
+}
+pub async fn patch_users(version: Version, Path(id): Path<u8>) -> Response {
+    todo!()
+}
+pub async fn delete_users(version: Version, Path(id): Path<u8>) -> Response {
+    todo!()
 }
