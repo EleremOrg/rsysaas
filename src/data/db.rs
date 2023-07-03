@@ -1,10 +1,4 @@
-#[derive(Debug)]
-pub enum CRUDError {
-    NotFound,
-    MaxRetry,
-    Write,
-    Delete,
-}
+use std::env;
 
 pub trait SqliteManager {
     type Item: serde::de::DeserializeOwned + serde::Serialize;
@@ -75,6 +69,8 @@ pub trait SqliteManager {
     // }
 
     // fn connect() -> Connection {
+    // let var_value = env::var("VAR_NAME").unwrap();
+    // println!("{:?}", var_value);
     //     Connection::open_in_memory().unwrap()
     // }
 }

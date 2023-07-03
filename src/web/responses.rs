@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Json, Response};
 use serde_json::json;
@@ -19,6 +21,13 @@ pub fn not_found(id: &u32) -> Response {
     (
         StatusCode::NOT_FOUND,
         Json(json!({ "message": format!("{id} not found") })),
+    )
+        .into_response()
+}
+pub fn wrong_query<T: Debug>(query: &T) -> Response {
+    (
+        StatusCode::NOT_ACCEPTABLE,
+        Json(json!({ "message": format!("wrong query {:?}", query) })),
     )
         .into_response()
 }

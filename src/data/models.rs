@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::{example_companies, CRUDError, Manager, RedisManager};
 
 use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, Item, ItemAdapter};
@@ -21,16 +23,16 @@ impl Manager for User {
         // <Company as RedisManager>::get::<Company>(id)
         return Ok(User::new(id));
     }
-    fn find() {
+    fn find(query: &HashMap<String, String>) -> Result<Vec<Self::Item>, CRUDError> {
         todo!()
     }
-    fn create() {
+    fn create(query: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
         todo!()
     }
-    fn update() {
+    fn update(id: u32, query: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
         todo!()
     }
-    fn delete() {
+    fn delete(id: u32) -> Result<u32, CRUDError> {
         todo!()
     }
 }
@@ -167,16 +169,16 @@ impl Manager for Company {
     fn get(id: u32) -> Result<Self::Item, CRUDError> {
         <Company as RedisManager>::get::<Company>(id)
     }
-    fn find() {
+    fn find(query: &HashMap<String, String>) -> Result<Vec<Self::Item>, CRUDError> {
         todo!()
     }
-    fn create() {
+    fn create(query: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
         todo!()
     }
-    fn update() {
+    fn update(id: u32, query: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
         todo!()
     }
-    fn delete() {
+    fn delete(id: u32) -> Result<u32, CRUDError> {
         todo!()
     }
 }

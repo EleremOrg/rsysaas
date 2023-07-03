@@ -63,12 +63,12 @@ impl Recommendation {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Customer {
-    pub key: String,
+    pub key: Arc<String>,
     pub domain: Arc<str>,
 }
 
 impl Customer {
-    fn new(token: String) -> Self {
+    fn new(token: Arc<String>) -> Self {
         Customer {
             key: token,
             domain: "invfin".into(),
@@ -88,8 +88,8 @@ impl Customer {
             Err(err) => Err(err),
         }
     }
-    pub fn get(token: String) -> Option<Self> {
-        if token == "cool" {
+    pub fn get(token: Arc<String>) -> Option<Self> {
+        if token == Arc::new("cool".to_string()) {
             return Some(Customer::new(token));
         }
         return None;

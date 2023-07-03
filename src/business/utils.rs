@@ -2,13 +2,13 @@ use super::{Customer, RecommendationRequest};
 use crate::data::CRUDError;
 use crate::web::{
     responses::{max_limit, non_auth, not_found, our_fault, success},
-    RequestModel,
+    RecommendationQueryRequest,
 };
 use axum::response::Response;
 
-pub async fn auth(payload: RequestModel) -> Response {
+pub async fn auth(payload: RecommendationQueryRequest) -> Response {
     match Customer::get(payload.token.clone()) {
-        Some(customer) => throttle(&customer, payload.rec_data()).await,
+        Some(customer) => throttle(&customer, RecommendationRequest::new(payload)).await,
         None => non_auth(),
     }
 }
