@@ -21,3 +21,5 @@ tokio-stream = "0.1.14"
 tokio-tungstenite = "0.19"
 tower = { version = "0.4", features = ["util"] }
 tower-http = { version = "0.4.0", features = ["fs", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
