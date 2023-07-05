@@ -23,16 +23,16 @@ impl Manager for User {
         // <Company as RedisManager>::get::<Company>(id)
         return Ok(User::new(id));
     }
-    fn find(query: &HashMap<String, String>) -> Result<Vec<Self::Item>, CRUDError> {
+    fn find(_query: &HashMap<String, String>) -> Result<Vec<Self::Item>, CRUDError> {
         todo!()
     }
-    fn create(query: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
+    fn create(_query: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
         todo!()
     }
-    fn update(id: u32, query: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
+    fn update(_id: u32, _query: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
         todo!()
     }
-    fn delete(id: u32) -> Result<u32, CRUDError> {
+    fn delete(_id: u32) -> Result<u32, CRUDError> {
         todo!()
     }
 }
@@ -169,16 +169,16 @@ impl Manager for Company {
     fn get(id: u32) -> Result<Self::Item, CRUDError> {
         <Company as RedisManager>::get::<Company>(id)
     }
-    fn find(query: &HashMap<String, String>) -> Result<Vec<Self::Item>, CRUDError> {
+    fn find(_query: &HashMap<String, String>) -> Result<Vec<Self::Item>, CRUDError> {
         todo!()
     }
-    fn create(query: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
+    fn create(_parameters: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
         todo!()
     }
-    fn update(id: u32, query: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
+    fn update(_id: u32, _parameters: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
         todo!()
     }
-    fn delete(id: u32) -> Result<u32, CRUDError> {
+    fn delete(_id: u32) -> Result<u32, CRUDError> {
         todo!()
     }
 }

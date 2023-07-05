@@ -16,7 +16,7 @@ pub trait Manager {
 
     fn get(id: u32) -> Result<Self::Item, CRUDError>;
     fn find(query: &HashMap<String, String>) -> Result<Vec<Self::Item>, CRUDError>;
-    fn create(query: &HashMap<String, String>) -> Result<Self::Item, CRUDError>;
-    fn update(id: u32, query: &HashMap<String, String>) -> Result<Self::Item, CRUDError>;
+    fn create(parameters: &HashMap<String, String>) -> Result<Self::Item, CRUDError>;
+    fn update(id: u32, parameters: &HashMap<String, String>) -> Result<Self::Item, CRUDError>;
     fn delete(id: u32) -> Result<u32, CRUDError>;
 }

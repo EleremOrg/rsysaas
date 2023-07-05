@@ -1,9 +1,12 @@
 build:
 	docker build -t my-redis-image .
 
-run:
+rrun:
 	docker run -p 6379:6379 --rm -it my-redis-image
 
 up:
 	make build
-	make run	
+	make rrun	
+
+run:
+	cargo watch -q -c -w src/ -x run

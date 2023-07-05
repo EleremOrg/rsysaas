@@ -20,7 +20,7 @@ async fn throttle(customer: &Customer, rec_request: RecommendationRequest) -> Re
     return max_limit();
 }
 
-async fn can_request(customer: &Customer) -> bool {
+async fn can_request(_customer: &Customer) -> bool {
     true
 }
 

@@ -23,3 +23,9 @@ tower = { version = "0.4", features = ["util"] }
 tower-http = { version = "0.4.0", features = ["fs", "trace"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+models = { path = "models" }
+sqlx = { version = "0.7.0", features = ["sqlite", "runtime-tokio", "tls-rustls"]}
+#migrations = { path = "migration" } # depends on your needs
+
+[workspace]
+members = [".", "models"]
