@@ -1,0 +1,9 @@
+[package]
+name = "envy"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "envy"
+path = "src/lib.rs"

@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 
-use serde::{Deserialize, Serialize};
+use crate::business::versioning::Version;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RecommendationQueryRequest {
@@ -8,6 +9,13 @@ pub struct RecommendationQueryRequest {
     pub user_id: u32,
     pub prod_id: u32,
     pub num_recs: u8,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PathRequest {
+    pub version: Version,
+    pub entity: String,
+    pub id: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

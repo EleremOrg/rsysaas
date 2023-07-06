@@ -1,76 +1,17 @@
-use std::collections::HashMap;
-
-use super::{example_companies, CRUDError, Manager, RedisManager};
+use super::RedisManager;
+use axum::async_trait;
 
 use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, Item, ItemAdapter};
-use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct User {
-    pub id: u32,
-    pub items: Vec<Company>,
+trait CompanyEncoder {
+    fn encode_sector(&self) -> Vec<f32>;
+    fn encode_industry(&self) -> Vec<f32>;
+    fn encode_exchange(&self) -> Vec<f32>;
+    fn encode_country(&self) -> Vec<f32>;
+    fn encode_adjs(&self) -> Vec<f32>;
 }
 
-impl User {
-    pub fn new(id: u32) -> Self {
-        User { id, items: vec![] }
-    }
-}
-
-impl Manager for User {
-    type Item = Self;
-    fn get(id: u32) -> Result<Self::Item, CRUDError> {
-        // <Company as RedisManager>::get::<Company>(id)
-        return Ok(User::new(id));
-    }
-    fn find(_query: &HashMap<String, String>) -> Result<Vec<Self::Item>, CRUDError> {
-        todo!()
-    }
-    fn create(_query: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
-        todo!()
-    }
-    fn update(_id: u32, _query: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
-        todo!()
-    }
-    fn delete(_id: u32) -> Result<u32, CRUDError> {
-        todo!()
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Company {
-    pub id: u32,
-    pub ticker: String,
-    pub sector: String,
-    pub industry: String,
-    pub exchange: String,
-    pub country: String,
-    pub adj: Vec<String>,
-    pub growth: f32,
-}
-
-impl Company {
-    pub fn new(
-        id: u32,
-        ticker: String,
-        sector: String,
-        industry: String,
-        exchange: String,
-        country: String,
-        adj: Vec<String>, // list of adjectives like growth, zombie, divs, value, etc...
-        growth: f32,
-    ) -> Self {
-        Company {
-            id,
-            ticker,
-            sector,
-            industry,
-            exchange,
-            country,
-            adj,
-            growth,
-        }
-    }
+impl CompanyEncoder for Company {
     fn encode_sector(&self) -> Vec<f32> {
         let sectors = vec![
             "Healthcare",
@@ -144,7 +85,7 @@ impl Company {
 }
 
 impl RedisManager for Company {
-    type Item = Company;
+    type Item = Self;
 
     fn prefix() -> String {
         String::from("c")
@@ -164,26 +105,9 @@ impl RedisManager for Company {
     }
 }
 
-impl Manager for Company {
-    type Item = Self;
-    fn get(id: u32) -> Result<Self::Item, CRUDError> {
-        <Company as RedisManager>::get::<Company>(id)
-    }
-    fn find(_query: &HashMap<String, String>) -> Result<Vec<Self::Item>, CRUDError> {
-        todo!()
-    }
-    fn create(_parameters: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
-        todo!()
-    }
-    fn update(_id: u32, _parameters: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
-        todo!()
-    }
-    fn delete(_id: u32) -> Result<u32, CRUDError> {
-        todo!()
-    }
-}
+pub struct MyCompany(Company);
 
-impl ItemAdapter for Company {
+impl ItemAdapter for MyCompany {
     fn to_item(&self) -> Item {
         Item::new(self.id, self.create_values(), None)
     }

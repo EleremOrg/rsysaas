@@ -1,5 +1,5 @@
 use super::RecommendationRequest;
-use crate::data::{CRUDError, Company, RedisManager};
+use crate::data::{MyCompany, RedisManager};
 use rec_rsys::{
     algorithms::knn::KNN,
     models::{Item, ItemAdapter},
@@ -78,7 +78,7 @@ impl Customer {
         &self,
         rec_request: RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {
-        match <Company as RedisManager>::get::<Company>(rec_request.prod_id) {
+        match <MyCompany as RedisManager>::get::<MyCompany>(rec_request.prod_id) {
             Ok(item) => Ok(Recommendation::generate_recommendations(
                 self.domain.clone(),
                 item.to_item(),

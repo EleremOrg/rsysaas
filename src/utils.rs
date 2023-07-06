@@ -1,33 +1,6 @@
-use sqlx::{sqlite::SqliteConnection, Connection, Executor};
-use std::{
-    env,
-    fs::File,
-    io::{BufRead, BufReader},
-};
+use envy::get_env;
+use sqlx::{migrate::MigrateDatabase, sqlite::SqliteConnection, Connection, Executor, Sqlite};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-
-pub fn read_env_file() {
-    let file = File::open(".env").unwrap();
-    let reader = BufReader::new(file);
-    for line in reader.lines() {
-        if let Ok(line) = line {
-            let trimmed_line = line.trim();
-            let is_readable = !trimmed_line.is_empty() && !trimmed_line.starts_with('#');
-            if is_readable {
-                let parts: Vec<&str> = trimmed_line.splitn(2, '=').collect();
-                if parts.len() == 2 {
-                    let key = parts[0].trim();
-                    let value = parts[1].trim();
-                    env::set_var(key, value);
-                }
-            }
-        }
-    }
-}
-
-pub fn get_env(key: &str) -> String {
-    env::var(key).unwrap_or_else(|_| String::from(""))
-}
 
 pub fn tracing() {
     tracing_subscriber::registry()
@@ -43,8 +16,10 @@ pub fn tracing() {
 }
 
 pub async fn execute_sql_file(file_path: &str) -> Result<(), sqlx::Error> {
+    let db_url = get_env("DATABASE_URL");
+    Sqlite::create_database(&db_url).await?;
     // Open a connection to the SQLite database
-    let mut connection = SqliteConnection::connect(&get_env("DATABASE_URL")).await?;
+    let mut connection = SqliteConnection::connect(&db_url).await?;
 
     // Read the SQL file contents
     let sql = tokio::fs::read_to_string(file_path).await?;

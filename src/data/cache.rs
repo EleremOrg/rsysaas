@@ -1,4 +1,4 @@
-use super::managers::CRUDError;
+use super::db::CRUDError;
 use redis::{Client, Commands, Connection, RedisError};
 use serde::{de::DeserializeOwned, Serialize};
 

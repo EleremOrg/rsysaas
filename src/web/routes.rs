@@ -11,29 +11,20 @@ use tower_http::{classify::ServerErrorsFailureClass, trace::TraceLayer};
 use tracing::{info_span, Span};
 
 use super::views::{
-    delete_items, delete_users, error_404, get_items, get_recommendations, get_users, home,
-    list_items, list_users, patch_items, patch_users, post_items, post_users, put_items, put_users,
-    sse_handler, ws_handler,
+    delete_entities, error_404, get_entities, get_recommendations, home, list_entities,
+    patch_entities, post_entities, put_entities, sse_handler, ws_handler,
 };
 
 fn api_routes() -> Router {
     Router::new()
         .route("/recommendations/", get(get_recommendations))
-        .route("/items/", get(list_items).post(post_items))
+        .route("/entities/", get(list_entities).post(post_entities))
         .route(
-            "/items/:id/",
-            get(get_items)
-                .put(put_items)
-                .patch(patch_items)
-                .delete(delete_items),
-        )
-        .route("/users/", get(list_users).post(post_users))
-        .route(
-            "/users/:id/",
-            get(get_users)
-                .put(put_users)
-                .patch(patch_users)
-                .delete(delete_users),
+            "/entities/:entity/:id/",
+            get(get_entities)
+                .put(put_entities)
+                .patch(patch_entities)
+                .delete(delete_entities),
         )
 }
 

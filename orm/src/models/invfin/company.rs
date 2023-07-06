@@ -1,4 +1,6 @@
-#[derive(Clone, Debug, PartialEq)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, PartialEq, sqlx::FromRow, Deserialize, Serialize)]
 
 pub struct Company {
     pub id: u32,

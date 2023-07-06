@@ -3,8 +3,9 @@ mod data;
 mod utils;
 mod web;
 
+use envy::read_env_file;
 use std::net::SocketAddr;
-use utils::{execute_sql_file, read_env_file, tracing};
+use utils::{execute_sql_file, tracing};
 use web::routes::routes;
 
 #[tokio::main]
