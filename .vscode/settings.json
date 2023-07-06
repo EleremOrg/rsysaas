@@ -11,7 +11,9 @@
         "./Cargo.toml",
         "./Cargo.toml",
         "./Cargo.toml",
-        "./Cargo.toml"
+        "./Cargo.toml",
+        "./orm-macros/Cargo.toml",
+        "./orm-macros/Cargo.toml"
     ],
     "sqltools.useNodeRuntime": true
 }

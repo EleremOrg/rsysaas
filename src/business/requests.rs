@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct RecommendationRequest {
     pub user_id: u32,
     pub prod_id: u32,
+    pub entity: String,
     pub num_recs: u8,
 }
 

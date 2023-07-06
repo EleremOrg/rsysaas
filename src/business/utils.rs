@@ -1,10 +1,10 @@
 use super::{Customer, RecommendationRequest};
-use crate::data::CRUDError;
 use crate::web::{
     responses::{max_limit, non_auth, not_found, our_fault, success},
     RecommendationQueryRequest,
 };
 use axum::response::Response;
+use orm::manager::CRUDError;
 
 pub async fn auth(payload: RecommendationQueryRequest) -> Response {
     match Customer::get(payload.token.clone()) {

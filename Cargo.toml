@@ -1,33 +1,59 @@
-[package]
-name = "webservice"
+[workspace.package]
 version = "0.1.0"
+license = "MIT OR Apache-2.0"
 edition = "2021"
+repository = "https://github.com/lucas-montes/rsysaas"
+authors = ["Lucas Montes <lluc23@hotmail.com>"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-axum = { version = "0.6.18", features = ["headers", "http2", "macros", "tracing", "ws"] }
-futures = "0.3"
-futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
-headers = "0.3"
-hyper = { version = "0.14.26", features = ["full"] }
-#rec_rsys = { git = "https://github.com/lucas-montes/rec_rsys.git" }
-rec_rsys = {path = "../rec_rsys/"}
-redis = { version = "0.23.0", features = ["json", "serde", "serde_json", "aio", "tokio", "tokio-comp"] }
+[workspace.dependencies]
+orm = { path = "orm" }
+envy = { path = "envy" }
 serde = { version = "1.0.163", features = ["derive", "rc"] }
 serde_json = "1.0.96"
+sqlx = { version = "0.7.0", features = ["sqlite", "runtime-tokio", "tls-rustls"]}
+futures = "0.3"
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+
+[package]
+name = "webservice"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[dependencies]
+# Webserver
+axum = { version = "0.6.18", features = ["headers", "http2", "macros", "tracing", "ws"] }
+headers = "0.3"
+hyper = { version = "0.14.26", features = ["full"] }
 tokio = { version = "1.28.2", features = ["full"] }
 tokio-stream = "0.1.14"
 tokio-tungstenite = "0.19"
 tower = { version = "0.4", features = ["util"] }
 tower-http = { version = "0.4.0", features = ["fs", "trace"] }
+
+# Recsys
+#rec_rsys = { git = "https://github.com/lucas-montes/rec_rsys.git" }
+rec_rsys = {path = "../rec_rsys/"}
+
+# Cache
+redis = { version = "0.23.0", features = ["json", "serde", "serde_json", "aio", "tokio", "tokio-comp"] }
+
+# Logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-orm = { path = "orm" }
-envy = { path = "envy" }
-sqlx = { version = "0.7.0", features = ["sqlite", "runtime-tokio", "tls-rustls"]}
+
 chrono = "0.4.23"
-#migrations = { path = "migration" } # depends on your needs
+sqlx = { workspace = true}
+futures = { workspace = true}
+futures-util = { workspace = true}
+serde = { workspace = true}
+serde_json = { workspace = true }
+
+# Custom
+envy = { workspace = true }
+orm = { workspace = true }
+#migrations = { path = "migration" }
 
 [workspace]
-members = [".", "orm"]
+members = [".", "orm", "orm-macros", "envy"]

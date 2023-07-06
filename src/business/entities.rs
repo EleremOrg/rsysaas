@@ -1,10 +1,7 @@
 use super::RecommendationRequest;
-use crate::data::{MyCompany, RedisManager};
-use rec_rsys::{
-    algorithms::knn::KNN,
-    models::{Item, ItemAdapter},
-    similarity::SimilarityAlgos,
-};
+use crate::data::Entity;
+use orm::manager::CRUDError;
+use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -78,7 +75,7 @@ impl Customer {
         &self,
         rec_request: RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {
-        match <MyCompany as RedisManager>::get::<MyCompany>(rec_request.prod_id) {
+        match Entity::get(rec_request.prod_id) {
             Ok(item) => Ok(Recommendation::generate_recommendations(
                 self.domain.clone(),
                 item.to_item(),

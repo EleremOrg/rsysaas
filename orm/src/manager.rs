@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use envy::get_env;
-use futures::stream::{FuturesUnordered, StreamExt};
+use serde::{Deserialize, Serialize};
 use sqlx::sqlite::{SqliteConnection, SqliteRow};
-use sqlx::Connection;
+use sqlx::FromRow;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -15,24 +15,21 @@ pub enum CRUDError {
 }
 
 #[async_trait]
-pub trait DBManager: Sized {
-    const TABLE: String;
+pub trait Manager<'a>: Sized
+where
+    Self::Item: for<'r> FromRow<'r, SqliteRow>,
+{
+    type Item: Deserialize<'a> + Serialize + Send + Sync + Unpin;
 
-    async fn get(id: u32) -> Result<Self, CRUDError> {
-        let mut conn = Self::connect().await;
-        let query = format!("SELECT * FROM {} WHERE id = ?", Self::table().await);
-        let row = sqlx::query(&query).bind(id).fetch_one(&mut conn).await;
-        match row {
-            Ok(row) => Ok(Self::row_to_item(&row).await),
-            Err(_) => Err(CRUDError::NotFound),
-        }
+    async fn get(id: u32) -> Result<Self::Item, CRUDError> {
+        Self::execute_query(
+            format!("SELECT * FROM {} WHERE id = {id}", Self::table().await),
+            Self::connect().await,
+        )
+        .await
     }
 
-    async fn row_to_item(row: &SqliteRow) -> Self;
-
-    async fn find(query_param: &HashMap<String, String>) -> Result<Vec<Self>, CRUDError> {
-        let mut conn = Self::connect().await;
-
+    async fn find(query_param: &HashMap<String, String>) -> Result<Vec<Self::Item>, CRUDError> {
         let query_string = query_param
             .iter()
             .map(|(key, value)| format!("{} = {}", key, value))
@@ -44,26 +41,17 @@ pub trait DBManager: Sized {
             Self::table().await,
             query_string
         );
-        let mut result: Vec<Self> = Vec::new();
 
-        match sqlx::query(&query).fetch_all(&mut conn).await {
-            Ok(rows) => Ok(Self::rows_to_items(rows).await),
+        let result = sqlx::query_as::<_, Self::Item>(&query)
+            .fetch_all(&mut Self::connect().await)
+            .await;
+        match result {
+            Ok(rows) => Ok(rows),
             Err(_) => Err(CRUDError::NotFound),
         }
     }
 
-    async fn rows_to_items(rows: Vec<SqliteRow>) -> Vec<Self> {
-        let mut futures = FuturesUnordered::new();
-        rows.iter()
-            .for_each(|row| futures.push(Self::row_to_item(&row)));
-
-        futures.collect::<Vec<Self>>().await
-    }
-
-    async fn create(parameters: &HashMap<String, String>) -> Result<Self, CRUDError> {
-        let mut conn = Self::connect().await;
-        let table = Self::table().await;
-
+    async fn create(parameters: &HashMap<String, String>) -> Result<Self::Item, CRUDError> {
         let (fields, placeholders): (Vec<_>, Vec<_>) = parameters
             .iter()
             .map(|(key, _)| (format!("\"{}\"", key), "?"))
@@ -72,33 +60,36 @@ pub trait DBManager: Sized {
         let fields = fields.join(", ");
         let placeholders = placeholders.join(", ");
 
-        let query = format!(
-            "INSERT INTO {} ({}) VALUES ({});",
-            table, fields, placeholders
-        );
-
-        match sqlx::query(&query).fetch_one(&mut conn).await {
-            Ok(row) => Ok(Self::row_to_item(&row).await),
-            Err(_) => Err(CRUDError::Write),
-        }
+        Self::execute_query(
+            format!(
+                "INSERT INTO {} ({}) VALUES ({});",
+                Self::table().await,
+                fields,
+                placeholders
+            ),
+            Self::connect().await,
+        )
+        .await
     }
 
-    async fn update(id: u32, parameters: &HashMap<String, String>) -> Result<Self, CRUDError> {
-        let mut conn = Self::connect().await;
+    async fn update(
+        id: u32,
+        parameters: &HashMap<String, String>,
+    ) -> Result<Self::Item, CRUDError> {
         let fields_names = parameters
             .iter()
             .map(|(key, value)| format!("{key} = {value}"))
             .collect::<Vec<_>>()
             .join(",");
-        let query = format!(
-            "UPDATE {table} SET {fields_names} WHERE id = {id}",
-            table = Self::table().await
-        );
 
-        match sqlx::query(&query).fetch_one(&mut conn).await {
-            Ok(row) => Ok(Self::row_to_item(&row).await),
-            Err(_) => Err(CRUDError::Write),
-        }
+        Self::execute_query(
+            format!(
+                "UPDATE {table} SET {fields_names} WHERE id = {id}",
+                table = Self::table().await
+            ),
+            Self::connect().await,
+        )
+        .await
     }
 
     async fn delete(id: u32) -> Result<u64, CRUDError> {
@@ -120,7 +111,18 @@ pub trait DBManager: Sized {
         }
     }
 
-    async fn table() -> String {
-        Self::TABLE
+    async fn execute_query(
+        query: String,
+        mut conn: SqliteConnection,
+    ) -> Result<Self::Item, CRUDError> {
+        let row = sqlx::query_as::<_, Self::Item>(&query)
+            .fetch_one(&mut conn)
+            .await;
+        match row {
+            Ok(row) => Ok(row),
+            Err(_) => Err(CRUDError::NotFound),
+        }
     }
+
+    async fn table() -> String;
 }

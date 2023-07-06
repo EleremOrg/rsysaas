@@ -1,5 +1,5 @@
 [package]
-name = "envy"
+name = "orm-macros"
 version.workspace = true
 license.workspace = true
 edition.workspace = true
@@ -7,5 +7,9 @@ authors.workspace = true
 repository.workspace = true
 
 [lib]
-name = "envy"
-path = "src/lib.rs"
+proc-macro = true
+
+[dependencies]
+syn = "1.0"
+quote = "1.0"
+proc-macro2 = "1.0"
