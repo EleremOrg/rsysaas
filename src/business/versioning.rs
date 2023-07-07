@@ -5,9 +5,10 @@ use axum::{
     response::{IntoResponse, Response},
     RequestPartsExt,
 };
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Clone, Deserialize)]
 pub enum Version {
     V1,
 }

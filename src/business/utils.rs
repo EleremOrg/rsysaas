@@ -4,7 +4,7 @@ use crate::web::{
     RecommendationQueryRequest,
 };
 use axum::response::Response;
-use orm::manager::CRUDError;
+use orm::errors::CRUDError;
 
 pub async fn auth(payload: RecommendationQueryRequest) -> Response {
     match Customer::get(payload.token.clone()) {

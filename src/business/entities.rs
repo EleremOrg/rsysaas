@@ -1,6 +1,6 @@
 use super::RecommendationRequest;
 use crate::data::Entity;
-use orm::manager::CRUDError;
+use orm::errors::CRUDError;
 use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

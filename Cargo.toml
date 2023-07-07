@@ -6,13 +6,11 @@ repository = "https://github.com/lucas-montes/rsysaas"
 authors = ["Lucas Montes <lluc23@hotmail.com>"]
 
 [workspace.dependencies]
-orm = { path = "orm" }
 envy = { path = "envy" }
 serde = { version = "1.0.163", features = ["derive", "rc"] }
 serde_json = "1.0.96"
 sqlx = { version = "0.7.0", features = ["sqlite", "runtime-tokio", "tls-rustls"]}
-futures = "0.3"
-futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+axum = { version = "0.6.18", features = ["headers", "http2", "macros", "tracing", "ws"] }
 
 [package]
 name = "webservice"
@@ -23,7 +21,7 @@ repository.workspace = true
 
 [dependencies]
 # Webserver
-axum = { version = "0.6.18", features = ["headers", "http2", "macros", "tracing", "ws"] }
+axum = { workspace = true}
 headers = "0.3"
 hyper = { version = "0.14.26", features = ["full"] }
 tokio = { version = "1.28.2", features = ["full"] }
@@ -45,15 +43,14 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 chrono = "0.4.23"
 sqlx = { workspace = true}
-futures = { workspace = true}
-futures-util = { workspace = true}
+futures = "0.3"
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 serde = { workspace = true}
 serde_json = { workspace = true }
 
 # Custom
 envy = { workspace = true }
-orm = { workspace = true }
 #migrations = { path = "migration" }
 
 [workspace]
-members = [".", "orm", "orm-macros", "envy"]
+members = [".", "envy"]

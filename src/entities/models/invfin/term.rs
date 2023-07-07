@@ -1,8 +1,8 @@
-use crate::manager::Manager;
+use crate::interfaces::db::Manager;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow, Deserialize, Serialize, Default)]
 
 pub struct Term {
     pub id: u32,
@@ -13,8 +13,6 @@ pub struct Term {
 }
 #[async_trait]
 impl Manager<'_> for Term {
-    type Item = Self;
-
     async fn table() -> String {
         "terms".to_string()
     }

@@ -1,7 +1,7 @@
 use crate::web::RecommendationQueryRequest;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RecommendationRequest {
     pub user_id: u32,
     pub prod_id: u32,

@@ -1,8 +1,8 @@
-use crate::manager::Manager;
+use crate::interfaces::db::Manager;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, sqlx::FromRow, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, sqlx::FromRow, Deserialize, Serialize, Default)]
 
 pub struct Company {
     pub id: u32,
@@ -17,8 +17,6 @@ pub struct Company {
 
 #[async_trait]
 impl Manager<'_> for Company {
-    type Item = Self;
-
     async fn table() -> String {
         "companies".to_string()
     }

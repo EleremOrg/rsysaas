@@ -1,5 +1,6 @@
 mod business;
 mod data;
+mod entities;
 mod utils;
 mod web;
 
