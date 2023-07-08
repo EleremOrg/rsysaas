@@ -5,7 +5,7 @@ use crate::business::versioning::Version;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RecommendationQueryRequest {
-    pub token: Arc<String>,
+    pub entity: Arc<String>,
     pub user_id: u32,
     pub prod_id: u32,
     pub num_recs: u8,
@@ -14,7 +14,6 @@ pub struct RecommendationQueryRequest {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PathRequest {
     pub version: Version,
-    pub entity: String,
     pub id: u32,
 }
 

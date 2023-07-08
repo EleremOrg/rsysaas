@@ -1,6 +1,5 @@
-use super::RecommendationRequest;
-use crate::data::Entity;
-use orm::errors::CRUDError;
+use super::requests::RecommendationRequest;
+use crate::entities::errors::CRUDError;
 use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -59,35 +58,35 @@ impl Recommendation {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Customer {
+pub struct CustomerInterface {
     pub key: Arc<String>,
     pub domain: Arc<str>,
 }
 
-impl Customer {
+impl CustomerInterface {
     fn new(token: Arc<String>) -> Self {
-        Customer {
+        CustomerInterface {
             key: token,
             domain: "invfin".into(),
         }
     }
-    pub fn get_recommendations(
-        &self,
-        rec_request: RecommendationRequest,
-    ) -> Result<Vec<Recommendation>, CRUDError> {
-        match Entity::get(rec_request.prod_id) {
-            Ok(item) => Ok(Recommendation::generate_recommendations(
-                self.domain.clone(),
-                item.to_item(),
-                item.get_references(),
-                rec_request.num_recs,
-            )),
-            Err(err) => Err(err),
-        }
-    }
+    // pub fn get_recommendations(
+    //     &self,
+    //     rec_request: RecommendationRequest,
+    // ) -> Result<Vec<Recommendation>, CRUDError> {
+    //     match Entity::get(rec_request.prod_id) {
+    //         Ok(item) => Ok(Recommendation::generate_recommendations(
+    //             self.domain.clone(),
+    //             item.to_item(),
+    //             item.get_references(),
+    //             rec_request.num_recs,
+    //         )),
+    //         Err(err) => Err(err),
+    //     }
+    // }
     pub fn get(token: Arc<String>) -> Option<Self> {
         if token == Arc::new("cool".to_string()) {
-            return Some(Customer::new(token));
+            return Some(CustomerInterface::new(token));
         }
         return None;
     }

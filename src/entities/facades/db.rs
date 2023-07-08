@@ -1,5 +1,5 @@
-use crate::errors::CRUDError;
-use async_trait::async_trait;
+use crate::entities::errors::CRUDError;
+use axum::async_trait;
 use envy::get_env;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -10,7 +10,7 @@ use sqlx::{
 use std::collections::HashMap;
 
 #[async_trait]
-pub trait Manager<'a>: Sized
+pub trait Manager<'a>
 where
     Self: for<'r> FromRow<'r, SqliteRow> + Deserialize<'a> + Serialize + Send + Sync + Unpin,
 {
@@ -88,13 +88,27 @@ where
     }
 
     async fn delete(&self, id: u32) -> Result<u64, CRUDError> {
-        let mut conn = self.connect().await;
         let query = format!(
             "DELETE FROM {table} WHERE id = {id}",
             table = Self::table().await
         );
-        match sqlx::query(&query).execute(&mut conn).await {
+        match sqlx::query(&query).execute(&mut self.connect().await).await {
             Ok(row) => Ok(row.rows_affected()),
+            Err(_) => Err(CRUDError::NotFound),
+        }
+    }
+
+    async fn exists(&self, query: &str) -> Result<bool, CRUDError> {
+        let query = format!(
+            "SELECT EXISTS (SELECT 1 FROM {} WHERE {})",
+            Self::table().await,
+            query
+        );
+        match sqlx::query(&query).execute(&mut self.connect().await).await {
+            Ok(row) => {
+                println!("{:?}", row);
+                Ok(true)
+            }
             Err(_) => Err(CRUDError::NotFound),
         }
     }

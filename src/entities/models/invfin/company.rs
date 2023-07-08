@@ -1,5 +1,5 @@
-use crate::interfaces::db::Manager;
-use async_trait::async_trait;
+use crate::entities::facades::{db::Manager, view::View};
+use axum::async_trait;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, sqlx::FromRow, Deserialize, Serialize, Default)]
@@ -21,3 +21,5 @@ impl Manager<'_> for Company {
         "companies".to_string()
     }
 }
+#[async_trait]
+impl View<'_> for Company {}
