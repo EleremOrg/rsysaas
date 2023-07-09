@@ -1,4 +1,4 @@
-use crate::data::facades::db::Manager;
+use crate::data::{errors::CRUDError, facades::db::Manager};
 use crate::web::facade::View;
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
@@ -20,3 +20,16 @@ impl Manager<'_> for Customer {
 
 #[async_trait]
 impl View<'_> for Customer {}
+
+impl Customer {
+    pub async fn get_by_token(token: &str) -> Result<Self, CRUDError> {
+        Self::execute_query(
+            format!(
+                "SELECT * FROM {} WHERE api_key = {token}",
+                Self::table().await
+            ),
+            Self::connect().await,
+        )
+        .await
+    }
+}

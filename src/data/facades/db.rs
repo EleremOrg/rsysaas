@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sqlx::{
     sqlite::{SqliteConnection, SqliteRow},
-    Connection, FromRow,
+    Connection, FromRow, Row,
 };
 use std::collections::HashMap;
 
@@ -15,13 +15,14 @@ where
     Self: for<'r> FromRow<'r, SqliteRow> + Deserialize<'a> + Serialize + Send + Sync + Unpin,
 {
     async fn get(&self, id: u32) -> Result<Self, CRUDError> {
-        self.execute_query(
+        Self::execute_query(
             format!("SELECT * FROM {} WHERE id = {id}", Self::table().await),
-            self.connect().await,
+            Self::connect().await,
         )
         .await
     }
 
+    // TODO: fix the query
     async fn find(&self, query_param: &HashMap<String, String>) -> Result<Vec<Self>, CRUDError> {
         let query_string = query_param
             .iter()
@@ -36,12 +37,12 @@ where
         );
 
         let rows = sqlx::query_as::<_, Self>(&query)
-            .fetch_all(&mut self.connect().await)
+            .fetch_all(&mut Self::connect().await)
             .await;
 
         match rows {
             Ok(json) => Ok(json),
-            Err(e) => Err(CRUDError::WrongParameters),
+            Err(_e) => Err(CRUDError::WrongParameters),
         }
     }
 
@@ -54,14 +55,14 @@ where
         let fields = fields.join(", ");
         let placeholders = placeholders.join(", ");
 
-        self.execute_query(
+        Self::execute_query(
             format!(
                 "INSERT INTO {} ({}) VALUES ({});",
                 Self::table().await,
                 fields,
                 placeholders
             ),
-            self.connect().await,
+            Self::connect().await,
         )
         .await
     }
@@ -77,12 +78,12 @@ where
             .collect::<Vec<_>>()
             .join(",");
 
-        self.execute_query(
+        Self::execute_query(
             format!(
                 "UPDATE {table} SET {fields_names} WHERE id = {id}",
                 table = Self::table().await
             ),
-            self.connect().await,
+            Self::connect().await,
         )
         .await
     }
@@ -92,40 +93,42 @@ where
             "DELETE FROM {table} WHERE id = {id}",
             table = Self::table().await
         );
-        match sqlx::query(&query).execute(&mut self.connect().await).await {
+        match sqlx::query(&query)
+            .execute(&mut Self::connect().await)
+            .await
+        {
             Ok(row) => Ok(row.rows_affected()),
             Err(_) => Err(CRUDError::NotFound),
         }
     }
 
-    async fn exists(&self, query: &str) -> Result<bool, CRUDError> {
+    async fn exists(conditions: &str) -> Result<bool, CRUDError> {
         let query = format!(
-            "SELECT EXISTS (SELECT 1 FROM {} WHERE {})",
+            "SELECT EXISTS (SELECT 1 FROM {} WHERE {}) AS result;",
             Self::table().await,
-            query
+            conditions
         );
-        // TODO: Fix
-        match sqlx::query(&query).execute(&mut self.connect().await).await {
-            Ok(row) => {
-                println!("{:?}", row);
-                Ok(true)
-            }
-            Err(_) => Err(CRUDError::NotFound),
+        let query_result = sqlx::query(&query)
+            .fetch_one(&mut Self::connect().await)
+            .await;
+        let row = match query_result {
+            Ok(row) => row,
+            Err(_err) => return Err(CRUDError::NotFound),
+        };
+        match row.try_get("result") {
+            Ok(result) => Ok(result),
+            Err(_) => Err(CRUDError::InternalError),
         }
     }
 
-    async fn connect(&self) -> SqliteConnection {
+    async fn connect() -> SqliteConnection {
         match SqliteConnection::connect(&get_env("DATABASE_URL")).await {
             Ok(db) => db,
             Err(e) => panic!("{}", e),
         }
     }
 
-    async fn execute_query(
-        &self,
-        query: String,
-        mut conn: SqliteConnection,
-    ) -> Result<Self, CRUDError> {
+    async fn execute_query(query: String, mut conn: SqliteConnection) -> Result<Self, CRUDError> {
         let row = sqlx::query_as::<_, Self>(&query).fetch_one(&mut conn).await;
         match row {
             Ok(row) => Ok(row),
@@ -136,7 +139,7 @@ where
     fn to_json(&self, result: Self) -> Result<Value, CRUDError> {
         match serde_json::to_value(&result) {
             Ok(value) => Ok(value),
-            Err(e) => Err(CRUDError::JsonError),
+            Err(_e) => Err(CRUDError::JsonError),
         }
     }
 

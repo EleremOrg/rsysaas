@@ -8,4 +8,5 @@ pub enum CRUDError {
     Write,
     Delete,
     JsonError,
+    InternalError,
 }

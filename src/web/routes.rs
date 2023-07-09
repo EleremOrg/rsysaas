@@ -25,7 +25,6 @@ use tracing::{info_span, Span};
 
 fn api_routes() -> Router {
     Router::new()
-        .route("/recommendations/", get(get_recommendations))
         .merge(User::routes())
         .merge(Term::routes())
         .merge(Company::routes())
@@ -33,12 +32,18 @@ fn api_routes() -> Router {
         .merge(Customer::routes())
 }
 
+fn recommendations_routes() -> Router {
+    Router::new()
+        .route("/ws/", get(ws_handler))
+        .route("/sse/", get(sse_handler))
+        .route("/recommendations/", get(get_recommendations))
+}
+
 pub fn routes() -> Router {
     Router::new()
         .route("/", get(home))
+        .merge(recommendations_routes())
         .nest("/api/:version/", api_routes())
-        .route("/ws/", get(ws_handler))
-        .route("/sse/", get(sse_handler))
         .fallback(error_404)
         // `TraceLayer` is provided by tower-http so you have to add that as a dependency.
         // It provides good defaults but is also very customizable.

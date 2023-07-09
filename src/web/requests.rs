@@ -6,9 +6,9 @@ use crate::business::versioning::Version;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RecommendationQueryRequest {
     pub entity: Arc<String>,
-    pub user_id: u32,
-    pub prod_id: u32,
-    pub num_recs: u8,
+    pub user_id: Option<u32>,
+    pub prod_id: Option<u32>,
+    pub num_recs: Option<u8>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

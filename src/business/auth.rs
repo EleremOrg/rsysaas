@@ -1,9 +1,8 @@
-use crate::web::{requests::RecommendationQueryRequest, responses::non_auth};
 use axum::http::HeaderMap;
 use headers::HeaderValue;
 
 pub async fn get_bearer_token<'a>(headers: &'a HeaderMap) -> Option<&'a str> {
-    match headers.get("Authorization") {
+    match headers.get("authorization") {
         Some(value) => extract_bearer_token(value).await,
         None => None,
     }

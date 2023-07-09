@@ -3,6 +3,7 @@ CREATE TABLE customers (
     name TEXT NOT NULL,
     domain TEXT NOT NULL,
     api_key TEXT NOT NULL,
+    models_related TEXT NOT NULL,
     UNIQUE(api_key),
     UNIQUE(domain)
 );
@@ -51,10 +52,10 @@ VALUES
     (10, 'GE', 'Automotive', 'Unknown', 'NYSE', 'USA', 'growth,zombie', -0.1),
     (12, 'FIRST', 'Technology', 'Technology', 'NASDAQ', 'USA', 'growth,divs', 0.3);
 
-INSERT INTO customers (id, name, domain, api_key)
+INSERT INTO customers (id, name, domain, api_key, models_related)
 VALUES
-    (1, 'Acme Corporation', 'acme.com', 'acme_api_key'),
-    (2, 'Widget Inc.', 'widget.com', 'widget_api_key');
+    (1, 'Acme Corporation', 'acme.com', 'acme_api_key', 'users,'),
+    (2, 'Widget Inc.', 'widget.com', 'widget_api_key', 'users, terms, companies');
 
 INSERT INTO users (id, name, customer_id)
 VALUES

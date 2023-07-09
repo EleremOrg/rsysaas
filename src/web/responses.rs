@@ -1,4 +1,3 @@
-use crate::business::{interface::CustomerInterface, requests::RecommendationRequest};
 use crate::data::errors::CRUDError;
 use axum::{
     http::StatusCode,
@@ -56,22 +55,7 @@ pub async fn match_error<T: Serialize + Send, P: Serialize + Send + Debug>(
             CRUDError::Write => our_fault(),
             CRUDError::Delete => our_fault(),
             CRUDError::JsonError => our_fault(),
+            CRUDError::InternalError => our_fault(),
         },
     }
-}
-
-// TODO: fix
-pub async fn get_response(
-    customer: &CustomerInterface,
-    rec_request: RecommendationRequest,
-) -> Response {
-    // match customer.get_recommendations(rec_request) {
-    //     Ok(recs) => success(recs),
-    //     Err(err) => match err {
-    //         CRUDError::NotFound => not_found(&rec_request.prod_id),
-    //         CRUDError::MaxRetry => our_fault(),
-    //         _ => our_fault(),
-    //     },
-    // }
-    success("hey")
 }
