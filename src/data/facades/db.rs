@@ -23,7 +23,8 @@ where
     }
 
     // TODO: fix the query
-    async fn find(&self, query_param: &HashMap<String, String>) -> Result<Vec<Self>, CRUDError> {
+    async fn find(&self, mut query_param: HashMap<String, String>) -> Result<Vec<Self>, CRUDError> {
+        let limit = query_param.remove("limit").unwrap();
         let query_string = query_param
             .iter()
             .map(|(key, value)| format!("{} = {}", key, value))
@@ -31,9 +32,10 @@ where
             .join(" AND ");
 
         let query = format!(
-            "SELECT * FROM {} WHERE {};",
+            "SELECT * FROM {} WHERE {} LIMIT {};",
             Self::table().await,
-            query_string
+            query_string,
+            limit
         );
 
         let rows = sqlx::query_as::<_, Self>(&query)

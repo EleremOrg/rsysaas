@@ -42,7 +42,7 @@ where
     ) -> Response {
         if Self::allow_request(format!("{}s", Self::entity_name()), headers).await {
             return match_error(
-                <Self as Manager>::find(&Self::default(), &payload.get_query()).await,
+                <Self as Manager>::find(&Self::default(), payload.get_query()).await,
                 &payload.get_query(),
             )
             .await;
