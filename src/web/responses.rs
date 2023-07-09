@@ -1,5 +1,5 @@
-use crate::business::{entities::CustomerInterface, requests::RecommendationRequest};
-use crate::entities::errors::CRUDError;
+use crate::business::{interface::CustomerInterface, requests::RecommendationRequest};
+use crate::data::errors::CRUDError;
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Json, Response},

@@ -8,4 +8,3 @@
 * [ ] Connect to redis and DB 
 * [ ] Create data models to send and receive data from client 
 * [ ] Data models to create the recommendations 
-* [ ] Create custom ORM

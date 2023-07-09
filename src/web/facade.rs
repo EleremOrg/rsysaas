@@ -1,6 +1,6 @@
-use super::db::Manager;
+use crate::data::facades::db::Manager;
 use crate::{
-    business::{auth::auth, versioning::Version},
+    business::versioning::Version,
     web::{
         requests::{PathRequest, QueryRequest},
         responses::match_error,
@@ -9,6 +9,7 @@ use crate::{
 use axum::{
     async_trait,
     extract::{Path, Query},
+    http::HeaderMap,
     response::Response,
     routing::get,
     Router,
@@ -20,31 +21,30 @@ pub trait View<'a>
 where
     Self: Manager<'a> + Default + Sync + Send + Unpin + Deserialize<'a> + Serialize + 'static,
 {
-    fn entity_name() -> String {
-        std::any::type_name::<Self>()
-            .rsplit("::")
-            .next()
-            .unwrap()
-            .to_lowercase()
-    }
-    fn base_path() -> String {
-        format!("/{}s/", Self::entity_name())
-    }
-    async fn get(Path(path_request): Path<PathRequest>) -> Response {
+    async fn get(Path(path_request): Path<PathRequest>, headers: HeaderMap) -> Response {
+        println!("{:#?}", headers);
         match_error(
             <Self as Manager>::get(&Self::default(), path_request.id).await,
             &path_request.id,
         )
         .await
     }
-    async fn list(_version: Version, Query(payload): Query<QueryRequest>) -> Response {
+    async fn list(
+        _version: Version,
+        Query(payload): Query<QueryRequest>,
+        headers: HeaderMap,
+    ) -> Response {
         match_error(
             <Self as Manager>::find(&Self::default(), &payload.get_query()).await,
             &payload.get_query(),
         )
         .await
     }
-    async fn post(_version: Version, Query(payload): Query<QueryRequest>) -> Response {
+    async fn post(
+        _version: Version,
+        Query(payload): Query<QueryRequest>,
+        headers: HeaderMap,
+    ) -> Response {
         match_error(
             <Self as Manager>::create(&Self::default(), &payload.get_params()).await,
             &payload.fields,
@@ -54,6 +54,7 @@ where
     async fn put(
         Path(path_request): Path<PathRequest>,
         Query(payload): Query<QueryRequest>,
+        headers: HeaderMap,
     ) -> Response {
         match_error(
             <Self as Manager>::update(&Self::default(), path_request.id, &payload.get_params())
@@ -65,6 +66,7 @@ where
     async fn patch(
         Path(path_request): Path<PathRequest>,
         Query(payload): Query<QueryRequest>,
+        headers: HeaderMap,
     ) -> Response {
         match_error(
             <Self as Manager>::update(&Self::default(), path_request.id, &payload.get_params())
@@ -73,7 +75,7 @@ where
         )
         .await
     }
-    async fn delete(Path(path_request): Path<PathRequest>) -> Response {
+    async fn delete(Path(path_request): Path<PathRequest>, headers: HeaderMap) -> Response {
         match_error(
             <Self as Manager>::delete(&Self::default(), path_request.id).await,
             &path_request.id,
@@ -91,5 +93,15 @@ where
                     .patch(<Self as View>::patch)
                     .delete(<Self as View>::delete),
             )
+    }
+    fn entity_name() -> String {
+        std::any::type_name::<Self>()
+            .rsplit("::")
+            .next()
+            .unwrap()
+            .to_lowercase()
+    }
+    fn base_path() -> String {
+        format!("/{}s/", Self::entity_name())
     }
 }

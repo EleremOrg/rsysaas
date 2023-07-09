@@ -1,21 +1,22 @@
-use crate::entities::facades::{db::Manager, view::View};
+use crate::data::facades::db::Manager;
+use crate::web::facade::View;
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow, Deserialize, Serialize, Default)]
-pub struct Customer {
+pub struct User {
     pub id: u32,
     pub name: String,
-    pub domain: String,
-    pub api_key: String,
-    pub models_related: String,
+    pub customer_id: u32,
+    // #[sqlx(skip)]
 }
+
 #[async_trait]
-impl Manager<'_> for Customer {
+impl Manager<'_> for User {
     async fn table() -> String {
-        "customers".to_string()
+        "users".to_string()
     }
 }
 
 #[async_trait]
-impl View<'_> for Customer {}
+impl View<'_> for User {}

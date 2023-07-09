@@ -4,12 +4,12 @@ use super::views::{
     sse::sse_handler,
     ws::ws_handler,
 };
-use crate::entities::facades::view::View;
-use crate::entities::models::{
+use crate::data::models::{
     customer::Customer,
     invfin::{association::Association, company::Company, term::Term},
     user::User,
 };
+use crate::web::facade::View;
 use axum::{
     body::Bytes,
     extract::MatchedPath,

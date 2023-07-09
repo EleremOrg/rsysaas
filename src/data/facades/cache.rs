@@ -1,4 +1,4 @@
-use crate::entities::errors::CRUDError;
+use crate::data::errors::CRUDError;
 use redis::{Client, Commands, Connection, RedisError};
 use serde::{de::DeserializeOwned, Serialize};
 

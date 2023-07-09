@@ -1,4 +1,4 @@
-use crate::entities::errors::CRUDError;
+use crate::data::errors::CRUDError;
 use axum::async_trait;
 use envy::get_env;
 use serde::{Deserialize, Serialize};
@@ -104,6 +104,7 @@ where
             Self::table().await,
             query
         );
+        // TODO: Fix
         match sqlx::query(&query).execute(&mut self.connect().await).await {
             Ok(row) => {
                 println!("{:?}", row);

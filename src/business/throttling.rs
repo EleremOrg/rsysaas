@@ -1,4 +1,4 @@
-use crate::business::{entities::CustomerInterface, requests::RecommendationRequest};
+use crate::business::{interface::CustomerInterface, requests::RecommendationRequest};
 use crate::web::responses::{get_response, max_limit};
 use axum::response::Response;
 

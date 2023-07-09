@@ -28,7 +28,7 @@ where
             .get("version")
             .ok_or_else(|| (StatusCode::NOT_FOUND, "version param missing").into_response())?;
 
-        match version.as_str() {
+        match version.to_lowercase().as_str() {
             "v1" => Ok(Version::V1),
             _ => Err((StatusCode::NOT_FOUND, "unknown version").into_response()),
         }
