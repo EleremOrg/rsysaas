@@ -25,7 +25,7 @@ impl Customer {
     pub async fn get_by_token(token: &str) -> Result<Self, CRUDError> {
         Self::execute_query(
             format!(
-                "SELECT * FROM {} WHERE api_key = {token}",
+                "SELECT * FROM {} WHERE api_key = '{token}'",
                 Self::table().await
             ),
             Self::connect().await,

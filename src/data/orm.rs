@@ -32,7 +32,7 @@ impl<State> Orm<State> {
 impl Orm<Select> {
     pub fn select(self, columns: &str) -> Orm<From> {
         Orm {
-            query: format!("SELECT {} ", columns),
+            query: format!("SELECT {}", columns),
             has_where_clause: self.has_where_clause,
             state: PhantomData,
         }
@@ -45,14 +45,14 @@ impl Orm<Select> {
 impl Orm<From> {
     pub fn from(self, table: &str) -> Orm<From> {
         Orm {
-            query: format!("{} FROM {} ", self.query, table),
+            query: format!("{} FROM {}", self.query, table),
             has_where_clause: self.has_where_clause,
             state: PhantomData,
         }
     }
     pub fn from_subquery(self, subquery: &str) -> Orm<From> {
         Orm {
-            query: format!("{} FROM {} ", self.query, subquery),
+            query: format!("{} FROM {}", self.query, subquery),
             has_where_clause: self.has_where_clause,
             state: PhantomData,
         }
@@ -83,7 +83,7 @@ impl Orm<Join> {
     }
     pub fn on(self, joint: &str) -> Orm<Join> {
         Orm {
-            query: format!("{} ON {} ", self.query, joint),
+            query: format!("{} ON {}", self.query, joint),
             has_where_clause: self.has_where_clause,
             state: PhantomData,
         }
@@ -93,7 +93,7 @@ impl Orm<Join> {
 impl Orm<Where> {
     pub fn where_clause(&mut self, condition: &str) -> Orm<Where> {
         Orm {
-            query: format!("{} WHERE {} ", self.query, condition),
+            query: format!("{} WHERE {}", self.query, condition),
             has_where_clause: true,
             state: PhantomData,
         }
@@ -101,51 +101,56 @@ impl Orm<Where> {
 
     pub fn equal(&mut self, column: &str, value: &str) -> &mut Self {
         self.and();
-        self.query.push_str(&format!("{} = '{}'", column, value));
+        self.query
+            .push_str(&format!("{} = {}", column, Self::correct_value(value)));
         self
     }
 
     pub fn not_equal(&mut self, column: &str, value: &str) -> &mut Self {
         self.and();
-        self.query.push_str(&format!("{} != '{}'", column, value));
+        self.query
+            .push_str(&format!("{} != {}", column, Self::correct_value(value)));
         self
     }
 
     pub fn less_than(&mut self, column: &str, value: &str) -> &mut Self {
         self.and();
-        self.query.push_str(&format!("{} < '{}'", column, value));
+        self.query
+            .push_str(&format!("{} < {}", column, Self::correct_value(value)));
         self
     }
 
     pub fn greater_than(&mut self, column: &str, value: &str) -> &mut Self {
         self.and();
-        self.query.push_str(&format!("{} > '{}'", column, value));
+        self.query
+            .push_str(&format!("{} > {}", column, Self::correct_value(value)));
         self
     }
 
     pub fn less_than_or_equal(&mut self, column: &str, value: &str) -> &mut Self {
         self.and();
-        self.query.push_str(&format!("{} <= '{}'", column, value));
+        self.query
+            .push_str(&format!("{} <= {}", column, Self::correct_value(value)));
         self
     }
 
     pub fn greater_than_or_equal(&mut self, column: &str, value: &str) -> &mut Self {
         self.and();
-        self.query.push_str(&format!("{} >= '{}'", column, value));
+        self.query
+            .push_str(&format!("{} >= {}", column, Self::correct_value(value)));
         self
     }
 
     pub fn like(&mut self, column: &str, pattern: &str) -> &mut Self {
         self.and();
-        self.query
-            .push_str(&format!("{} LIKE '{}'", column, pattern));
+        self.query.push_str(&format!("{} LIKE {}", column, pattern));
         self
     }
 
     pub fn not_like(&mut self, column: &str, pattern: &str) -> &mut Self {
         self.and();
         self.query
-            .push_str(&format!("{} NOT LIKE '{}'", column, pattern));
+            .push_str(&format!("{} NOT LIKE {}", column, pattern));
         self
     }
 
@@ -153,7 +158,7 @@ impl Orm<Where> {
         self.and();
         let value_list = values
             .iter()
-            .map(|value| format!("'{}'", value))
+            .map(|value| format!("{}", Self::correct_value(value)))
             .collect::<Vec<String>>()
             .join(", ");
         self.query
@@ -165,7 +170,7 @@ impl Orm<Where> {
         self.and();
         let value_list = values
             .iter()
-            .map(|value| format!("'{}'", value))
+            .map(|value| format!("{}", Self::correct_value(value)))
             .collect::<Vec<String>>()
             .join(", ");
         self.query
@@ -181,12 +186,18 @@ impl Orm<Where> {
         }
         self
     }
+    fn correct_value(value: &str) -> String {
+        if value.parse::<f64>().is_ok() || value.parse::<i64>().is_ok() {
+            return value.to_string();
+        }
+        return format!("{}", value.to_owned());
+    }
 }
 
 impl Orm<Limit> {
     pub fn limit(&mut self, limit: u32) -> Orm<Limit> {
         Orm {
-            query: format!("{} LIMIT {} ", self.query, limit),
+            query: format!("{} LIMIT {}", self.query, limit),
             has_where_clause: self.has_where_clause,
             state: PhantomData,
         }

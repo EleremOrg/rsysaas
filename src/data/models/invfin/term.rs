@@ -36,5 +36,3 @@ impl ItemAdapter for Term {
         vec![self.to_item()]
     }
 }
-
-pub struct TermInterface {}

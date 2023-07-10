@@ -28,7 +28,7 @@ where
     async fn get(Path(path_request): Path<PathRequest>, headers: HeaderMap) -> Response {
         if Self::allow_request(format!("{}s", Self::entity_name()), headers).await {
             return match_error(
-                <Self as Manager>::get(&Self::default(), path_request.id).await,
+                <Self as Manager>::get(path_request.id).await,
                 &path_request.id,
             )
             .await;

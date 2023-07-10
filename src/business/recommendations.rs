@@ -1,4 +1,4 @@
-use crate::data::errors::CRUDError;
+use crate::data::{errors::CRUDError, interface::get_model_items};
 use crate::web::requests::RecommendationQueryRequest;
 use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
@@ -43,18 +43,7 @@ impl Recommendation {
         customer: &CustomerInterface,
         request: &RecommendationQueryRequest,
     ) -> Result<(Item, Vec<Item>), CRUDError> {
-        Ok((
-            Item {
-                id: 1,
-                values: vec![32.3],
-                result: 32.3,
-            },
-            vec![Item {
-                id: 1,
-                values: vec![32.3],
-                result: 32.3,
-            }],
-        ))
+        Ok(get_model_items(request.prod_id.unwrap(), request.entity.clone()).await)
     }
 
     async fn calculate_recommendations(

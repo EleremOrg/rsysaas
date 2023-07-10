@@ -14,7 +14,7 @@ pub trait Manager<'a>
 where
     Self: for<'r> FromRow<'r, SqliteRow> + Deserialize<'a> + Serialize + Send + Sync + Unpin,
 {
-    async fn get(&self, id: u32) -> Result<Self, CRUDError> {
+    async fn get(id: u32) -> Result<Self, CRUDError> {
         Self::execute_query(
             format!("SELECT * FROM {} WHERE id = {id}", Self::table().await),
             Self::connect().await,

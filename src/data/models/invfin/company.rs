@@ -2,14 +2,15 @@ use crate::data::errors::CRUDError;
 use crate::data::{facades::db::Manager, orm::Orm};
 use crate::web::facade::View;
 use axum::async_trait;
-use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, Item, ItemAdapter};
+use futures::stream::StreamExt;
+use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, AsyncItemAdapter, Item};
 use serde::{Deserialize, Serialize};
-use tokio::runtime::Runtime;
 
 #[derive(Clone, Debug, PartialEq, sqlx::FromRow, Deserialize, Serialize, Default)]
 
 pub struct Company {
     pub id: u32,
+    #[sqlx(default)]
     pub ticker: String,
     pub sector: String,
     pub industry: String,
@@ -28,11 +29,12 @@ impl Manager<'_> for Company {
 #[async_trait]
 impl View<'_> for Company {}
 
-impl ItemAdapter for Company {
-    fn to_item(&self) -> Item {
-        Item::new(self.id, self.create_values(), None)
+#[async_trait]
+impl AsyncItemAdapter for Company {
+    async fn to_item(&self) -> Item {
+        Item::new(self.id, self.create_values().await, None)
     }
-    fn create_values(&self) -> Vec<f32> {
+    async fn create_values(&self) -> Vec<f32> {
         let mut values = vec![self.growth];
         [
             self.encode_sector(),
@@ -45,41 +47,35 @@ impl ItemAdapter for Company {
         .for_each(|f| values.extend(f));
         values
     }
-    fn get_references(&self) -> Vec<Item> {
-        let rt = Runtime::new().unwrap();
-        // Call the function asynchronously using the tokio runtime
-        let result = rt.block_on(self.get_references_query());
-
-        match result {
-            Ok(items) => items.iter().map(|c| c.to_item()).collect(),
-            Err(e) => {
-                println!("Error: {:?}", e);
-                vec![]
+    async fn get_references(&self) -> Vec<Item> {
+        match self.get_references_query().await {
+            Ok(items) => {
+                futures::stream::iter(items)
+                    .then(|c| async move { c.to_item().await })
+                    .collect::<Vec<Item>>()
+                    .await
             }
+            Err(_e) => vec![],
         }
     }
 }
 
 impl Company {
+    // TODO: take into consideration the fact that a customer may query a table with data from other customers
     async fn get_references_query(&self) -> Result<Vec<Company>, CRUDError> {
         let query = Orm::new()
             .select("id, sector, industry, exchange, country, adj, growth")
-            .from(&Self::reg_table())
+            .from(&Self::table().await)
             .where_clause()
             .not_equal("id", &self.id.to_string())
             .ready();
-
         let rows = sqlx::query_as::<_, Self>(&query)
             .fetch_all(&mut Self::connect().await)
             .await;
-
         match rows {
             Ok(json) => Ok(json),
             Err(_e) => Err(CRUDError::WrongParameters),
         }
-    }
-    fn reg_table() -> String {
-        "companies".to_string()
     }
 
     fn encode_sector(&self) -> Vec<f32> {
