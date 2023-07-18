@@ -9,6 +9,7 @@ pub struct Customer {
     pub name: String,
     pub domain: String,
     pub api_key: String,
+    pub public_api_key: String,
     pub models_related: String,
 }
 #[async_trait]

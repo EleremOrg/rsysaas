@@ -9,16 +9,23 @@ use super::interface::CustomerInterface;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Recommendation {
     prod_id: u32,
-    rank: f32,
+    similarity: f32,
     path: String,
+    image: String,
+    title: String,
+    resume: String,
 }
 
 impl Recommendation {
-    fn new(prod_id: u32, rank: f32, domain: Arc<String>) -> Self {
+    pub fn new(prod_id: u32, similarity: f32, domain: Arc<String>) -> Self {
         Recommendation {
             prod_id,
-            rank,
+            similarity,
             path: Self::generate_path(domain, prod_id),
+            image: "https://www.wallstreetmojo.com/wp-content/uploads/2023/04/Current-Cost.png"
+                .to_string(),
+            title: format!("Title {prod_id}"),
+            resume: format!("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s {prod_id}"),
         }
     }
 

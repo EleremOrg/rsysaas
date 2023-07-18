@@ -52,10 +52,10 @@ VALUES
     (10, 'GE', 'Automotive', 'Unknown', 'NYSE', 'USA', 'growth,zombie', -0.1),
     (12, 'FIRST', 'Technology', 'Technology', 'NASDAQ', 'USA', 'growth,divs', 0.3);
 
-INSERT INTO customers (id, name, domain, api_key, models_related)
+INSERT INTO customers (id, name, domain, api_key, public_api_key, models_related)
 VALUES
-    (1, 'Acme Corporation', 'acme.com', 'acme_api_key', 'users,'),
-    (2, 'Widget Inc.', 'widget.com', 'widget_api_key', 'users, terms, companies');
+    (1, 'Acme Corporation', 'acme.com', 'acme_api_key', 'public_acme_api_key', 'users,'),
+    (2, 'InvFin', 'example.com:8000', 'invfin_api_key', 'public_invfin_api_key', 'users, terms, companies');
 
 INSERT INTO users (id, name, customer_id)
 VALUES

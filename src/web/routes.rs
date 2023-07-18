@@ -1,8 +1,11 @@
-use super::views::{
-    api::get_recommendations,
-    regular::{error_404, home},
-    sse::sse_handler,
-    ws::ws_handler,
+use super::{
+    middlewares::cors,
+    views::{
+        api::{get_embed_recommendations, get_recommendations},
+        regular::{error_404, home},
+        sse::sse_handler,
+        ws::ws_handler,
+    },
 };
 use crate::data::models::{
     customer::Customer,
@@ -18,9 +21,15 @@ use axum::{
     routing::get,
     Router,
 };
+use hyper::{http, Method};
 use std::time::Duration;
 use tower::ServiceBuilder;
-use tower_http::{classify::ServerErrorsFailureClass, trace::TraceLayer};
+use tower_http::{
+    classify::ServerErrorsFailureClass,
+    cors::{Any, CorsLayer},
+    services::ServeDir,
+    trace::TraceLayer,
+};
 use tracing::{info_span, Span};
 
 fn api_routes() -> Router {
@@ -30,6 +39,7 @@ fn api_routes() -> Router {
         .merge(Company::routes())
         .merge(Association::routes())
         .merge(Customer::routes())
+        .merge(recommendations_routes())
 }
 
 fn recommendations_routes() -> Router {
@@ -37,12 +47,17 @@ fn recommendations_routes() -> Router {
         .route("/ws/", get(ws_handler))
         .route("/sse/", get(sse_handler))
         .route("/recommendations/", get(get_recommendations))
+        .route("/embed-recommendations/", get(get_embed_recommendations))
+        .layer(cors())
 }
 
 pub fn routes() -> Router {
     Router::new()
+        .nest_service(
+            "/assets/embed-widget.js",
+            ServeDir::new("assets/embed-widget.js"),
+        )
         .route("/", get(home))
-        .merge(recommendations_routes())
         .nest("/api/:version/", api_routes())
         .fallback(error_404)
         // `TraceLayer` is provided by tower-http so you have to add that as a dependency.

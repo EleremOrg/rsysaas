@@ -42,3 +42,32 @@ impl QueryRequest {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EmbedRecommendationQueryRequest {
+    pub orientation: Arc<String>,
+    pub entity: Arc<String>,
+    pub use_image: bool,
+    pub user_id: Option<u32>,
+    pub prod_id: Option<u32>,
+    pub number_recommendation: Option<u8>,
+    pub is_transparent: bool,
+    pub height: Option<u32>,
+    pub width: Option<u32>,
+    pub locale: Arc<String>,
+    pub color_theme: Arc<String>,
+    pub public_key: Arc<String>,
+    pub location_href: Arc<String>,
+    pub base_uri: Arc<String>,
+    pub doc_url: Arc<String>,
+    pub user_agent: Arc<String>,
+    pub language: Arc<String>,
+    pub languages: Arc<String>,
+    pub screen_width: Option<u32>,
+    pub screen_height: Option<u32>,
+    pub referrer: Arc<String>,
+    pub document_title: Arc<String>,
+    pub host: Arc<String>,
+    pub location: Arc<String>,
+}

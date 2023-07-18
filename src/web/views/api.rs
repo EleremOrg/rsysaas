@@ -1,8 +1,10 @@
+use std::sync::Arc;
+
 use crate::business::recommendations::Recommendation;
 use crate::business::{auth::get_bearer_token, interface::CustomerInterface};
 use crate::data::errors::CRUDError;
 use crate::web::{
-    requests::RecommendationQueryRequest,
+    requests::{EmbedRecommendationQueryRequest, RecommendationQueryRequest},
     responses::{non_auth, our_fault, success, wrong_query},
 };
 use axum::{extract::Query, http::HeaderMap, response::Response};
@@ -30,4 +32,15 @@ pub async fn get_recommendations(
         };
     }
     wrong_query(&payload)
+}
+
+pub async fn get_embed_recommendations(
+    Query(payload): Query<EmbedRecommendationQueryRequest>,
+) -> Response {
+    success([
+        Recommendation::new(1, 0.98, Arc::new(String::from("invfin"))),
+        Recommendation::new(2, 0.88, Arc::new(String::from("invfin"))),
+        Recommendation::new(3, 0.78, Arc::new(String::from("invfin"))),
+        Recommendation::new(4, 0.68, Arc::new(String::from("invfin"))),
+    ])
 }
