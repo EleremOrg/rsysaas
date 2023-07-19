@@ -16,7 +16,7 @@ impl CustomerInterface {
         &self,
         request: &RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {
-        match Recommendation::generate_recommendations(self, request).await {
+        match Recommendation::generate_recommendations(request).await {
             Ok(recommendations) => Ok(recommendations),
             Err(err) => Err(err),
         }

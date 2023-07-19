@@ -61,6 +61,12 @@ impl AsyncItemAdapter for Company {
 }
 
 impl Company {
+    pub async fn get_items(id: u32) -> Result<(Item, Vec<Item>), CRUDError> {
+        match <Self as Manager>::get(id).await {
+            Ok(instance) => Ok((instance.to_item().await, instance.get_references().await)),
+            Err(err) => Err(err),
+        }
+    }
     // TODO: take into consideration the fact that a customer may query a table with data from other customers
     async fn get_references_query(&self) -> Result<Vec<Company>, CRUDError> {
         let query = Orm::new()

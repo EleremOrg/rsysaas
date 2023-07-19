@@ -56,7 +56,7 @@ where
     ) -> Response {
         if Self::allow_request(format!("{}s", Self::entity_name()), headers).await {
             return match_error(
-                <Self as Manager>::create(&Self::default(), &payload.get_params()).await,
+                <Self as Manager>::create(&payload.get_params()).await,
                 &payload.fields,
             )
             .await;

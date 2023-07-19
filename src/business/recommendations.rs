@@ -1,5 +1,8 @@
-use super::{interface::CustomerInterface, requests::RecommendationRequest};
-use crate::data::{errors::CRUDError, interface::get_model_items};
+use super::requests::{RecommendFor, RecommendationRequest};
+use crate::data::{
+    errors::CRUDError,
+    interface::{get_generic_items, get_product_items, get_user_items},
+};
 use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -28,30 +31,62 @@ impl Recommendation {
     }
 
     pub async fn generate_recommendations(
-        customer: &CustomerInterface,
         request: &RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {
-        let (item, references) = match Self::get_items(&customer, request).await {
+        match request.is_for {
+            RecommendFor::User => Self::get_user_recommendations(request).await,
+            RecommendFor::Product => Self::get_user_recommendations(request).await,
+            RecommendFor::Generic => Self::get_generic_recommendations(request).await,
+        }
+    }
+
+    async fn get_user_recommendations(
+        request: &RecommendationRequest,
+    ) -> Result<Vec<Recommendation>, CRUDError> {
+        let (item, references) = match get_user_items(request.get_id().await).await {
             Ok((item, references)) => (item, references),
             Err(e) => return Err(e),
         };
-        Ok(Self::calculate_recommendations(
+        Ok(Self::calculate_product_recommendations(
             item,
             references,
             request.number_recommendations,
-            customer.domain.clone(),
+            request.customer.domain.clone(),
         )
         .await)
     }
 
-    async fn get_items(
-        customer: &CustomerInterface,
+    async fn get_generic_recommendations(
         request: &RecommendationRequest,
-    ) -> Result<(Item, Vec<Item>), CRUDError> {
-        Ok(get_model_items(request.prod_id, request.entity.clone()).await)
+    ) -> Result<Vec<Recommendation>, CRUDError> {
+        let items = match get_generic_items().await {
+            Ok(items) => items,
+            Err(err) => return Err(err),
+        };
+        Ok(items
+            .iter()
+            .map(|item| Recommendation::new(item.id, item.result, request.customer.domain.clone()))
+            .collect::<Vec<Recommendation>>())
     }
 
-    async fn calculate_recommendations(
+    async fn get_product_recommendations(
+        request: &RecommendationRequest,
+    ) -> Result<Vec<Recommendation>, CRUDError> {
+        let (item, references) =
+            match get_product_items(request.get_id().await, request.entity.clone()).await {
+                Ok((item, references)) => (item, references),
+                Err(e) => return Err(e),
+            };
+        Ok(Self::calculate_product_recommendations(
+            item,
+            references,
+            request.number_recommendations,
+            request.customer.domain.clone(),
+        )
+        .await)
+    }
+
+    async fn calculate_product_recommendations(
         item: Item,
         references: Vec<Item>,
         num_recs: u8,

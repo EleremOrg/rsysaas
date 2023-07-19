@@ -39,3 +39,18 @@ impl Manager<'_> for EmbedRecommendationRequest {
         "embed_recommendation_request".to_string()
     }
 }
+
+#[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow, Deserialize, Serialize, Default)]
+pub struct APIRecommendationRequest {
+    pub entity: String,
+    pub user_id: Option<u32>,
+    pub prod_id: Option<u32>,
+    pub number_recommendations: u8,
+}
+
+#[async_trait]
+impl Manager<'_> for APIRecommendationRequest {
+    async fn table() -> String {
+        "api_recommendation_request".to_string()
+    }
+}

@@ -5,13 +5,13 @@ use crate::business::requests::RecommendationRequest;
 use crate::business::{auth::get_bearer_token, interface::CustomerInterface};
 use crate::data::errors::CRUDError;
 use crate::web::{
-    requests::{EmbedRecommendationQueryRequest, RecommendationQueryRequest},
+    requests::{APIRecommendationQueryRequest, EmbedRecommendationQueryRequest},
     responses::{non_auth, our_fault, success, wrong_query},
 };
 use axum::{extract::Query, http::HeaderMap, response::Response};
 
 pub async fn get_recommendations(
-    Query(payload): Query<RecommendationQueryRequest>,
+    Query(payload): Query<APIRecommendationQueryRequest>,
     headers: HeaderMap,
 ) -> Response {
     let token = match get_bearer_token(&headers).await {

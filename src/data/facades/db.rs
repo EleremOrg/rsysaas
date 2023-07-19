@@ -48,7 +48,7 @@ where
         }
     }
 
-    async fn create(&self, parameters: &HashMap<String, String>) -> Result<Self, CRUDError> {
+    async fn create(parameters: &HashMap<String, String>) -> Result<Self, CRUDError> {
         let (fields, placeholders): (Vec<_>, Vec<_>) = parameters
             .iter()
             .map(|(key, _)| (format!("\"{}\"", key), "?"))

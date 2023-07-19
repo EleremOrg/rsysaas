@@ -4,11 +4,12 @@ use std::{collections::HashMap, sync::Arc};
 use crate::business::versioning::Version;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct RecommendationQueryRequest {
+#[serde(rename_all = "camelCase")]
+pub struct APIRecommendationQueryRequest {
     pub entity: Arc<String>,
     pub user_id: Option<u32>,
     pub prod_id: Option<u32>,
-    pub num_recs: Option<u8>,
+    pub number_recommendations: Option<u8>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
