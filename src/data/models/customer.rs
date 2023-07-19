@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::data::{errors::CRUDError, facades::db::Manager};
 use crate::web::facade::View;
 use axum::async_trait;
@@ -23,6 +25,20 @@ impl Manager<'_> for Customer {
 impl View<'_> for Customer {}
 
 impl Customer {
+    pub async fn get_by_public_token_and_domain(
+        token: Arc<String>,
+        domain: Arc<String>,
+    ) -> Result<Self, CRUDError> {
+        Self::execute_query(
+            format!(
+                "SELECT * FROM {} WHERE public_api_key = '{token}' AND domain = '{domain}'",
+                Self::table().await
+            ),
+            Self::connect().await,
+        )
+        .await
+    }
+
     pub async fn get_by_token(token: &str) -> Result<Self, CRUDError> {
         Self::execute_query(
             format!(

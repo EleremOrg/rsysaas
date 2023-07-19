@@ -1,10 +1,8 @@
+use super::{interface::CustomerInterface, requests::RecommendationRequest};
 use crate::data::{errors::CRUDError, interface::get_model_items};
-use crate::web::requests::RecommendationQueryRequest;
 use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-
-use super::interface::CustomerInterface;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Recommendation {
@@ -31,7 +29,7 @@ impl Recommendation {
 
     pub async fn generate_recommendations(
         customer: &CustomerInterface,
-        request: &RecommendationQueryRequest,
+        request: &RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {
         let (item, references) = match Self::get_items(&customer, request).await {
             Ok((item, references)) => (item, references),
@@ -40,7 +38,7 @@ impl Recommendation {
         Ok(Self::calculate_recommendations(
             item,
             references,
-            request.num_recs.unwrap_or(5),
+            request.number_recommendations,
             customer.domain.clone(),
         )
         .await)
@@ -48,9 +46,9 @@ impl Recommendation {
 
     async fn get_items(
         customer: &CustomerInterface,
-        request: &RecommendationQueryRequest,
+        request: &RecommendationRequest,
     ) -> Result<(Item, Vec<Item>), CRUDError> {
-        Ok(get_model_items(request.prod_id.unwrap(), request.entity.clone()).await)
+        Ok(get_model_items(request.prod_id, request.entity.clone()).await)
     }
 
     async fn calculate_recommendations(

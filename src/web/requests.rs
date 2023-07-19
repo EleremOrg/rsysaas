@@ -43,15 +43,17 @@ impl QueryRequest {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct EmbedRecommendationQueryRequest {
     pub orientation: Arc<String>,
     pub entity: Arc<String>,
-    pub use_image: bool,
+    pub title: Arc<String>,
+    pub show_image: bool,
+    pub show_resume: bool,
     pub user_id: Option<u32>,
     pub prod_id: Option<u32>,
-    pub number_recommendation: Option<u8>,
+    pub number_recommendations: Option<u8>,
     pub is_transparent: bool,
     pub height: Option<u32>,
     pub width: Option<u32>,

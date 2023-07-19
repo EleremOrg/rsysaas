@@ -1,92 +1,104 @@
 async function sendGetRequestWithPayload() {
-    const endpoint = 'http://localhost:8001/api/v1/embed-recommendations/';
-    const params = new URLSearchParams({
-        ...await getWidgetConfig(),
-        ...await fillMissingConfig(),
-        location: JSON.stringify(await getLocation()),
+  const endpoint = 'http://localhost:8001/api/v1/embed-recommendations/';
+  const params = new URLSearchParams({
+    ...await getWidgetConfig(),
+    ...await fillMissingConfig(),
+    location: JSON.stringify(await getLocation()),
+  });
+  try {
+    const response = await fetch(`${endpoint}?${params}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
-    try {
-        const response = await fetch(`${endpoint}?${params}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        await handleResponse(response);
-    } catch (error) {
-        console.error('Error:', error);
-    }
+    await handleResponse(response);
+  } catch (error) {
+    console.error('Error:', error);
+  }
 }
 
 async function getWidgetConfig() {
-    var scriptContent = document.currentScript.innerHTML.trim();
-    return JSON.parse(scriptContent);
+  var scriptContent = document.currentScript.innerHTML.trim();
+  var config = JSON.parse(scriptContent);
+  if (!config.entity || !config.publicKey) {
+    throw new Error('Widget configuration requires both "entity" and "publicKey" parameters');
+  }
+  config.title = config.title || 'We think that this may interest you';
+  config.orientation = config.orientation || 'vertical';
+  config.showImage = config.showImage || true;
+  config.showResume = config.showResume || true;
+  config.numberRecommendations = config.numberRecommendations || 5;
+  config.isTransparent = config.isTransparent || false;
+  config.locale = config.locale || 'en';
+  config.colorTheme = config.colorTheme || 'light';
+  return config;
 }
 
 async function fillMissingConfig() {
-    return {
-        locationHref: window.location.href,
-        baseUri: document.baseURI,
-        docUrl: document.URL,
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        languages: navigator.languages,
-        screenWidth: window.screen.width,
-        screenHeight: window.screen.height,
-        referrer: document.referrer,
-        documentTitle: document.title,
-        host: window.location.host,
-    }
+  return {
+    locationHref: window.location.href,
+    baseUri: document.baseURI,
+    docUrl: document.URL,
+    userAgent: navigator.userAgent,
+    language: navigator.language,
+    languages: navigator.languages,
+    screenWidth: window.screen.width,
+    screenHeight: window.screen.height,
+    referrer: document.referrer,
+    documentTitle: document.title,
+    host: window.location.host,
+  }
 }
 
 async function getLocation() {
-    const options = {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
-    };
+  const options = {
+    enableHighAccuracy: true,
+    timeout: 5000,
+    maximumAge: 0,
+  };
 
-    function success(pos) {
-        return pos.coords;
-    }
+  function success(pos) {
+    return pos.coords;
+  }
 
-    function error(err) {
-        return { error: err.message, errorCode: err.code };
-    }
+  function error(err) {
+    return { error: err.message, errorCode: err.code };
+  }
 
-    return {
-        currentPosition: navigator.geolocation.getCurrentPosition(success, error, options),
-        currentWatch: navigator.geolocation.watchPosition(success, error, options)
-    };
+  return {
+    currentPosition: navigator.geolocation.getCurrentPosition(success, error, options),
+    currentWatch: navigator.geolocation.watchPosition(success, error, options)
+  };
 }
 
 async function handleResponse(response) {
-    if (response.ok) {
-        const data = await response.json();
-        await populateResults(data.data);
-    }
-
+  const data = await response.json();
+  if (response.ok) {
+    await populateResults(data.data);
+  };
+  console.error('Error:', data.message);
 }
 
 async function populateResults(data) {
-    const widgetContainer = document.querySelector('.elerem-widget-container__widget');
-    if (widgetContainer) {
-        await addWidgetStyles();
-        widgetContainer.innerHTML = await generateRecommendationHTML(data);
-    }
+  const widgetContainer = document.querySelector('.elerem-widget-container__widget');
+  if (widgetContainer) {
+    await addWidgetStyles();
+    widgetContainer.innerHTML = await generateRecommendationHTML(data);
+  };
 }
 
 async function generateRecommendationHTML(data) {
-    let html = '';
+  let html = '';
 
-    html += `<h2 class="elerem-recommendation-title">We think that this may interest you</h2>`;
+  html += `<h2 class="elerem-recommendation-title">We think that this may interest you</h2>`;
 
-    for (let i = 0; i < data.length; i++) {
-        const item = data[i];
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i];
 
-        const cardClass = item.image ? 'elerem-recommendation-card--with-image' : 'elerem-recommendation-card';
+    const cardClass = item.image ? 'elerem-recommendation-card--with-image' : 'elerem-recommendation-card';
 
-        html += `
+    html += `
         <a href="${item.path}" class="elerem-recommendation-link">
         <div class="${cardClass}">
           ${item.image ? `<img src="${item.image}" alt="Product Image" class="elerem-product-image">` : ''}
@@ -97,19 +109,19 @@ async function generateRecommendationHTML(data) {
         </div>
       </a>
       `;
-    }
+  }
 
-    html += `<div class="elerem-widget-copyright">
+  html += `<div class="elerem-widget-copyright">
       <a href="https://www.elerem.com/" rel="noopener nofollow" target="_blank">
         <span class="blue-text">Better recommendations from Elerem</span>
       </a>
     </div>`;
 
-    return html;
+  return html;
 }
 
 async function addWidgetStyles() {
-    const styles = `
+  const styles = `
     .elerem-widget-container__widget {
         background-color: #fff;
         border-radius: 5px;
@@ -161,15 +173,24 @@ async function addWidgetStyles() {
         font-weight: bold;
       }
   
-      .elerem-rank {
-        margin-left: 10px;
-        font-weight: bold;
+      .elerem-widget-copyright a {
+        font-size: 12px;
+        color: #888;
+        text-decoration: none;
+      }
+      
+      .elerem-widget-copyright a:hover {
+        text-decoration: underline;
+      }
+      
+      .elerem-widget-copyright span {
+        font-size: 12px;
       }
     `;
 
-    const styleElement = document.createElement("style");
-    styleElement.innerHTML = styles;
-    document.head.appendChild(styleElement);
+  const styleElement = document.createElement("style");
+  styleElement.innerHTML = styles;
+  document.head.appendChild(styleElement);
 }
 
 sendGetRequestWithPayload();
