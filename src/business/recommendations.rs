@@ -35,7 +35,7 @@ impl Recommendation {
     ) -> Result<Vec<Recommendation>, CRUDError> {
         match request.is_for {
             RecommendFor::User => Self::get_user_recommendations(request).await,
-            RecommendFor::Product => Self::get_user_recommendations(request).await,
+            RecommendFor::Product => Self::get_product_recommendations(request).await,
             RecommendFor::Generic => Self::get_generic_recommendations(request).await,
         }
     }
