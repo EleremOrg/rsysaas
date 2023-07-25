@@ -1,7 +1,7 @@
 use crate::data::{errors::CRUDError, facades::db::Manager};
 use crate::web::facade::View;
 use axum::async_trait;
-use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, AsyncItemAdapter, Item};
+use rec_rsys::models::{AsyncItemAdapter, Item};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow, Deserialize, Serialize, Default)]
@@ -28,9 +28,9 @@ impl AsyncItemAdapter for Term {
         Item::new(self.id, self.create_values().await, None)
     }
     async fn create_values(&self) -> Vec<f32> {
-        let mut values = vec![0.0];
+        // let mut values = vec![0.0];
         // [].iter().for_each(|f| values.extend(f));
-        values
+        vec![0.0]
     }
 
     async fn get_references(&self) -> Vec<Item> {

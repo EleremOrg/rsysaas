@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use tracing::error;
 
-use crate::data::{errors::CRUDError, facades::db::Manager, models::customer::PotentialCustomer};
+use crate::data::{facades::db::Manager, models::customer::PotentialCustomer};
 
 #[derive(Deserialize, Debug)]
 pub struct PotentialCustomerForm {
@@ -15,6 +15,7 @@ pub struct PotentialCustomerForm {
 
 impl PotentialCustomerForm {
     pub async fn create(&self) {
+        // TODO: handle possible errors and correct response
         match PotentialCustomer::create(
             "name, email, message, agent, language, url",
             format!(

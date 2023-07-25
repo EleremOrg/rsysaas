@@ -6,10 +6,10 @@ mod web;
 use envy::read_env_file;
 
 use data::orm::run_migrations;
-use std::{net::SocketAddr, path::PathBuf};
+use std::net::SocketAddr;
 use web::routes::routes;
 
-use axum_server::tls_rustls::RustlsConfig;
+// use axum_server::tls_rustls::RustlsConfig;
 
 use tracing::debug;
 use tracing_appender::{non_blocking, rolling::hourly};
@@ -50,16 +50,16 @@ async fn main() {
     debug!("listening on {:?}", addr);
 
     // configure certificate and private key used by https
-    let config = RustlsConfig::from_pem_file(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("self_signed_certs")
-            .join("cert.pem"),
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("self_signed_certs")
-            .join("key.pem"),
-    )
-    .await
-    .unwrap();
+    // let config = RustlsConfig::from_pem_file(
+    //     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    //         .join("self_signed_certs")
+    //         .join("cert.pem"),
+    //     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    //         .join("self_signed_certs")
+    //         .join("key.pem"),
+    // )
+    // .await
+    // .unwrap();
 
     // To use with https
     // axum_server::bind_rustls(addr, config)

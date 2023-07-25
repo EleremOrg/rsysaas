@@ -1,9 +1,8 @@
 use hyper::{http, Method};
-
-use tower_http::cors::{AllowOrigin, Any, CorsLayer};
-use tower_http::set_header::MakeHeaderValue;
+use tower_http::cors::{Any, CorsLayer};
 
 pub fn cors() -> CorsLayer {
+    //TODO: rename to get_cors
     CorsLayer::new()
         .allow_methods([Method::GET])
         .allow_headers([http::header::CONTENT_TYPE])
