@@ -5,8 +5,11 @@ use axum::{
 };
 
 use crate::web::forms::PotentialCustomerForm;
+use tracing::{event, instrument, Level};
 
+#[instrument]
 pub async fn home() -> Response {
+    event!(Level::INFO, "inside home!");
     (StatusCode::OK, Html("<h1>Welcome</h1>")).into_response()
 }
 

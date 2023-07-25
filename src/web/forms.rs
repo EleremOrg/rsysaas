@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use tracing::error;
 
 use crate::data::{errors::CRUDError, facades::db::Manager, models::customer::PotentialCustomer};
 
@@ -26,7 +27,7 @@ impl PotentialCustomerForm {
         {
             Ok(result) => println!("succesfull result: {:?}", result),
             Err(err) => {
-                println!("error executing sql: {:?}", err);
+                error!("error executing sql: {:?}", err);
                 return;
             }
         };

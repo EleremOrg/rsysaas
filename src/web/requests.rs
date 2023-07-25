@@ -1,5 +1,6 @@
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
+use tracing::error;
 
 use std::{collections::HashMap, sync::Arc};
 
@@ -119,11 +120,17 @@ impl QueryRequest for EmbedRecommendationQueryRequest {
         let mut values = String::from("");
         let parameters = match serde_json::to_value(&self) {
             Ok(obj) => obj,
-            _ => panic!("Unexpected JSON value"),
+            Err(err) => {
+                error!("Unexpected error {}", err);
+                return (fields, values);
+            }
         };
         let obj = match parameters.as_object() {
             Some(val) => val,
-            None => panic!("Unexpected JSON value"),
+            None => {
+                error!("Unexpected JSON value");
+                return (fields, values);
+            }
         };
         for (key, value) in obj {
             fields.push_str(format!("{fields}, {key}").as_str());

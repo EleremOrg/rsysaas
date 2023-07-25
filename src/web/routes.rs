@@ -1,3 +1,20 @@
+use axum::{
+    extract::MatchedPath,
+    http::Request,
+    routing::{get, post},
+    Router,
+};
+use tower::ServiceBuilder;
+use tower_http::{
+    services::ServeDir,
+    trace::{
+        DefaultOnBodyChunk, DefaultOnEos, DefaultOnFailure, DefaultOnRequest, DefaultOnResponse,
+        TraceLayer,
+    },
+    LatencyUnit,
+};
+use tracing::{info_span, Level};
+
 use super::{
     middlewares::{cors, post_cors},
     views::{
@@ -13,37 +30,6 @@ use crate::data::models::{
     user::User,
 };
 use crate::web::facade::View;
-use axum::{
-    body::Bytes,
-    extract::MatchedPath,
-    http::{HeaderMap, Request},
-    response::Response,
-    routing::{get, post},
-    Router,
-};
-use std::time::Duration;
-use tower::ServiceBuilder;
-use tower_http::{classify::ServerErrorsFailureClass, services::ServeDir, trace::TraceLayer};
-use tracing::{info_span, Span};
-
-fn api_routes() -> Router {
-    Router::new()
-        .merge(User::routes())
-        .merge(Term::routes())
-        .merge(Company::routes())
-        .merge(Association::routes())
-        .merge(Customer::routes())
-        .merge(recommendations_routes())
-}
-
-fn recommendations_routes() -> Router {
-    Router::new()
-        .route("/ws/", get(ws_handler))
-        .route("/sse/", get(sse_handler))
-        .route("/recommendations/", get(get_recommendations))
-        .route("/embed-recommendations/", get(get_embed_recommendations))
-        .layer(cors())
-}
 
 pub fn routes() -> Router {
     Router::new()
@@ -59,7 +45,7 @@ pub fn routes() -> Router {
         // `TraceLayer` is provided by tower-http so you have to add that as a dependency.
         // It provides good defaults but is also very customizable.
         //
-        // See https://docs.rs/tower-http/0.1.1/tower_http/trace/index.html for more details.
+        // See https://docs.rs/tower-http/latest/tower_http/trace/index.html for more details.
         //
         // If you want to customize the behavior using closures here is how.
         .layer(
@@ -80,29 +66,35 @@ pub fn routes() -> Router {
                             some_other_field = tracing::field::Empty,
                         )
                     })
-                    .on_request(|_request: &Request<_>, _span: &Span| {
-                        // You can use `_span.record("some_other_field", value)` in one of these
-                        // closures to attach a value to the initially empty field in the info_span
-                        // created above.
-                    })
-                    .on_response(|_response: &Response, _latency: Duration, _span: &Span| {
-                        // ...
-                    })
-                    .on_body_chunk(|_chunk: &Bytes, _latency: Duration, _span: &Span| {
-                        // ...
-                    })
-                    .on_eos(
-                        |_trailers: Option<&HeaderMap>,
-                         _stream_duration: Duration,
-                         _span: &Span| {
-                            // ...
-                        },
+                    .on_request(DefaultOnRequest::new().level(Level::INFO))
+                    .on_response(
+                        DefaultOnResponse::new()
+                            .level(Level::INFO)
+                            .latency_unit(LatencyUnit::Micros)
+                            .include_headers(true),
                     )
-                    .on_failure(
-                        |_error: ServerErrorsFailureClass, _latency: Duration, _span: &Span| {
-                            // ...
-                        },
-                    ),
+                    .on_body_chunk(DefaultOnBodyChunk::new())
+                    .on_eos(DefaultOnEos::new().level(Level::INFO))
+                    .on_failure(DefaultOnFailure::new().level(Level::INFO)),
             ),
         )
+}
+
+fn api_routes() -> Router {
+    Router::new()
+        .merge(User::routes())
+        .merge(Term::routes())
+        .merge(Company::routes())
+        .merge(Association::routes())
+        .merge(Customer::routes())
+        .merge(recommendations_routes())
+}
+
+fn recommendations_routes() -> Router {
+    Router::new()
+        .route("/ws/", get(ws_handler))
+        .route("/sse/", get(sse_handler))
+        .route("/recommendations/", get(get_recommendations))
+        .route("/embed-recommendations/", get(get_embed_recommendations))
+        .layer(cors())
 }

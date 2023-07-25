@@ -1,13 +1,17 @@
-use crate::data::errors::CRUDError;
+use std::collections::HashMap;
+
 use axum::async_trait;
-use envy::get_env;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sqlx::{
     sqlite::{SqliteConnection, SqlitePool, SqliteRow},
     Connection, FromRow, Row,
 };
-use std::collections::HashMap;
+use tracing::error;
+
+use envy::get_env;
+
+use crate::data::errors::CRUDError;
 
 #[async_trait]
 pub trait Manager<'a>
@@ -44,7 +48,10 @@ where
 
         match rows {
             Ok(json) => Ok(json),
-            Err(_e) => Err(CRUDError::WrongParameters),
+            Err(err) => {
+                error!("error findig: {:?}", err);
+                return Err(CRUDError::WrongParameters);
+            }
         }
     }
 
@@ -53,7 +60,7 @@ where
         let mut transaction = match Self::transaction().await.begin().await {
             Ok(transaction) => transaction,
             Err(err) => {
-                println!("transaction errror launching: {:?}", err);
+                error!("transaction errror launching: {:?}", err);
                 return Err(CRUDError::NotFound);
             }
         };
@@ -68,7 +75,7 @@ where
         {
             Ok(row) => row,
             Err(err) => {
-                println!("run insert: {:?}", err);
+                error!("run insert: {:?}", err);
                 return Err(CRUDError::NotFound);
             }
         };
@@ -84,16 +91,16 @@ where
         {
             Ok(row) => {
                 match transaction.commit().await {
-                    Ok(_) => println!("transacttion commit succeeded"),
+                    Ok(_) => error!("transacttion commit succeeded"),
                     Err(err) => {
-                        println!("transacttion commit error: {:?}", err);
+                        error!("transacttion commit error: {:?}", err);
                         return Err(CRUDError::NotFound);
                     }
                 };
                 Ok(row)
             }
             Err(err) => {
-                println!("run fetch: {:?}", err);
+                error!("run fetch: {:?}", err);
                 Err(CRUDError::NotFound)
             }
         }
@@ -130,7 +137,10 @@ where
             .await
         {
             Ok(row) => Ok(row.rows_affected()),
-            Err(_err) => Err(CRUDError::NotFound),
+            Err(err) => {
+                error!("deleting: {:?}", err);
+                Err(CRUDError::NotFound)
+            }
         }
     }
 
@@ -145,11 +155,17 @@ where
             .await;
         let row = match query_result {
             Ok(row) => row,
-            Err(_err) => return Err(CRUDError::NotFound),
+            Err(err) => {
+                error!("gettings row: {:?}", err);
+                return Err(CRUDError::NotFound);
+            }
         };
         match row.try_get("result") {
             Ok(result) => Ok(result),
-            Err(_) => Err(CRUDError::InternalError),
+            Err(err) => {
+                error!("checking exists: {:?}", err);
+                Err(CRUDError::InternalError)
+            }
         }
     }
 
@@ -173,7 +189,7 @@ where
         match row {
             Ok(row) => Ok(row),
             Err(err) => {
-                println!("{:?}", err);
+                error!("executing query {:?}", err);
                 Err(CRUDError::NotFound)
             }
         }
@@ -182,7 +198,10 @@ where
     fn to_json(&self, result: Self) -> Result<Value, CRUDError> {
         match serde_json::to_value(&result) {
             Ok(value) => Ok(value),
-            Err(_e) => Err(CRUDError::JsonError),
+            Err(err) => {
+                error!("to json error {:?}", err);
+                Err(CRUDError::JsonError)
+            }
         }
     }
 
