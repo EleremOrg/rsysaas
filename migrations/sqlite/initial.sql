@@ -20,7 +20,10 @@ CREATE TABLE potential_customers (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT NOT NULL,
-    message TEXT
+    message TEXT,
+    agent TEXT,
+    language TEXT,
+    url TEXT
 );
 
 CREATE TABLE users (

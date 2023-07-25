@@ -10,6 +10,7 @@ use std::{net::SocketAddr, path::PathBuf};
 use web::routes::routes;
 
 use axum_server::tls_rustls::RustlsConfig;
+use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
@@ -24,12 +25,12 @@ async fn main() {
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
-    read_env_file();
 
-    run_migrations("migrations/sqlite/initial.sql").await;
+    read_env_file();
+    run_migrations("migrations/sqlite").await;
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8001));
-    println!("listening on {}", addr);
+    info!("listening on {}", addr);
 
     // configure certificate and private key used by https
     let config = RustlsConfig::from_pem_file(

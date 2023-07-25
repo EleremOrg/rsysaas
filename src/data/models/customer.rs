@@ -12,6 +12,9 @@ pub struct PotentialCustomer {
     pub name: String,
     pub email: String,
     pub message: String,
+    pub agent: String,
+    pub language: String,
+    pub url: String,
 }
 #[async_trait]
 impl Manager<'_> for PotentialCustomer {

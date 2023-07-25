@@ -7,13 +7,20 @@ pub struct PotentialCustomerForm {
     pub name: String,
     pub email: String,
     pub message: String,
+    pub agent: String,
+    pub language: String,
+    pub url: String,
 }
 
 impl PotentialCustomerForm {
     pub async fn create(&self) {
         match PotentialCustomer::create(
-            "name, email, message",
-            format!("'{}', '{}', '{}'", self.name, self.email, self.message).as_str(),
+            "name, email, message, agent, language, url",
+            format!(
+                "'{}', '{}', '{}', '{}', '{}', '{}'",
+                self.name, self.email, self.message, self.agent, self.language, self.url
+            )
+            .as_str(),
         )
         .await
         {
