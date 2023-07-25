@@ -1,7 +1,14 @@
+use axum::async_trait;
 use serde::{Deserialize, Serialize};
+
 use std::{collections::HashMap, sync::Arc};
 
 use crate::business::versioning::Version;
+
+#[async_trait]
+pub trait QueryRequest {
+    async fn get_fields_and_values(&self) -> (String, String);
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -12,6 +19,27 @@ pub struct APIRecommendationQueryRequest {
     pub number_recommendations: Option<u8>,
 }
 
+#[async_trait]
+impl QueryRequest for APIRecommendationQueryRequest {
+    async fn get_fields_and_values(&self) -> (String, String) {
+        let mut fields = String::from("");
+        let mut values = String::from("");
+        let parameters = match serde_json::to_value(&self) {
+            Ok(obj) => obj,
+            _ => panic!("Unexpected JSON value"),
+        };
+        let obj = match parameters.as_object() {
+            Some(val) => val,
+            None => panic!("Unexpected JSON value"),
+        };
+        for (key, value) in obj {
+            fields.push_str(format!("{fields}, {key}").as_str());
+            values.push_str(format!("{values}, {value}").as_str());
+        }
+        (fields, values)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PathRequest {
     pub version: Version,
@@ -19,12 +47,12 @@ pub struct PathRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct QueryRequest {
+pub struct ModelQueryRequest {
     pub fields: Option<HashMap<String, String>>,
     pub limit: Option<u8>,
 }
 
-impl QueryRequest {
+impl ModelQueryRequest {
     pub fn get_query(&self) -> HashMap<String, String> {
         let mut fields = self.get_fields().clone();
         fields.insert(
@@ -32,6 +60,15 @@ impl QueryRequest {
             self.limit.unwrap_or_else(|| 50).to_string(),
         );
         fields
+    }
+    pub fn get_fields_and_values(&self) -> (String, String) {
+        let mut fields = String::from("");
+        let mut values = String::from("");
+        for (key, value) in &self.get_fields() {
+            fields.push_str(format!("{fields}, {key}").as_str());
+            values.push_str(format!("{values}, {value}").as_str());
+        }
+        (fields, values)
     }
     pub fn get_params(&self) -> HashMap<String, String> {
         self.get_fields()
@@ -73,4 +110,25 @@ pub struct EmbedRecommendationQueryRequest {
     pub document_title: Arc<String>,
     pub host: Arc<String>,
     pub location: Arc<String>,
+}
+
+#[async_trait]
+impl QueryRequest for EmbedRecommendationQueryRequest {
+    async fn get_fields_and_values(&self) -> (String, String) {
+        let mut fields = String::from("");
+        let mut values = String::from("");
+        let parameters = match serde_json::to_value(&self) {
+            Ok(obj) => obj,
+            _ => panic!("Unexpected JSON value"),
+        };
+        let obj = match parameters.as_object() {
+            Some(val) => val,
+            None => panic!("Unexpected JSON value"),
+        };
+        for (key, value) in obj {
+            fields.push_str(format!("{fields}, {key}").as_str());
+            values.push_str(format!("{values}, {value}").as_str());
+        }
+        (fields, values)
+    }
 }

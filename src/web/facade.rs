@@ -6,7 +6,7 @@ use crate::data::facades::db::Manager;
 use crate::{
     business::versioning::Version,
     web::{
-        requests::{PathRequest, QueryRequest},
+        requests::{ModelQueryRequest, PathRequest},
         responses::{match_error, non_auth},
     },
 };
@@ -37,7 +37,7 @@ where
     }
     async fn list(
         _version: Version,
-        Query(payload): Query<QueryRequest>,
+        Query(payload): Query<ModelQueryRequest>,
         headers: HeaderMap,
     ) -> Response {
         if Self::allow_request(format!("{}s", Self::entity_name()), headers).await {
@@ -51,12 +51,13 @@ where
     }
     async fn post(
         _version: Version,
-        Query(payload): Query<QueryRequest>,
+        Query(payload): Query<ModelQueryRequest>,
         headers: HeaderMap,
     ) -> Response {
         if Self::allow_request(format!("{}s", Self::entity_name()), headers).await {
+            let (fields, values) = payload.get_fields_and_values();
             return match_error(
-                <Self as Manager>::create(&payload.get_params()).await,
+                <Self as Manager>::create(&fields, &values).await,
                 &payload.fields,
             )
             .await;
@@ -65,7 +66,7 @@ where
     }
     async fn put(
         Path(path_request): Path<PathRequest>,
-        Query(payload): Query<QueryRequest>,
+        Query(payload): Query<ModelQueryRequest>,
         headers: HeaderMap,
     ) -> Response {
         if Self::allow_request(format!("{}s", Self::entity_name()), headers).await {
@@ -80,7 +81,7 @@ where
     }
     async fn patch(
         Path(path_request): Path<PathRequest>,
-        Query(payload): Query<QueryRequest>,
+        Query(payload): Query<ModelQueryRequest>,
         headers: HeaderMap,
     ) -> Response {
         if Self::allow_request(format!("{}s", Self::entity_name()), headers).await {

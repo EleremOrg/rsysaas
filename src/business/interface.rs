@@ -50,8 +50,9 @@ impl CustomerInterface {
                 .collect(),
         }
     }
+
     pub async fn is_allowed(entity: Arc<String>, token: &str) -> bool {
-        let query = format!("api_key = '{token}' AND models_related LIKE '%{entity}%'");
+        let query = format!("token = '{token}' AND models_related LIKE '%{entity}%'");
         match Customer::exists(&query).await {
             Ok(exists) => exists,
             Err(_err) => {

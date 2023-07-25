@@ -1,22 +1,32 @@
 mod business;
 mod data;
-mod utils;
+
 mod web;
 
 use envy::read_env_file;
-use utils::{execute_sql_file, tracing};
+
+use data::orm::run_migrations;
+use std::{net::SocketAddr, path::PathBuf};
 use web::routes::routes;
 
-use std::{net::SocketAddr, path::PathBuf};
-
 use axum_server::tls_rustls::RustlsConfig;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() {
-    tracing();
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                // axum logs rejections from built-in extractors with the `axum::rejection`
+                // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
+                "example_tracing_aka_logging=debug,tower_http=debug,axum::rejection=trace".into()
+            }),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
     read_env_file();
 
-    execute_sql_file("migrations/sqlite/initial.sql").await;
+    run_migrations("migrations/sqlite/initial.sql").await;
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8001));
     println!("listening on {}", addr);

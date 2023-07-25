@@ -2,8 +2,8 @@ CREATE TABLE customers (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     domain TEXT NOT NULL,
-    api_key TEXT NOT NULL,
-    CONSTRAINT api_key_unique UNIQUE(api_key),
+    token TEXT NOT NULL,
+    CONSTRAINT token_unique UNIQUE(token),
     CONSTRAINT domain_unique UNIQUE(domain)
 );
 CREATE TABLE users (

@@ -1,18 +1,35 @@
+CREATE TABLE migrations (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    ran BOOLEAN
+);
+
 CREATE TABLE customers (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     domain TEXT NOT NULL,
-    api_key TEXT NOT NULL,
+    token TEXT NOT NULL,
+    public_token TEXT NOT NULL,
     models_related TEXT NOT NULL,
-    UNIQUE(api_key),
+    UNIQUE(token),
+    UNIQUE(public_token),
     UNIQUE(domain)
 );
+
+CREATE TABLE potential_customers (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    message TEXT
+);
+
 CREATE TABLE users (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     customer_id INTEGER,
     FOREIGN KEY (customer_id) REFERENCES customers (id)
 );
+
 CREATE TABLE associations (
     id INTEGER PRIMARY KEY,
     table_related TEXT NOT NULL,
@@ -52,10 +69,10 @@ VALUES
     (10, 'GE', 'Automotive', 'Unknown', 'NYSE', 'USA', 'growth,zombie', -0.1),
     (12, 'FIRST', 'Technology', 'Technology', 'NASDAQ', 'USA', 'growth,divs', 0.3);
 
-INSERT INTO customers (id, name, domain, api_key, public_api_key, models_related)
+INSERT INTO customers (id, name, domain, token, public_token, models_related)
 VALUES
-    (1, 'Acme Corporation', 'acme.com', 'acme_api_key', 'public_acme_api_key', 'users,'),
-    (2, 'InvFin', 'example.com:8000', 'invfin_api_key', 'public_invfin_api_key', 'users, terms, companies');
+    (1, 'Acme Corporation', 'acme.com', 'acme_token', 'public_acme_token', 'users,'),
+    (2, 'InvFin', 'example.com:8000', 'invfin_token', 'public_invfin_token', 'users, terms, companies');
 
 INSERT INTO users (id, name, customer_id)
 VALUES

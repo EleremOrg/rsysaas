@@ -1,8 +1,8 @@
 use super::{
-    middlewares::cors,
+    middlewares::{cors, post_cors},
     views::{
         api::{get_embed_recommendations, get_recommendations},
-        regular::{error_404, home},
+        regular::{error_404, home, new_potential_customer},
         sse::sse_handler,
         ws::ws_handler,
     },
@@ -18,18 +18,12 @@ use axum::{
     extract::MatchedPath,
     http::{HeaderMap, Request},
     response::Response,
-    routing::get,
+    routing::{get, post},
     Router,
 };
-use hyper::{http, Method};
 use std::time::Duration;
 use tower::ServiceBuilder;
-use tower_http::{
-    classify::ServerErrorsFailureClass,
-    cors::{Any, CorsLayer},
-    services::ServeDir,
-    trace::TraceLayer,
-};
+use tower_http::{classify::ServerErrorsFailureClass, services::ServeDir, trace::TraceLayer};
 use tracing::{info_span, Span};
 
 fn api_routes() -> Router {
@@ -53,11 +47,13 @@ fn recommendations_routes() -> Router {
 
 pub fn routes() -> Router {
     Router::new()
+        .route("/save-new-user/", post(new_potential_customer))
+        .layer(post_cors())
+        .route("/", get(home))
         .nest_service(
             "/assets/embed-widget.js",
             ServeDir::new("assets/embed-widget.js"),
         )
-        .route("/", get(home))
         .nest("/api/:version/", api_routes())
         .fallback(error_404)
         // `TraceLayer` is provided by tower-http so you have to add that as a dependency.

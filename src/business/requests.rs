@@ -7,7 +7,7 @@ use crate::{
         facades::db::Manager,
         models::requests::{APIRecommendationRequest, EmbedRecommendationRequest},
     },
-    web::requests::{APIRecommendationQueryRequest, EmbedRecommendationQueryRequest},
+    web::requests::{APIRecommendationQueryRequest, EmbedRecommendationQueryRequest, QueryRequest},
 };
 
 use super::interface::CustomerInterface;
@@ -41,10 +41,14 @@ impl RecommendationRequest {
     }
 
     async fn save_embed_query(payload: &EmbedRecommendationQueryRequest) {
-        EmbedRecommendationRequest::create(&Self::struct_to_hashmap(payload).await);
+        let (fields, values) = payload.get_fields_and_values().await;
+        //TODO: use result, maybe move it into a form
+        EmbedRecommendationRequest::create(&fields, &values);
     }
     async fn save_api_query(payload: &APIRecommendationQueryRequest) {
-        APIRecommendationRequest::create(&Self::struct_to_hashmap(payload).await);
+        let (fields, values) = payload.get_fields_and_values().await;
+        //TODO: use result, maybe move it into a form
+        APIRecommendationRequest::create(&fields, &values);
     }
     pub async fn from_embed(
         customer: &CustomerInterface,
@@ -71,23 +75,5 @@ impl RecommendationRequest {
             customer: customer.clone(),
             is_for: RecommendFor::Generic, //TODO: change
         }
-    }
-    async fn struct_to_hashmap<T>(data: &T) -> HashMap<String, String>
-    where
-        T: Serialize,
-    {
-        let mut result = HashMap::new();
-        let parameters = match serde_json::to_value(data) {
-            Ok(obj) => obj,
-            _ => panic!("Unexpected JSON value"),
-        };
-        let obj = match parameters.as_object() {
-            Some(val) => val,
-            None => panic!("Unexpected JSON value"),
-        };
-        for (key, value) in obj {
-            result.insert(key.to_owned(), format!("{value}"));
-        }
-        result
     }
 }

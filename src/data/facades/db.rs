@@ -4,7 +4,7 @@ use envy::get_env;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sqlx::{
-    sqlite::{SqliteConnection, SqliteRow},
+    sqlite::{SqliteConnection, SqlitePool, SqliteRow},
     Connection, FromRow, Row,
 };
 use std::collections::HashMap;
@@ -48,25 +48,55 @@ where
         }
     }
 
-    async fn create(parameters: &HashMap<String, String>) -> Result<Self, CRUDError> {
-        let (fields, placeholders): (Vec<_>, Vec<_>) = parameters
-            .iter()
-            .map(|(key, _)| (format!("\"{}\"", key), "?"))
-            .unzip();
+    async fn create(fields: &str, values: &str) -> Result<Self, CRUDError> {
+        //TODO: make it more beautiful
+        let mut transaction = match Self::transaction().await.begin().await {
+            Ok(transaction) => transaction,
+            Err(err) => {
+                println!("transaction errror launching: {:?}", err);
+                return Err(CRUDError::NotFound);
+            }
+        };
+        let query = format!(
+            "INSERT INTO {table} ({fields}) VALUES ({values});",
+            table = Self::table().await
+        );
 
-        let fields = fields.join(", ");
-        let placeholders = placeholders.join(", ");
+        match sqlx::query(&query)
+            .execute(&mut transaction as &mut SqliteConnection)
+            .await
+        {
+            Ok(row) => row,
+            Err(err) => {
+                println!("run insert: {:?}", err);
+                return Err(CRUDError::NotFound);
+            }
+        };
 
-        Self::execute_query(
-            format!(
-                "INSERT INTO {} ({}) VALUES ({});",
-                Self::table().await,
-                fields,
-                placeholders
-            ),
-            Self::connect().await,
-        )
-        .await
+        let retreival_query = format!(
+            "SELECT * FROM {} WHERE id = last_insert_rowid()",
+            Self::table().await
+        );
+        // Fetch the inserted row from the database
+        match sqlx::query_as::<_, Self>(&retreival_query)
+            .fetch_one(&mut transaction as &mut SqliteConnection)
+            .await
+        {
+            Ok(row) => {
+                match transaction.commit().await {
+                    Ok(_) => println!("transacttion commit succeeded"),
+                    Err(err) => {
+                        println!("transacttion commit error: {:?}", err);
+                        return Err(CRUDError::NotFound);
+                    }
+                };
+                Ok(row)
+            }
+            Err(err) => {
+                println!("run fetch: {:?}", err);
+                Err(CRUDError::NotFound)
+            }
+        }
     }
 
     async fn update(
@@ -100,7 +130,7 @@ where
             .await
         {
             Ok(row) => Ok(row.rows_affected()),
-            Err(_) => Err(CRUDError::NotFound),
+            Err(_err) => Err(CRUDError::NotFound),
         }
     }
 
@@ -124,7 +154,15 @@ where
     }
 
     async fn connect() -> SqliteConnection {
+        //TODO: use a pool
         match SqliteConnection::connect(&get_env("DATABASE_URL")).await {
+            Ok(db) => db,
+            Err(e) => panic!("{}", e),
+        }
+    }
+
+    async fn transaction() -> SqlitePool {
+        match SqlitePool::connect(&get_env("DATABASE_URL")).await {
             Ok(db) => db,
             Err(e) => panic!("{}", e),
         }
@@ -134,7 +172,10 @@ where
         let row = sqlx::query_as::<_, Self>(&query).fetch_one(&mut conn).await;
         match row {
             Ok(row) => Ok(row),
-            Err(_) => Err(CRUDError::NotFound),
+            Err(err) => {
+                println!("{:?}", err);
+                Err(CRUDError::NotFound)
+            }
         }
     }
 

@@ -7,12 +7,26 @@ use rec_rsys::models::{AsyncItemAdapter, Item};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow, Deserialize, Serialize, Default)]
+pub struct PotentialCustomer {
+    pub id: u32,
+    pub name: String,
+    pub email: String,
+    pub message: String,
+}
+#[async_trait]
+impl Manager<'_> for PotentialCustomer {
+    async fn table() -> String {
+        "potential_customers".to_string()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow, Deserialize, Serialize, Default)]
 pub struct Customer {
     pub id: u32,
     pub name: String,
     pub domain: String,
-    pub api_key: String,
-    pub public_api_key: String,
+    pub token: String,
+    pub public_token: String,
     pub models_related: String,
 }
 #[async_trait]
@@ -48,7 +62,7 @@ impl Customer {
     ) -> Result<Self, CRUDError> {
         Self::execute_query(
             format!(
-                "SELECT * FROM {} WHERE public_api_key = '{token}' AND domain = '{domain}'",
+                "SELECT * FROM {} WHERE public_token = '{token}' AND domain = '{domain}'",
                 Self::table().await
             ),
             Self::connect().await,
@@ -59,7 +73,7 @@ impl Customer {
     pub async fn get_by_token(token: &str) -> Result<Self, CRUDError> {
         Self::execute_query(
             format!(
-                "SELECT * FROM {} WHERE api_key = '{token}'",
+                "SELECT * FROM {} WHERE token = '{token}'",
                 Self::table().await
             ),
             Self::connect().await,

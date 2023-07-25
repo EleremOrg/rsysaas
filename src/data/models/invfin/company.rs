@@ -69,8 +69,7 @@ impl Company {
     }
     // TODO: take into consideration the fact that a customer may query a table with data from other customers
     async fn get_references_query(&self) -> Result<Vec<Company>, CRUDError> {
-        let query = Orm::new()
-            .select("id, sector, industry, exchange, country, adj, growth")
+        let query = Orm::select("id, sector, industry, exchange, country, adj, growth")
             .from(&Self::table().await)
             .where_clause()
             .not_equal("id", &self.id.to_string())
