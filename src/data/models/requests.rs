@@ -3,7 +3,7 @@ use axum::async_trait;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow, Deserialize, Serialize, Default)]
-pub struct EmbedRecommendationRequest {
+pub struct EmbedRecommendationRequestModel {
     pub orientation: String,
     pub entity: String,
     pub title: String,
@@ -34,14 +34,14 @@ pub struct EmbedRecommendationRequest {
 }
 
 #[async_trait]
-impl Manager<'_> for EmbedRecommendationRequest {
+impl Manager<'_> for EmbedRecommendationRequestModel {
     async fn table() -> String {
         "embed_recommendation_request".to_string()
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow, Deserialize, Serialize, Default)]
-pub struct APIRecommendationRequest {
+pub struct APIRecommendationRequestModel {
     pub entity: String,
     pub user_id: Option<u32>,
     pub prod_id: Option<u32>,
@@ -49,7 +49,7 @@ pub struct APIRecommendationRequest {
 }
 
 #[async_trait]
-impl Manager<'_> for APIRecommendationRequest {
+impl Manager<'_> for APIRecommendationRequestModel {
     async fn table() -> String {
         "api_recommendation_request".to_string()
     }

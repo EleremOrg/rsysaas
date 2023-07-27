@@ -10,7 +10,7 @@ envy = { path = "envy" }
 serde = { version = "1.0.163", features = ["derive", "rc"] }
 serde_json = "1.0.96"
 sqlx = { version = "0.7.0", features = ["sqlite", "runtime-tokio", "tls-rustls"]}
-axum = { version = "0.6.18", features = ["headers", "http2", "macros", "tracing", "ws"] }
+axum = { version = "0.6.18", features = ["headers", "json", "query", "http2", "macros", "tracing", "ws"] }
 
 # Logging
 tracing = "0.1"
@@ -36,6 +36,7 @@ tokio-stream = "0.1.14"
 tokio-tungstenite = "0.19"
 tower = { version = "0.4", features = ["util"] }
 tower-http = { version = "0.4.0", features = ["fs", "trace", "cors", "set-header"] }
+serde_urlencoded = "0.7.1"
 
 # Recsys
 #rec_rsys = { git = "https://github.com/lucas-montes/rec_rsys.git" }

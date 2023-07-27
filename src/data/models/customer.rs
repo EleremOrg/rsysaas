@@ -60,7 +60,7 @@ impl AsyncItemAdapter for Customer {
 
 impl Customer {
     pub async fn get_by_public_token_and_domain(
-        token: Arc<String>,
+        token: &str,
         domain: Arc<String>,
     ) -> Result<Self, CRUDError> {
         Self::execute_query(

@@ -1,7 +1,10 @@
 async function sendGetRequestWithPayload() {
   const endpoint = 'http://localhost:8001/api/v1/embed-recommendations/';
+  const configWidget = await getWidgetConfig();
+  const token = configWidget.publicKey;
+  delete configWidget.publicKey;
   const params = new URLSearchParams({
-    ...await getWidgetConfig(),
+    ...configWidget,
     ...await fillMissingConfig(),
     location: JSON.stringify(await getLocation()),
   });
@@ -10,6 +13,7 @@ async function sendGetRequestWithPayload() {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
     });
     await handleResponse(response);

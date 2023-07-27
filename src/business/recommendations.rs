@@ -1,4 +1,4 @@
-use super::requests::{RecommendFor, RecommendationRequest};
+use super::requests::{RecommendationRequest, RecommendationTarget};
 use crate::data::{
     errors::CRUDError,
     interface::{get_generic_items, get_product_items, get_user_items},
@@ -33,10 +33,10 @@ impl Recommendation {
     pub async fn generate_recommendations(
         request: &RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {
-        match request.is_for {
-            RecommendFor::User => Self::get_user_recommendations(request).await,
-            RecommendFor::Product => Self::get_product_recommendations(request).await,
-            RecommendFor::Generic => Self::get_generic_recommendations(request).await,
+        match request.target {
+            RecommendationTarget::User => Self::get_user_recommendations(request).await,
+            RecommendationTarget::Product => Self::get_product_recommendations(request).await,
+            RecommendationTarget::Generic => Self::get_generic_recommendations(request).await,
         }
     }
 

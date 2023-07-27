@@ -8,7 +8,6 @@
 ### Auth
 * [X] Get token from header bearer for API requests 🔴
 * [X] Get token from request body for script tag use 🔴
-* [ ] Move header verification to middleware 🟢
 
 ### Data
 * [X] Connect to DB 🔴
@@ -26,6 +25,7 @@
 ### Models
 * [ ] Convert the correct fields/information to vectors 🟠
 * [ ] Improve tables relationship to retreive correct information 🟠
+* [ ] Create interface between raw model and views' model 🟠
 
 ### Views
 * [ ] Mapp CrudErrors with default views' responses 🟠

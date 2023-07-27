@@ -4,15 +4,17 @@ use axum::{
     response::{IntoResponse, Json, Response},
 };
 use serde::Serialize;
-use serde_json::json;
+use serde_json::{json, Value};
 use std::fmt::Debug;
 
 pub fn success<T: serde::Serialize>(data: T) -> Response {
     (StatusCode::OK, Json(json!({ "data": data }))).into_response()
 }
+
 pub fn non_auth() -> Response {
     (StatusCode::FORBIDDEN, Json(json!({"message": "Not auth"}))).into_response()
 }
+
 pub fn max_limit() -> Response {
     (
         StatusCode::NOT_ACCEPTABLE,
@@ -27,12 +29,14 @@ pub fn not_found<T: Debug>(data: &T) -> Response {
     )
         .into_response()
 }
-pub fn wrong_query<T: Debug>(query: &T) -> Response {
+pub fn wrong_query<T: Debug + ?Sized>(query: &T) -> Response {
+    pre_wrong_query(query).into_response()
+}
+pub fn pre_wrong_query<T: Debug + ?Sized>(query: &T) -> (hyper::StatusCode, axum::Json<Value>) {
     (
         StatusCode::NOT_ACCEPTABLE,
-        Json(json!({ "message": format!("wrong query {:#?}", query) })),
+        Json(json!({ "message": format!("{:#?}", query) })),
     )
-        .into_response()
 }
 pub fn our_fault() -> Response {
     (

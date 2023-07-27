@@ -5,9 +5,11 @@ use serde::{Deserialize, Serialize};
 use crate::{
     data::{
         facades::db::Manager,
-        models::requests::{APIRecommendationRequest, EmbedRecommendationRequest},
+        models::requests::{APIRecommendationRequestModel, EmbedRecommendationRequestModel},
     },
-    web::requests::{APIRecommendationQueryRequest, EmbedRecommendationQueryRequest, QueryRequest},
+    web::requests::recommendation::{
+        APIRecommendationRequest, EmbedRecommendationRequest, QueryRequest,
+    },
 };
 
 use super::interface::CustomerInterface;
@@ -19,61 +21,43 @@ pub struct RecommendationRequest {
     pub number_recommendations: u8,
     pub entity: Arc<String>,
     pub customer: CustomerInterface,
-    pub is_for: RecommendFor,
+    pub target: RecommendationTarget,
 }
 
 #[derive(Debug, Serialize, Clone, Deserialize)]
-pub enum RecommendFor {
+pub enum RecommendationTarget {
     User,
     Product,
     Generic,
 }
 
-impl RecommendFor {}
+impl RecommendationTarget {
+    pub async fn get(target: &str) -> Result<Self, ()> {
+        match target {
+            "user" => Ok(RecommendationTarget::User),
+            "product" => Ok(RecommendationTarget::Product),
+            "generic" => Ok(RecommendationTarget::Generic),
+            _ => Err(()),
+        }
+    }
+}
 
 impl RecommendationRequest {
     pub async fn get_id(&self) -> u32 {
-        match self.is_for {
-            RecommendFor::Generic => 0,
-            RecommendFor::User => self.user_id.unwrap(),
-            RecommendFor::Product => self.prod_id.unwrap(),
+        match self.target {
+            RecommendationTarget::Generic => 0,
+            RecommendationTarget::User => self.user_id.unwrap(),
+            RecommendationTarget::Product => self.prod_id.unwrap(),
         }
     }
 
-    async fn save_embed_query(payload: &EmbedRecommendationQueryRequest) {
+    pub async fn save_embed_query(payload: &EmbedRecommendationRequest) {
         let (fields, values) = payload.get_fields_and_values().await;
-        //TODO: use result, maybe move it into a form
-        EmbedRecommendationRequest::create(&fields, &values);
+        let _ = EmbedRecommendationRequestModel::create(&fields, &values).await;
     }
-    async fn save_api_query(payload: &APIRecommendationQueryRequest) {
+
+    pub async fn save_api_query(payload: &APIRecommendationRequest) {
         let (fields, values) = payload.get_fields_and_values().await;
-        //TODO: use result, maybe move it into a form
-        APIRecommendationRequest::create(&fields, &values);
-    }
-    pub async fn from_embed(
-        customer: &CustomerInterface,
-        payload: &EmbedRecommendationQueryRequest,
-    ) -> Self {
-        RecommendationRequest {
-            prod_id: payload.prod_id,
-            user_id: payload.user_id,
-            number_recommendations: payload.number_recommendations.unwrap_or(5),
-            entity: payload.entity.clone(),
-            customer: customer.clone(),
-            is_for: RecommendFor::Generic, //TODO: change
-        }
-    }
-    pub async fn from_api(
-        customer: &CustomerInterface,
-        payload: &APIRecommendationQueryRequest,
-    ) -> Self {
-        RecommendationRequest {
-            prod_id: payload.prod_id,
-            user_id: payload.user_id,
-            number_recommendations: payload.number_recommendations.unwrap_or(5),
-            entity: payload.entity.clone(),
-            customer: customer.clone(),
-            is_for: RecommendFor::Generic, //TODO: change
-        }
+        let _ = APIRecommendationRequestModel::create(&fields, &values).await;
     }
 }
