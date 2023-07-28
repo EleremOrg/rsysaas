@@ -1,4 +1,4 @@
-use crate::data::facades::db::Manager;
+use crate::data::interfaces::db::Manager;
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
 

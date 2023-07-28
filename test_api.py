@@ -8,11 +8,11 @@ headers = {
 }
 
 data = {
-    "entity": "",
-    "target": "generic",
-    "user_id": "",
-    "prod_id": "",
-    "number_recommendations": "",
+    "entity": "companies",
+    "target": "product",
+    "userId": None,
+    "prodId": "1",
+    "numberRecommendations": "",
 }
 
 response = requests.get(url, params=data, headers=headers)

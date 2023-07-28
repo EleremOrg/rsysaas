@@ -1,9 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    business::{
-        interface::CustomerInterface, recommendations::Recommendation, versioning::Version,
-    },
+    business::{facade::CustomerFacade, recommendations::Recommendation, versioning::Version},
     web::{
         requests::recommendation::{
             APIRecommendationRequest, EmbedRecommendationRequest, QueryRequest,
@@ -22,7 +20,7 @@ pub async fn get_recommendations(
     payload: APIRecommendationRequest,
     TypedHeader(token): TypedHeader<Authorization<Bearer>>,
 ) -> Response {
-    let customer = match CustomerInterface::get_by_token(token.token()).await {
+    let customer = match CustomerFacade::get_by_token(token.token()).await {
         Ok(customer) => customer,
         Err(_) => return non_auth(),
     };
@@ -33,40 +31,19 @@ pub async fn get_recommendations(
 }
 
 pub async fn get_embed_recommendations(
-    Query(payload): Query<EmbedRecommendationRequest>,
+    _version: Version,
+    payload: EmbedRecommendationRequest,
     TypedHeader(token): TypedHeader<Authorization<Bearer>>,
 ) -> Response {
-    let customer = match CustomerInterface::get_by_public_token_and_domain(
-        token.token(),
-        payload.host.clone(),
-    )
-    .await
-    {
-        Ok(customer) => customer,
-        Err(_) => return non_auth(),
-    };
-    if customer.models_related.contains(payload.entity.as_ref()) {
-        let request = match payload.get_request(&customer).await {
-            Ok(request) => request,
-            Err(_) => return wrong_query("target missing"),
+    let customer =
+        match CustomerFacade::get_by_public_token_and_domain(token.token(), payload.host.clone())
+            .await
+        {
+            Ok(customer) => customer,
+            Err(_) => return non_auth(),
         };
-        // return match customer
-        //     .get_recommendations(&RecommendationRequest::from_embed(&customer, &payload).await)
-        //     .await
-        // {
-        //     Ok(recs) => success(recs),
-        //     Err(err) => match err {
-        //         CRUDError::NotFound => wrong_query(&payload),
-        //         CRUDError::MaxRetry => our_fault(),
-        //         _ => our_fault(),
-        //     },
-        // };
-        return success([
-            Recommendation::new(1, 0.98, Arc::new(String::from("invfin"))),
-            Recommendation::new(2, 0.88, Arc::new(String::from("invfin"))),
-            Recommendation::new(3, 0.78, Arc::new(String::from("invfin"))),
-            Recommendation::new(4, 0.68, Arc::new(String::from("invfin"))),
-        ]);
-    };
-    wrong_query(&payload.entity)
+    match payload.get_request(&customer).await {
+        Ok(request) => request.recommend().await,
+        Err(err) => err,
+    }
 }

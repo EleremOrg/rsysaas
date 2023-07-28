@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     data::{
         errors::CRUDError,
-        facades::db::Manager,
+        interfaces::db::Manager,
         models::requests::{APIRecommendationRequestModel, EmbedRecommendationRequestModel},
     },
     web::{
@@ -17,7 +17,7 @@ use crate::{
     },
 };
 
-use super::interface::CustomerInterface;
+use super::facade::CustomerFacade;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RecommendationRequest {
@@ -25,7 +25,7 @@ pub struct RecommendationRequest {
     pub user_id: Option<u32>,
     pub number_recommendations: u8,
     pub entity: Arc<String>,
-    pub customer: CustomerInterface,
+    pub customer: CustomerFacade,
     pub target: RecommendationTarget,
 }
 
@@ -42,7 +42,7 @@ impl RecommendationTarget {
             "user" => Ok(RecommendationTarget::User),
             "product" => Ok(RecommendationTarget::Product),
             "generic" => Ok(RecommendationTarget::Generic),
-            _ => Err("Wrong target, you must chose between user, target or generic"),
+            _ => Err("Wrong target, you must chose between user, product or generic"),
         }
     }
 }

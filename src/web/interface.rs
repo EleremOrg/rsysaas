@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use crate::data::facades::db::Manager;
+use crate::data::interfaces::db::Manager;
 use crate::{
-    business::{interface::CustomerInterface, versioning::Version},
+    business::{facade::CustomerFacade, versioning::Version},
     web::{
         requests::query::{ModelQueryRequest, PathRequest},
         responses::{match_error, non_auth},
@@ -134,6 +134,6 @@ where
     }
 
     async fn allow_request(entity: String, token: Authorization<Bearer>) -> bool {
-        CustomerInterface::is_allowed(Arc::new(entity), token.token()).await
+        CustomerFacade::is_allowed(Arc::new(entity), token.token()).await
     }
 }

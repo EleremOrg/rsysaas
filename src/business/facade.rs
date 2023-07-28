@@ -1,17 +1,17 @@
-use crate::data::{errors::CRUDError, facades::db::Manager, models::customer::Customer};
+use crate::data::{errors::CRUDError, interfaces::db::Manager, models::customer::Customer};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashSet, sync::Arc};
 
 use super::{recommendations::Recommendation, requests::RecommendationRequest};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct CustomerInterface {
+pub struct CustomerFacade {
     pub id: u32,
     pub domain: Arc<String>,
     pub models_related: HashSet<String>,
 }
 
-impl CustomerInterface {
+impl CustomerFacade {
     pub async fn get_recommendations(
         &self,
         request: &RecommendationRequest,
@@ -22,7 +22,7 @@ impl CustomerInterface {
         }
     }
 
-    pub async fn get_by_token(token: &str) -> Result<CustomerInterface, CRUDError> {
+    pub async fn get_by_token(token: &str) -> Result<CustomerFacade, CRUDError> {
         match Customer::get_by_token(token).await {
             Ok(customer) => Ok(Self::customer_to_interface(customer).await),
             Err(err) => Err(err),
@@ -32,7 +32,7 @@ impl CustomerInterface {
     pub async fn get_by_public_token_and_domain(
         token: &str,
         domain: Arc<String>,
-    ) -> Result<CustomerInterface, CRUDError> {
+    ) -> Result<CustomerFacade, CRUDError> {
         match Customer::get_by_public_token_and_domain(token, domain).await {
             Ok(customer) => Ok(Self::customer_to_interface(customer).await),
             Err(err) => Err(err),
@@ -40,7 +40,7 @@ impl CustomerInterface {
     }
 
     async fn customer_to_interface(customer: Customer) -> Self {
-        CustomerInterface {
+        CustomerFacade {
             id: customer.id,
             domain: Arc::new(customer.domain),
             models_related: customer

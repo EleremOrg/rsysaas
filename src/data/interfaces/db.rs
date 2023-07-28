@@ -171,17 +171,11 @@ where
 
     async fn connect() -> SqliteConnection {
         //TODO: use a pool
-        match SqliteConnection::connect(&get_env("DATABASE_URL")).await {
-            Ok(db) => db,
-            Err(e) => panic!("{}", e),
-        }
+        connect().await
     }
 
     async fn transaction() -> SqlitePool {
-        match SqlitePool::connect(&get_env("DATABASE_URL")).await {
-            Ok(db) => db,
-            Err(e) => panic!("{}", e),
-        }
+        transaction().await
     }
 
     async fn execute_query(query: String, mut conn: SqliteConnection) -> Result<Self, CRUDError> {
@@ -206,4 +200,19 @@ where
     }
 
     async fn table() -> String;
+}
+
+pub async fn connect() -> SqliteConnection {
+    //TODO: use a pool
+    match SqliteConnection::connect(&get_env("DATABASE_URL")).await {
+        Ok(db) => db,
+        Err(e) => panic!("{}", e),
+    }
+}
+
+pub async fn transaction() -> SqlitePool {
+    match SqlitePool::connect(&get_env("DATABASE_URL")).await {
+        Ok(db) => db,
+        Err(e) => panic!("{}", e),
+    }
 }

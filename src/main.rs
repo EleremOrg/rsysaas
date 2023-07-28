@@ -47,7 +47,6 @@ async fn main() {
     run_migrations("migrations/sqlite").await;
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8001));
-    debug!("listening on {:?}", addr);
 
     // configure certificate and private key used by https
     // let config = RustlsConfig::from_pem_file(

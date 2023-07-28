@@ -1,6 +1,6 @@
 use crate::data::errors::CRUDError;
-use crate::data::{facades::db::Manager, orm::Orm};
-use crate::web::facade::View;
+use crate::data::{interfaces::db::Manager, orm::Orm};
+use crate::web::interface::View;
 use axum::async_trait;
 use futures::stream::StreamExt;
 use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, AsyncItemAdapter, Item};

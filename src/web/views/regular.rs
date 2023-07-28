@@ -7,10 +7,12 @@ use axum::{
 use crate::web::forms::PotentialCustomerForm;
 use tracing::{event, instrument, Level};
 
+use envy::get_env;
+
 #[instrument]
 pub async fn home() -> Response {
     event!(Level::INFO, "inside home!");
-    (StatusCode::OK, Html("<h1>Welcome</h1>")).into_response()
+    (StatusCode::OK, Html(get_env("DATABASE_URL"))).into_response()
 }
 
 pub async fn error_404() -> Response {

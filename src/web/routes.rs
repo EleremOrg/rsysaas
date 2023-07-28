@@ -29,7 +29,7 @@ use crate::data::models::{
     invfin::{association::Association, company::Company, term::Term},
     user::User,
 };
-use crate::web::facade::View;
+use crate::web::interface::View;
 
 pub fn routes() -> Router {
     Router::new()

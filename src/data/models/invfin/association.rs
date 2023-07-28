@@ -1,5 +1,5 @@
-use crate::data::facades::db::Manager;
-use crate::web::facade::View;
+use crate::data::interfaces::db::Manager;
+use crate::web::interface::View;
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
 

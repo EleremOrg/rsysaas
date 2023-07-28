@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use tracing::error;
 
-use crate::data::{facades::db::Manager, models::customer::PotentialCustomer};
+use crate::data::{interfaces::db::Manager, models::customer::PotentialCustomer};
 
 #[derive(Deserialize, Debug)]
 pub struct PotentialCustomerForm {

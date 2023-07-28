@@ -1,5 +1,5 @@
-use crate::data::{errors::CRUDError, facades::db::Manager};
-use crate::web::facade::View;
+use crate::data::{errors::CRUDError, interfaces::db::Manager};
+use crate::web::interface::View;
 use axum::async_trait;
 use rec_rsys::models::{AsyncItemAdapter, Item};
 use serde::{Deserialize, Serialize};

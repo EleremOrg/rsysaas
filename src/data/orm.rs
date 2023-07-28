@@ -13,41 +13,6 @@ pub struct Join;
 pub struct Limit;
 pub struct Table;
 
-impl Orm<Table> {
-    pub fn drop_table(self, table: &str) -> Orm<Table> {
-        Orm {
-            query: format!("DROP TABLE {table}"),
-            has_where_clause: false,
-            state: PhantomData,
-        }
-    }
-
-    pub fn truncate_table(self, table: &str) -> Orm<Table> {
-        Orm {
-            query: format!("TRUNCATE TABLE {table}"),
-            has_where_clause: false,
-            state: PhantomData,
-        }
-    }
-
-    pub fn alter_table(self, table: &str) -> Orm<Table> {
-        Orm {
-            query: format!("ALTER TABLE {table}"),
-            has_where_clause: false,
-            state: PhantomData,
-        }
-    }
-
-    pub fn add(self, column: &str, data_type: &str) -> Orm<Table> {
-        //TODO: convert data type into enum
-        Orm {
-            query: format!("{} ADD {column} {data_type}", self.query),
-            has_where_clause: self.has_where_clause,
-            state: PhantomData,
-        }
-    }
-}
-
 pub struct Orm<State = Select> {
     query: String,
     state: PhantomData<State>,
@@ -96,6 +61,41 @@ impl<State> Orm<State> {
     pub fn ready(&mut self) -> String {
         self.query.push_str(";");
         self.query.clone()
+    }
+}
+
+impl Orm<Table> {
+    pub fn drop_table(self, table: &str) -> Orm<Table> {
+        Orm {
+            query: format!("DROP TABLE {table}"),
+            has_where_clause: false,
+            state: PhantomData,
+        }
+    }
+
+    pub fn truncate_table(self, table: &str) -> Orm<Table> {
+        Orm {
+            query: format!("TRUNCATE TABLE {table}"),
+            has_where_clause: false,
+            state: PhantomData,
+        }
+    }
+
+    pub fn alter_table(self, table: &str) -> Orm<Table> {
+        Orm {
+            query: format!("ALTER TABLE {table}"),
+            has_where_clause: false,
+            state: PhantomData,
+        }
+    }
+
+    pub fn add(self, column: &str, data_type: &str) -> Orm<Table> {
+        //TODO: convert data type into enum
+        Orm {
+            query: format!("{} ADD {column} {data_type}", self.query),
+            has_where_clause: self.has_where_clause,
+            state: PhantomData,
+        }
     }
 }
 

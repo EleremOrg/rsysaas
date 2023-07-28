@@ -12,7 +12,7 @@ use std::sync::Arc;
 
 use crate::{
     business::{
-        interface::CustomerInterface,
+        facade::CustomerFacade,
         requests::{RecommendationRequest, RecommendationTarget},
     },
     web::responses::wrong_query,
@@ -24,12 +24,12 @@ pub trait QueryRequest<'a> {
 
     async fn get_request(
         &self,
-        customer: &CustomerInterface,
+        customer: &CustomerFacade,
     ) -> Result<RecommendationRequest, Response>;
 
     async fn to_generic_request(
         &self,
-        customer: &CustomerInterface,
+        customer: &CustomerFacade,
         target: RecommendationTarget,
     ) -> RecommendationRequest;
 }
@@ -39,9 +39,9 @@ pub trait QueryRequest<'a> {
 pub struct APIRecommendationRequest {
     pub entity: Arc<String>,
     pub target: Arc<String>,
-    pub user_id: Option<u32>,
-    pub prod_id: Option<u32>,
-    pub number_recommendations: Option<u8>,
+    pub user_id: Option<String>,
+    pub prod_id: Option<String>,
+    pub number_recommendations: Option<String>,
 }
 
 #[async_trait]
@@ -66,7 +66,7 @@ impl<'a> QueryRequest<'a> for APIRecommendationRequest {
 
     async fn get_request(
         &self,
-        customer: &CustomerInterface,
+        customer: &CustomerFacade,
     ) -> Result<RecommendationRequest, Response> {
         match RecommendationTarget::get(&self.target).await {
             Ok(target) => Ok(self.to_generic_request(customer, target).await),
@@ -76,17 +76,17 @@ impl<'a> QueryRequest<'a> for APIRecommendationRequest {
 
     async fn to_generic_request(
         &self,
-        customer: &CustomerInterface,
+        customer: &CustomerFacade,
         target: RecommendationTarget,
     ) -> RecommendationRequest {
         RecommendationRequest::save_api_query(self).await;
         RecommendationRequest {
-            prod_id: self.prod_id,
-            user_id: self.user_id,
-            number_recommendations: self.number_recommendations.unwrap_or(5),
+            prod_id: correct_value(&self.prod_id).await,
+            user_id: correct_value(&self.user_id).await,
+            number_recommendations: correct_number(&self.number_recommendations).await,
             entity: self.entity.clone(),
             customer: customer.clone(),
-            target: target,
+            target,
         }
     }
 }
@@ -98,7 +98,7 @@ where
 {
     type Rejection = Response;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         match parts.extract::<Query<Self>>().await {
             Ok(params) => Ok(params.0),
             Err(err) => return Err(wrong_query(&clean_error_message(err.body_text()).await)),
@@ -111,9 +111,9 @@ where
 pub struct EmbedRecommendationRequest {
     pub entity: Arc<String>,
     pub target: Arc<String>,
-    pub user_id: Option<u32>,
-    pub prod_id: Option<u32>,
-    pub number_recommendations: Option<u8>,
+    pub user_id: Option<String>,
+    pub prod_id: Option<String>,
+    pub number_recommendations: Option<String>,
 
     pub title: Arc<String>,
     pub show_image: bool,
@@ -167,7 +167,7 @@ impl<'a> QueryRequest<'a> for EmbedRecommendationRequest {
 
     async fn get_request(
         &self,
-        customer: &CustomerInterface,
+        customer: &CustomerFacade,
     ) -> Result<RecommendationRequest, Response> {
         match RecommendationTarget::get(&self.target).await {
             Ok(target) => Ok(self.to_generic_request(customer, target).await),
@@ -177,14 +177,14 @@ impl<'a> QueryRequest<'a> for EmbedRecommendationRequest {
 
     async fn to_generic_request(
         &self,
-        customer: &CustomerInterface,
+        customer: &CustomerFacade,
         target: RecommendationTarget,
     ) -> RecommendationRequest {
         RecommendationRequest::save_embed_query(self).await;
         RecommendationRequest {
-            prod_id: self.prod_id,
-            user_id: self.user_id,
-            number_recommendations: self.number_recommendations.unwrap_or(5),
+            prod_id: correct_value(&self.prod_id).await,
+            user_id: correct_value(&self.user_id).await,
+            number_recommendations: correct_number(&self.number_recommendations).await,
             entity: self.entity.clone(),
             customer: customer.clone(),
             target: target,
@@ -199,7 +199,7 @@ where
 {
     type Rejection = Response;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         match parts.extract::<Query<Self>>().await {
             Ok(params) => Ok(params.0),
             Err(err) => return Err(wrong_query(&clean_error_message(err.body_text()).await)),
@@ -212,4 +212,16 @@ async fn clean_error_message(msg: String) -> String {
         return msg.replace("Failed to deserialize query string: ", "");
     }
     msg
+}
+
+async fn correct_value(value: &Option<String>) -> Option<u32> {
+    value.clone().map(|s| s.parse::<u32>().ok()).flatten()
+}
+
+async fn correct_number(value: &Option<String>) -> u8 {
+    value
+        .clone()
+        .unwrap_or("5".to_string())
+        .parse::<u8>()
+        .unwrap_or(5)
 }
