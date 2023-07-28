@@ -9,7 +9,7 @@ headers = {
 
 data = {
     "entity": "",
-    "target": "",
+    "target": "generic",
     "user_id": "",
     "prod_id": "",
     "number_recommendations": "",
@@ -17,4 +17,5 @@ data = {
 
 response = requests.get(url, params=data, headers=headers)
 
-print(response.__dict__)
+print(response.json())
+print(response.status_code)

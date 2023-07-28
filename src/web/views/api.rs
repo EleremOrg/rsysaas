@@ -4,12 +4,11 @@ use crate::{
     business::{
         interface::CustomerInterface, recommendations::Recommendation, versioning::Version,
     },
-    data::errors::CRUDError,
     web::{
         requests::recommendation::{
             APIRecommendationRequest, EmbedRecommendationRequest, QueryRequest,
         },
-        responses::{non_auth, our_fault, success, wrong_query},
+        responses::{non_auth, success, wrong_query},
     },
 };
 use axum::{
@@ -27,21 +26,10 @@ pub async fn get_recommendations(
         Ok(customer) => customer,
         Err(_) => return non_auth(),
     };
-    if customer.models_related.contains(payload.entity.as_ref()) {
-        let request = match payload.final_request(&customer).await {
-            Ok(request) => request,
-            Err(_) => return wrong_query("target missing"),
-        };
-        return match customer.get_recommendations(&request).await {
-            Ok(recs) => success(recs),
-            Err(err) => match err {
-                CRUDError::NotFound => wrong_query(&payload),
-                CRUDError::MaxRetry => our_fault(),
-                _ => our_fault(),
-            },
-        };
+    match payload.get_request(&customer).await {
+        Ok(request) => request.recommend().await,
+        Err(err) => err,
     }
-    wrong_query(&format!("wrong entity {:?}", *payload.entity))
 }
 
 pub async fn get_embed_recommendations(
@@ -58,7 +46,7 @@ pub async fn get_embed_recommendations(
         Err(_) => return non_auth(),
     };
     if customer.models_related.contains(payload.entity.as_ref()) {
-        let request = match payload.final_request(&customer).await {
+        let request = match payload.get_request(&customer).await {
             Ok(request) => request,
             Err(_) => return wrong_query("target missing"),
         };

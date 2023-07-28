@@ -22,7 +22,7 @@ impl Recommendation {
         Recommendation {
             prod_id,
             similarity,
-            path: Self::generate_path(domain, prod_id),
+            path: Self::get_path(domain, prod_id),
             image: "https://www.wallstreetmojo.com/wp-content/uploads/2023/04/Current-Cost.png"
                 .to_string(),
             title: format!("Title {prod_id}"),
@@ -34,10 +34,23 @@ impl Recommendation {
         request: &RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {
         match request.target {
+            RecommendationTarget::Generic => Self::get_generic_recommendations(request).await,
             RecommendationTarget::User => Self::get_user_recommendations(request).await,
             RecommendationTarget::Product => Self::get_product_recommendations(request).await,
-            RecommendationTarget::Generic => Self::get_generic_recommendations(request).await,
         }
+    }
+
+    async fn get_generic_recommendations(
+        request: &RecommendationRequest,
+    ) -> Result<Vec<Recommendation>, CRUDError> {
+        let items = match get_generic_items().await {
+            Ok(items) => items,
+            Err(err) => return Err(err),
+        };
+        Ok(items
+            .iter()
+            .map(|item| Recommendation::new(item.id, item.result, request.customer.domain.clone()))
+            .collect::<Vec<Recommendation>>())
     }
 
     async fn get_user_recommendations(
@@ -54,19 +67,6 @@ impl Recommendation {
             request.customer.domain.clone(),
         )
         .await)
-    }
-
-    async fn get_generic_recommendations(
-        request: &RecommendationRequest,
-    ) -> Result<Vec<Recommendation>, CRUDError> {
-        let items = match get_generic_items().await {
-            Ok(items) => items,
-            Err(err) => return Err(err),
-        };
-        Ok(items
-            .iter()
-            .map(|item| Recommendation::new(item.id, item.result, request.customer.domain.clone()))
-            .collect::<Vec<Recommendation>>())
     }
 
     async fn get_product_recommendations(
@@ -99,7 +99,7 @@ impl Recommendation {
             .collect()
     }
 
-    fn generate_path(domain: Arc<String>, prod_id: u32) -> String {
+    fn get_path(domain: Arc<String>, prod_id: u32) -> String {
         format!("my/path/{domain}/{prod_id}/")
     }
 }

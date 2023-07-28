@@ -1,14 +1,19 @@
 use std::sync::Arc;
 
+use axum::response::Response;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     data::{
+        errors::CRUDError,
         facades::db::Manager,
         models::requests::{APIRecommendationRequestModel, EmbedRecommendationRequestModel},
     },
-    web::requests::recommendation::{
-        APIRecommendationRequest, EmbedRecommendationRequest, QueryRequest,
+    web::{
+        requests::recommendation::{
+            APIRecommendationRequest, EmbedRecommendationRequest, QueryRequest,
+        },
+        responses::{our_fault, success, wrong_query},
     },
 };
 
@@ -32,12 +37,12 @@ pub enum RecommendationTarget {
 }
 
 impl RecommendationTarget {
-    pub async fn get(target: &str) -> Result<Self, ()> {
+    pub async fn get(target: &str) -> Result<Self, &str> {
         match target {
             "user" => Ok(RecommendationTarget::User),
             "product" => Ok(RecommendationTarget::Product),
             "generic" => Ok(RecommendationTarget::Generic),
-            _ => Err(()),
+            _ => Err("Wrong target, you must chose between user, target or generic"),
         }
     }
 }
@@ -49,6 +54,50 @@ impl RecommendationRequest {
             RecommendationTarget::User => self.user_id.unwrap(),
             RecommendationTarget::Product => self.prod_id.unwrap(),
         }
+    }
+
+    pub async fn recommend(&self) -> Response {
+        match self.validate_request().await {
+            Ok(_) => self.get_recommendations().await,
+            Err(err) => err,
+        }
+    }
+
+    pub async fn get_recommendations(&self) -> Response {
+        match self.customer.get_recommendations(self).await {
+            Ok(recs) => success(recs),
+            Err(err) => match err {
+                CRUDError::NotFound => wrong_query(&format!("wrong id {:?}", self.get_id().await)),
+                CRUDError::MaxRetry => our_fault(),
+                _ => our_fault(),
+            },
+        }
+    }
+
+    pub async fn validate_request(&self) -> Result<(), Response> {
+        match self.target {
+            RecommendationTarget::Generic => self.validate_generic_request().await,
+            RecommendationTarget::User => self.validate_user_request().await,
+            RecommendationTarget::Product => self.validate_product_request().await,
+        }
+    }
+
+    pub async fn validate_generic_request(&self) -> Result<(), Response> {
+        Ok(())
+    }
+
+    pub async fn validate_user_request(&self) -> Result<(), Response> {
+        if self.entity.is_empty() {
+            return Err(wrong_query("entity needed"));
+        }
+        Ok(())
+    }
+
+    pub async fn validate_product_request(&self) -> Result<(), Response> {
+        if self.customer.models_related.contains(self.entity.as_ref()) {
+            return Ok(());
+        }
+        Err(wrong_query(&format!("wrong entity {:?}", self.entity)))
     }
 
     pub async fn save_embed_query(payload: &EmbedRecommendationRequest) {

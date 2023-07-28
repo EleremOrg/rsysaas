@@ -22,10 +22,10 @@ use crate::{
 pub trait QueryRequest<'a> {
     async fn get_fields_and_values(&self) -> (String, String);
 
-    async fn final_request(
+    async fn get_request(
         &self,
         customer: &CustomerInterface,
-    ) -> Result<RecommendationRequest, ()>;
+    ) -> Result<RecommendationRequest, Response>;
 
     async fn to_generic_request(
         &self,
@@ -64,13 +64,13 @@ impl<'a> QueryRequest<'a> for APIRecommendationRequest {
         (fields, values)
     }
 
-    async fn final_request(
+    async fn get_request(
         &self,
         customer: &CustomerInterface,
-    ) -> Result<RecommendationRequest, ()> {
+    ) -> Result<RecommendationRequest, Response> {
         match RecommendationTarget::get(&self.target).await {
             Ok(target) => Ok(self.to_generic_request(customer, target).await),
-            Err(_) => Err(()),
+            Err(err) => Err(wrong_query(err)),
         }
     }
 
@@ -79,6 +79,7 @@ impl<'a> QueryRequest<'a> for APIRecommendationRequest {
         customer: &CustomerInterface,
         target: RecommendationTarget,
     ) -> RecommendationRequest {
+        RecommendationRequest::save_api_query(self).await;
         RecommendationRequest {
             prod_id: self.prod_id,
             user_id: self.user_id,
@@ -164,13 +165,13 @@ impl<'a> QueryRequest<'a> for EmbedRecommendationRequest {
         (fields, values)
     }
 
-    async fn final_request(
+    async fn get_request(
         &self,
         customer: &CustomerInterface,
-    ) -> Result<RecommendationRequest, ()> {
+    ) -> Result<RecommendationRequest, Response> {
         match RecommendationTarget::get(&self.target).await {
             Ok(target) => Ok(self.to_generic_request(customer, target).await),
-            Err(_) => Err(()),
+            Err(err) => Err(wrong_query(err)),
         }
     }
 
@@ -179,6 +180,7 @@ impl<'a> QueryRequest<'a> for EmbedRecommendationRequest {
         customer: &CustomerInterface,
         target: RecommendationTarget,
     ) -> RecommendationRequest {
+        RecommendationRequest::save_embed_query(self).await;
         RecommendationRequest {
             prod_id: self.prod_id,
             user_id: self.user_id,
