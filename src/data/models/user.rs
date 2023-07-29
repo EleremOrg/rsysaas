@@ -1,4 +1,4 @@
-use crate::data::{errors::CRUDError, interfaces::db::Manager};
+use crate::data::interfaces::db::Manager;
 use crate::web::interface::View;
 use axum::async_trait;
 use rec_rsys::models::{AsyncItemAdapter, Item};
@@ -35,14 +35,5 @@ impl AsyncItemAdapter for User {
 
     async fn get_references(&self) -> Vec<Item> {
         vec![self.to_item().await]
-    }
-}
-
-impl User {
-    pub async fn get_items(id: u32) -> Result<(Item, Vec<Item>), CRUDError> {
-        match <Self as Manager>::get(id).await {
-            Ok(instance) => Ok((instance.to_item().await, instance.get_references().await)),
-            Err(err) => Err(err),
-        }
     }
 }

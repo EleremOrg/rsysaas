@@ -1,16 +1,14 @@
-
-
 use crate::{
     business::{facade::CustomerFacade, versioning::Version},
     web::{
         requests::recommendation::{
             APIRecommendationRequest, EmbedRecommendationRequest, QueryRequest,
         },
-        responses::{non_auth},
+        responses::non_auth,
     },
 };
 use axum::{
-    extract::{TypedHeader},
+    extract::TypedHeader,
     headers::{authorization::Bearer, Authorization},
     response::Response,
 };

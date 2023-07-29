@@ -43,12 +43,24 @@ impl Recommendation {
         request: &RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {
         match request.target {
-            // RecommendationTarget::Generic => Self::get_generic_recommendations(request).await,
+            RecommendationTarget::Generic => Self::get_generic_recommendations(request).await,
             RecommendationTarget::Product => Self::get_product_recommendations(request).await,
-            _ => return Err(CRUDError::JsonError),
-            // RecommendationTarget::User => Self::get_user_recommendations(request).await,
+            RecommendationTarget::User => Self::get_user_recommendations(request).await,
         }
     }
+
+    async fn get_generic_recommendations(
+        _request: &RecommendationRequest,
+    ) -> Result<Vec<Recommendation>, CRUDError> {
+        todo!("TODO") //TODO
+    }
+
+    async fn get_user_recommendations(
+        _request: &RecommendationRequest,
+    ) -> Result<Vec<Recommendation>, CRUDError> {
+        todo!("TODO") //TODO
+    }
+
     async fn get_product_recommendations(
         request: &RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {

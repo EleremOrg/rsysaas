@@ -84,8 +84,4 @@ impl Customer {
         )
         .await
     }
-
-    pub async fn get_items() -> Result<Vec<Item>, CRUDError> {
-        Ok(vec![Item::new(1, vec![0.], Some(0.))])
-    }
 }
