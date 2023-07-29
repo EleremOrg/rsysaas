@@ -108,23 +108,22 @@ impl Company {
             Ok(sectors) => sectors,
             Err(_e) => return vec![],
         };
-        // match one_hot_encode(&sectors).get(&own_sector) {
-        //     Some(val) => val.to_vec(),
-        //     None => panic!(),
-        // }
-        vec![]
+        let sectors: Vec<&str> = sectors.iter().map(|f| f.as_str()).collect();
+        match one_hot_encode(&sectors).get(&own_sector) {
+            Some(val) => val.to_vec(),
+            None => panic!(),
+        }
     }
     async fn encode_industry(&self) -> Vec<f32> {
         let (own_sindustry, industries) = match Industry::get_for_encoding(self.industry_id).await {
             Ok(industries) => industries,
             Err(_e) => return vec![],
         };
-
-        // match one_hot_encode(&industries).get(&own_sindustry) {
-        //     Some(val) => val.to_vec(),
-        //     None => panic!(),
-        // }
-        vec![]
+        let industries: Vec<&str> = industries.iter().map(|f| f.as_str()).collect();
+        match one_hot_encode(&industries).get(&own_sindustry) {
+            Some(val) => val.to_vec(),
+            None => panic!(),
+        }
     }
     fn encode_exchange(&self) -> Vec<f32> {
         let exchanges = vec![

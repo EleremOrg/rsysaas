@@ -14,7 +14,7 @@ pub struct Sector {
 #[async_trait]
 impl Manager<'_> for Sector {
     async fn table() -> String {
-        "sectors".to_string()
+        "companies_sectors".to_string()
     }
 }
 #[async_trait]
@@ -30,7 +30,7 @@ pub struct Industry {
 #[async_trait]
 impl Manager<'_> for Industry {
     async fn table() -> String {
-        "industries".to_string()
+        "companies_industries".to_string()
     }
 }
 #[async_trait]

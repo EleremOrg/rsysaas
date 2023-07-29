@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sqlx::{
     sqlite::{SqliteConnection, SqlitePool, SqliteRow},
-    Connection, FromRow, Row, Sqlite, Transaction,
+    Column, Connection, FromRow, Row, Sqlite, Transaction, ValueRef,
 };
 use tracing::error;
 
@@ -164,31 +164,34 @@ where
     async fn get_for_encoding(id: u32) -> Result<(String, Vec<String>), CRUDError> {
         let mut transaction = Self::transaction().await?;
 
-        let all_query = format!("SELECT name FROM {}", Self::table().await);
+        let all_query = format!("SELECT name FROM {};", Self::table().await);
         let rows = sqlx::query(&all_query)
             .fetch_all(&mut transaction as &mut SqliteConnection)
             .await;
 
-        let references = match rows {
-            Ok(json) => json,
+        let references: Vec<String> = match rows {
+            Ok(refes) => refes
+                .iter()
+                .map(|row| row.try_get("name").unwrap())
+                .collect(),
             Err(err) => {
-                error!("error findig: {:?}", err);
+                error!("error findig references: {:?}", err);
                 return Err(CRUDError::WrongParameters);
             }
         };
 
-        let query_one = format!("SELECT name FROM {} WHERE id = {id}", Self::table().await);
+        let query_one = format!("SELECT name FROM {} WHERE id = {id};", Self::table().await);
         let row = sqlx::query(&query_one)
             .fetch_one(&mut transaction as &mut SqliteConnection)
             .await;
-        let main = match row {
-            Ok(row) => row,
+        let main: String = match row {
+            Ok(row) => row.try_get("name").unwrap(),
             Err(err) => {
                 error!("executing query {:?}", err);
                 return Err(CRUDError::NotFound);
             }
         };
-        Ok((String::from(""), vec![]))
+        Ok((main, references))
     }
 
     async fn execute_query(

@@ -11,9 +11,10 @@ use web::routes::routes;
 
 // use axum_server::tls_rustls::RustlsConfig;
 
-use tracing::debug;
 use tracing_appender::{non_blocking, rolling::hourly};
 use tracing_subscriber::{fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt};
+
+use crate::data::{interfaces::db::Manager, models::invfin::sectors_industries::Sector};
 
 #[tokio::main]
 async fn main() {
@@ -44,7 +45,7 @@ async fn main() {
         .init();
 
     read_env_file();
-    run_migrations("migrations/sqlite").await;
+    // run_migrations("migrations/sqlite").await;
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8001));
 
@@ -66,8 +67,16 @@ async fn main() {
     //     .await
     //     .unwrap();
 
-    axum::Server::bind(&addr)
-        .serve(routes().into_make_service())
-        .await
-        .unwrap();
+    let (sector, sectors) = match Sector::get_for_encoding(1).await {
+        Ok(sectors) => sectors,
+        Err(_e) => (String::from("error"), vec![]),
+    };
+
+    println!("{:?}", sector);
+    println!("{:?}", sectors);
+
+    // axum::Server::bind(&addr)
+    //     .serve(routes().into_make_service())
+    //     .await
+    //     .unwrap();
 }
