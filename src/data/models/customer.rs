@@ -32,6 +32,7 @@ pub struct Customer {
     pub public_token: String,
     pub models_related: String,
 }
+
 #[async_trait]
 impl Manager<'_> for Customer {
     async fn table() -> String {

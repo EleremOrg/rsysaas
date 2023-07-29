@@ -1,5 +1,8 @@
-use crate::data::{errors::CRUDError, interfaces::db::Manager};
-use crate::web::interface::View;
+use crate::{
+    business::interface::{RecommendationAdapter, RecommendationInterface},
+    data::{errors::CRUDError, interfaces::db::Manager, orm::Orm},
+    web::interface::View,
+};
 use axum::async_trait;
 use rec_rsys::models::{AsyncItemAdapter, Item};
 use serde::{Deserialize, Serialize};
@@ -8,7 +11,12 @@ use serde::{Deserialize, Serialize};
 
 pub struct Term {
     pub id: u32,
+    #[sqlx(default)]
     pub title: String,
+    #[sqlx(default)]
+    pub image: String,
+    #[sqlx(default)]
+    pub resume: String,
     pub slug: String,
     pub category: String,
     pub tags: String,
@@ -38,11 +46,35 @@ impl AsyncItemAdapter for Term {
     }
 }
 
-impl Term {
-    pub async fn get_items(id: u32) -> Result<(Item, Vec<Item>), CRUDError> {
-        match <Self as Manager>::get(id).await {
-            Ok(instance) => Ok((instance.to_item().await, instance.get_references().await)),
-            Err(err) => Err(err),
+#[async_trait]
+impl RecommendationInterface for Term {
+    type Model = Self;
+
+    async fn to_adapter(&self) -> RecommendationAdapter {
+        <Term as RecommendationInterface>::new_adapter(
+            Term::table().await,
+            self.to_item().await,
+            self.id,
+            self.title.clone(),
+            self.image.clone(),
+            self.resume.clone(),
+        )
+        .await
+    }
+
+    // TODO: take into consideration the fact that a customer may query a table with data from other customers
+    async fn get_references_query(&self) -> Result<Vec<Term>, CRUDError> {
+        let query = Orm::select("id, title, resume, image, tags, category")
+            .from(&Self::table().await)
+            .where_clause()
+            .not_equal("id", &self.id.to_string())
+            .ready();
+        let rows = sqlx::query_as::<_, Self>(&query)
+            .fetch_all(&mut Self::connect().await)
+            .await;
+        match rows {
+            Ok(json) => Ok(json),
+            Err(_e) => Err(CRUDError::WrongParameters),
         }
     }
 }

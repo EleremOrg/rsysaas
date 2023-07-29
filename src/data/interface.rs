@@ -7,18 +7,18 @@ use super::{
     models::{customer::Customer, user::User},
 };
 use crate::{
-    business::recommendations::{RawRecommendation, Recommendation},
+    business::interface::{RecommendationComparer, RecommendationInterface},
     data::models::invfin::{company::Company, term::Term},
 };
 
-pub async fn get_product_items(
+pub async fn get_product_comparer(
     prod_id: u32,
     entity: Arc<String>,
-) -> Result<(Item, Vec<Item>), CRUDError> {
+) -> Result<RecommendationComparer, CRUDError> {
     match entity.as_ref().as_str() {
-        "companies" => Company::get_items(prod_id).await,
-        "terms" => Term::get_items(prod_id).await,
-        _ => Company::get_items(prod_id).await,
+        "companies" => Company::get_adapters(prod_id).await,
+        "terms" => Term::get_adapters(prod_id).await,
+        _ => Company::get_adapters(prod_id).await,
     }
 }
 
@@ -28,15 +28,4 @@ pub async fn get_user_items(user_id: u32) -> Result<(Item, Vec<Item>), CRUDError
 
 pub async fn get_generic_items() -> Result<Vec<Item>, CRUDError> {
     Customer::get_items().await
-}
-
-pub async fn get_final_products(
-    entity: Arc<String>,
-    raw_recommendations: Vec<RawRecommendation>,
-) -> Vec<Recommendation> {
-    match entity.as_ref().as_str() {
-        "companies" => Company::get_items(prod_id).await,
-        "terms" => Term::get_items(prod_id).await,
-        _ => Company::get_items(prod_id).await,
-    }
 }

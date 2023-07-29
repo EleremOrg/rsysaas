@@ -1,6 +1,8 @@
-use crate::data::errors::CRUDError;
-use crate::data::{interfaces::db::Manager, orm::Orm};
-use crate::web::interface::View;
+use crate::{
+    business::interface::{RecommendationAdapter, RecommendationComparer, RecommendationInterface},
+    data::{errors::CRUDError, interfaces::db::Manager, orm::Orm},
+    web::interface::View,
+};
 use axum::async_trait;
 use futures::stream::StreamExt;
 use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, AsyncItemAdapter, Item};
@@ -12,6 +14,10 @@ pub struct Company {
     pub id: u32,
     #[sqlx(default)]
     pub ticker: String,
+    #[sqlx(default)]
+    pub resume: String,
+    #[sqlx(default)]
+    pub image: String,
     pub sector: String,
     pub industry: String,
     pub exchange: String,
@@ -60,20 +66,31 @@ impl AsyncItemAdapter for Company {
     }
 }
 
-impl Company {
-    pub async fn get_items(id: u32) -> Result<(Item, Vec<Item>), CRUDError> {
-        match <Self as Manager>::get(id).await {
-            Ok(instance) => Ok((instance.to_item().await, instance.get_references().await)),
-            Err(err) => Err(err),
-        }
+#[async_trait]
+impl RecommendationInterface for Company {
+    type Model = Self;
+
+    async fn to_adapter(&self) -> RecommendationAdapter {
+        <Company as RecommendationInterface>::new_adapter(
+            Company::table().await,
+            self.to_item().await,
+            self.id,
+            self.ticker.clone(),
+            self.image.clone(),
+            self.resume.clone(),
+        )
+        .await
     }
+
     // TODO: take into consideration the fact that a customer may query a table with data from other customers
     async fn get_references_query(&self) -> Result<Vec<Company>, CRUDError> {
-        let query = Orm::select("id, sector, industry, exchange, country, adj, growth")
-            .from(&Self::table().await)
-            .where_clause()
-            .not_equal("id", &self.id.to_string())
-            .ready();
+        let query = Orm::select(
+            "id, ticker, resume, image, sector, industry, exchange, country, adj, growth",
+        )
+        .from(&Self::table().await)
+        .where_clause()
+        .not_equal("id", &self.id.to_string())
+        .ready();
         let rows = sqlx::query_as::<_, Self>(&query)
             .fetch_all(&mut Self::connect().await)
             .await;
@@ -82,7 +99,9 @@ impl Company {
             Err(_e) => Err(CRUDError::WrongParameters),
         }
     }
+}
 
+impl Company {
     fn encode_sector(&self) -> Vec<f32> {
         let sectors = vec![
             "Healthcare",

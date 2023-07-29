@@ -79,7 +79,6 @@ impl<'a> QueryRequest<'a> for APIRecommendationRequest {
         customer: &CustomerFacade,
         target: RecommendationTarget,
     ) -> RecommendationRequest {
-        RecommendationRequest::save_api_query(self).await;
         RecommendationRequest {
             prod_id: correct_value(&self.prod_id).await,
             user_id: correct_value(&self.user_id).await,
@@ -87,6 +86,8 @@ impl<'a> QueryRequest<'a> for APIRecommendationRequest {
             entity: self.entity.clone(),
             customer: customer.clone(),
             target,
+            request_id: RecommendationRequest::save_api_query(self).await,
+            request_type: String::from("API"),
         }
     }
 }
@@ -180,14 +181,15 @@ impl<'a> QueryRequest<'a> for EmbedRecommendationRequest {
         customer: &CustomerFacade,
         target: RecommendationTarget,
     ) -> RecommendationRequest {
-        RecommendationRequest::save_embed_query(self).await;
         RecommendationRequest {
             prod_id: correct_value(&self.prod_id).await,
             user_id: correct_value(&self.user_id).await,
             number_recommendations: correct_number(&self.number_recommendations).await,
             entity: self.entity.clone(),
             customer: customer.clone(),
-            target: target,
+            target,
+            request_id: RecommendationRequest::save_embed_query(self).await,
+            request_type: String::from("Embed"),
         }
     }
 }

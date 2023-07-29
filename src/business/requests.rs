@@ -7,7 +7,7 @@ use crate::{
     data::{
         errors::CRUDError,
         interfaces::db::Manager,
-        models::requests::{APIRecommendationRequestModel, EmbedRecommendationRequestModel},
+        models::recommendation::{APIRecommendationRequestModel, EmbedRecommendationRequestModel},
     },
     web::{
         requests::recommendation::{
@@ -27,6 +27,8 @@ pub struct RecommendationRequest {
     pub entity: Arc<String>,
     pub customer: CustomerFacade,
     pub target: RecommendationTarget,
+    pub request_id: u32,
+    pub request_type: String,
 }
 
 #[derive(Debug, Serialize, Clone, Deserialize)]
@@ -100,13 +102,19 @@ impl RecommendationRequest {
         Err(wrong_query(&format!("wrong entity {:?}", self.entity)))
     }
 
-    pub async fn save_embed_query(payload: &EmbedRecommendationRequest) {
+    pub async fn save_embed_query(payload: &EmbedRecommendationRequest) -> u32 {
         let (fields, values) = payload.get_fields_and_values().await;
-        let _ = EmbedRecommendationRequestModel::create(&fields, &values).await;
+        match EmbedRecommendationRequestModel::create(&fields, &values).await {
+            Ok(result) => result.id,
+            Err(_) => 0,
+        }
     }
 
-    pub async fn save_api_query(payload: &APIRecommendationRequest) {
+    pub async fn save_api_query(payload: &APIRecommendationRequest) -> u32 {
         let (fields, values) = payload.get_fields_and_values().await;
-        let _ = APIRecommendationRequestModel::create(&fields, &values).await;
+        match APIRecommendationRequestModel::create(&fields, &values).await {
+            Ok(result) => result.id,
+            Err(_) => 0,
+        }
     }
 }
