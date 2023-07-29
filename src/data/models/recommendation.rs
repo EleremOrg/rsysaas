@@ -9,7 +9,7 @@ use tracing::error;
 pub struct RecommendationUsed {
     pub id: u32,
     pub created_at: String,
-    pub recommednation_response_id: u32,
+    pub recommendation_response_id: u32,
 }
 
 #[async_trait]
@@ -110,7 +110,7 @@ pub struct EmbedRecommendationRequestModel {
 #[async_trait]
 impl Manager<'_> for EmbedRecommendationRequestModel {
     async fn table() -> String {
-        "embed_recommendation_request".to_string()
+        "embed_recommendation_requests".to_string()
     }
 }
 
@@ -121,6 +121,7 @@ pub struct APIRecommendationRequestModel {
     pub user_id: Option<u32>,
     pub prod_id: Option<u32>,
     pub number_recommendations: u8,
+    pub customer_id: u32,
 }
 
 #[async_trait]

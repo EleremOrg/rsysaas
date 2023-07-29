@@ -1,10 +1,7 @@
-#![allow(dead_code)]
-
-use std::{fs, marker::PhantomData, path::PathBuf};
-
-use sqlx::{migrate::MigrateDatabase, sqlite::SqliteConnection, Connection, Executor, Sqlite};
+use std::{fs, path::PathBuf};
 
 use envy::get_env;
+use sqlx::{migrate::MigrateDatabase, sqlite::SqliteConnection, Connection, Executor, Sqlite};
 
 pub async fn run_migrations(folder_path: &str) {
     let db_url = get_env("DATABASE_URL");
@@ -35,17 +32,7 @@ pub async fn run_migrations(folder_path: &str) {
     }
 }
 
-async fn create_database(db_url: &str) {
-    match Sqlite::create_database(db_url).await {
-        Ok(_) => println!("database created"),
-        Err(err) => {
-            println!("error creating db:  {err}");
-            return;
-        }
-    };
-}
-
-async fn execute_migration(connection: &mut SqliteConnection, file_path: PathBuf) {
+async fn execute_migration<T>(connection: &mut T, file_path: PathBuf) {
     let query = match tokio::fs::read_to_string(file_path).await {
         Ok(sql) => sql,
         Err(err) => {

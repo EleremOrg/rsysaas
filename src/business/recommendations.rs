@@ -1,13 +1,16 @@
-use super::requests::{RecommendationRequest, RecommendationTarget};
-use crate::data::{
-    errors::CRUDError, interface::get_product_comparer, interfaces::db::Manager,
-    models::recommendation::RecommendationResponse, orm::Orm,
-};
-use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
-use serde::{Deserialize, Serialize};
 use std::{
     fmt::Write,
     time::{SystemTime, UNIX_EPOCH},
+};
+
+use aromatic::Orm;
+use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
+use serde::{Deserialize, Serialize};
+
+use super::requests::{RecommendationRequest, RecommendationTarget};
+use crate::data::{
+    errors::CRUDError, interface::get_product_comparer, interfaces::db::Manager,
+    models::recommendation::RecommendationResponse,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

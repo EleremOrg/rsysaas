@@ -1,8 +1,9 @@
 use crate::{
     business::interface::{RecommendationAdapter, RecommendationInterface},
-    data::{errors::CRUDError, interfaces::db::Manager, orm::Orm},
+    data::{errors::CRUDError, interfaces::db::Manager},
     web::interface::View,
 };
+use aromatic::Orm;
 use axum::async_trait;
 use rec_rsys::models::{AsyncItemAdapter, Item};
 use serde::{Deserialize, Serialize};

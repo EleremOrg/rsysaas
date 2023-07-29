@@ -1,8 +1,9 @@
 use crate::{
-    business::interface::{RecommendationAdapter, RecommendationComparer, RecommendationInterface},
-    data::{errors::CRUDError, interfaces::db::Manager, orm::Orm},
+    business::interface::{RecommendationAdapter, RecommendationInterface},
+    data::{errors::CRUDError, interfaces::db::Manager},
     web::interface::View,
 };
+use aromatic::Orm;
 use axum::async_trait;
 use futures::stream::StreamExt;
 use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, AsyncItemAdapter, Item};

@@ -59,7 +59,8 @@ serde_json = { workspace = true }
 
 # Custom
 envy = { workspace = true }
-#migrations = { path = "migration" }
+aromatic = { path = "aromatic" }
+
 
 [workspace]
-members = [".", "envy"]
+members = [".", "envy", "aromatic"]

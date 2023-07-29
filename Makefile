@@ -10,3 +10,7 @@ up:
 
 run:
 	cargo watch -q -c -w src/ -x run
+
+clean-logs:
+	rm -rf logs
+	mkdir logs

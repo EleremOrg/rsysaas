@@ -1,7 +1,25 @@
 CREATE TABLE migrations (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
-    ran BOOLEAN
+    ran BOOLEAN DEFAULT false,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    customer_id INTEGER,
+    FOREIGN KEY (customer_id) REFERENCES customers (id)
+);
+
+CREATE TABLE potential_customers (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    message TEXT,
+    agent TEXT,
+    language TEXT,
+    url TEXT
 );
 
 CREATE TABLE customers (
@@ -16,19 +34,71 @@ CREATE TABLE customers (
     UNIQUE(domain)
 );
 
-CREATE TABLE potential_customers (
+CREATE TABLE recommendations_responses (
     id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    message TEXT,
-    agent TEXT,
-    language TEXT,
-    url TEXT
+    request_id INTEGER,
+    request_type TEXT NOT NULL,
+    main_item_id INTEGER,
+    main_item_entity TEXT NOT NULL,
+    entity_id INTEGER,
+    entity TEXT NOT NULL,
+    image TEXT NOT NULL,
+    title TEXT NOT NULL,
+    resume TEXT NOT NULL,
+    score REAL,
+    algorithm TEXT NOT NULL,
+    url TEXT NOT NULL,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    customer_id INTEGER,
+    FOREIGN KEY (customer_id) REFERENCES customers (id)
 );
 
-CREATE TABLE users (
+CREATE TABLE recommendations_used (
     id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
+    created_at TIMESTAMP,
+    recommendation_response_id INTEGER,
+    FOREIGN KEY (recommendation_response_id) REFERENCES recommendations_responses (id)
+);
+
+CREATE TABLE embed_recommendation_requests (
+    id INTEGER PRIMARY KEY,
+    orientation TEXT,
+    entity TEXT,
+    title TEXT,
+    show_image BOOLEAN,
+    show_resume BOOLEAN,
+    user_id INTEGER,
+    prod_id INTEGER,
+    number_recommendations INTEGER,
+    is_transparent BOOLEAN,
+    height INTEGER,
+    width INTEGER,
+    locale TEXT,
+    color_theme TEXT,
+    public_key TEXT,
+    location_href TEXT,
+    base_uri TEXT,
+    doc_url TEXT,
+    user_agent TEXT,
+    language TEXT,
+    languages TEXT,
+    screen_width INTEGER,
+    screen_height INTEGER,
+    referrer TEXT,
+    document_title TEXT,
+    host TEXT,
+    location TEXT,
+    customer_id INTEGER,
+    FOREIGN KEY (customer_id) REFERENCES customers (id)
+);
+
+CREATE TABLE api_recommendation_request (
+    id INTEGER PRIMARY KEY,
+    entity TEXT,
+    user_id INTEGER,
+    prod_id INTEGER,
+    number_recommendations INTEGER,
     customer_id INTEGER,
     FOREIGN KEY (customer_id) REFERENCES customers (id)
 );
@@ -42,6 +112,8 @@ CREATE TABLE associations (
 CREATE TABLE companies (
     id INTEGER PRIMARY KEY,
     ticker TEXT NOT NULL,
+    resume TEXT NOT NULL,
+    image TEXT NOT NULL,
     sector TEXT NOT NULL,
     industry TEXT NOT NULL,
     exchange TEXT NOT NULL,
@@ -53,44 +125,9 @@ CREATE TABLE companies (
 CREATE TABLE terms (
     id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
+    resume TEXT NOT NULL,
+    image TEXT NOT NULL,
     slug TEXT NOT NULL,
     category TEXT NOT NULL,
     tags TEXT NOT NULL
 );
-
-INSERT INTO companies (id, ticker, sector, industry, exchange, country, adj, growth)
-VALUES
-    (1, 'AAPL', 'Technology', 'Healthcare', 'NASDAQ', 'USA', 'growth,divs', 0.1),
-    (2, 'GOOGL', 'Technology', 'Telecommunications', 'NASDAQ', 'USA', 'value,growth,divs', 0.5),
-    (3, 'MSFT', 'Technology', 'Finance', 'NASDAQ', 'USA', 'growth,zombie', 0.3),
-    (4, 'AMZN', 'Technology', 'Retail', 'NASDAQ', 'USA', 'value,growth,divs,zombie', 0.25),
-    (5, 'FB', 'Technology', 'Media', 'NASDAQ', 'USA', 'growth,divs,zombie', 0.12),
-    (6, 'TSLA', 'Automotive', 'Automotive', 'NASDAQ', 'USA', 'growth', 0.33),
-    (7, 'JPM', 'Financial Services', 'Unknown', 'NYSE', 'USA', 'value,zombie', 0.05),
-    (8, 'BAC', 'Financial Services', 'Unknown', 'NYSE', 'USA', 'growth,zombie', 0.09),
-    (9, 'WMT', 'Consumer Cyclical', 'Unknown', 'NYSE', 'USA', 'value,divs', 0.012),
-    (10, 'GE', 'Automotive', 'Unknown', 'NYSE', 'USA', 'growth,zombie', -0.1),
-    (12, 'FIRST', 'Technology', 'Technology', 'NASDAQ', 'USA', 'growth,divs', 0.3);
-
-INSERT INTO customers (id, name, domain, token, public_token, models_related)
-VALUES
-    (1, 'Acme Corporation', 'acme.com', 'acme_token', 'public_acme_token', 'users,'),
-    (2, 'InvFin', 'example.com:8000', 'invfin_token', 'public_invfin_token', 'users, terms, companies');
-
-INSERT INTO users (id, name, customer_id)
-VALUES
-    (1, 'John Doe', 1),
-    (2, 'Jane Smith', 2),
-    (3, 'Robert Johnson', 1);
-
-INSERT INTO terms (id, title, slug, category, tags) VALUES
-(1, 'Term 1', 'term-1', 'Category 1', 'Tag1, Tag2, Tag3'),
-(2, 'Term 2', 'term-2', 'Category 2', 'Tag4, Tag5'),
-(3, 'Term 3', 'term-3', 'Category 1', 'Tag2, Tag6, Tag7'),
-(4, 'Term 4', 'term-4', 'Category 3', 'Tag8'),
-(5, 'Term 5', 'term-5', 'Category 2', 'Tag9, Tag10'),
-(6, 'Term 6', 'term-6', 'Category 3', 'Tag11, Tag12'),
-(7, 'Term 7', 'term-7', 'Category 1', 'Tag13, Tag14, Tag15'),
-(8, 'Term 8', 'term-8', 'Category 2', 'Tag5, Tag16'),
-(9, 'Term 9', 'term-9', 'Category 3', 'Tag17'),
-(10, 'Term 10', 'term-10', 'Category 1', 'Tag18, Tag19, Tag20');
