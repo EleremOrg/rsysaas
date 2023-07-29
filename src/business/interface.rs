@@ -1,37 +1,30 @@
-use crate::data::{errors::CRUDError, interfaces::db::Manager};
+use std::collections::HashMap;
 
-use super::recommendations::Recommendation;
 use axum::async_trait;
 use rec_rsys::models::Item;
 
+use crate::data::{errors::CRUDError, interfaces::db::Manager};
+
+use super::recommendations::Recommendation;
+
 pub struct RecommendationComparer {
     pub main: RecommendationAdapter,
-    pub references: Vec<RecommendationAdapter>,
+    pub references: HashMap<u32, RecommendationAdapter>,
 }
 
 impl RecommendationComparer {
     pub async fn new(
         main: RecommendationAdapter,
-        references: Vec<RecommendationAdapter>,
+        references: HashMap<u32, RecommendationAdapter>,
     ) -> RecommendationComparer {
         RecommendationComparer { main, references }
     }
 
     pub async fn get_items_references(&mut self) -> Vec<Item> {
         self.references
-            .sort_by(|a, b| a.recommendation.id.cmp(&b.recommendation.id));
-        self.references.iter().map(|r| r.item.clone()).collect()
-    }
-
-    pub async fn get_final_items(&mut self, final_items: Vec<Item>) -> Vec<RecommendationAdapter> {
-        let mut result = Vec::new();
-        for item in final_items {
-            let adapter = &self.references[(item.id + 1) as usize];
-            adapter.item = item;
-            adapter.recommendation.score = item.result;
-            result.push(adapter.clone());
-        }
-        result
+            .iter()
+            .map(|(_, r)| r.item.clone())
+            .collect()
     }
 }
 
@@ -56,7 +49,7 @@ pub trait RecommendationInterface {
     ) -> RecommendationAdapter {
         RecommendationAdapter {
             item,
-            recommendation: Recommendation::default(id, title, image, resume).await,
+            recommendation: Recommendation::new(id, title, image, resume).await,
             entity,
         }
     }
@@ -66,9 +59,10 @@ pub trait RecommendationInterface {
     async fn get_adapters(id: u32) -> Result<RecommendationComparer, CRUDError> {
         let instance = <Self::Model as Manager>::get(id).await?;
         let raw_references = instance.get_references_query().await?;
-        let mut references: Vec<RecommendationAdapter> = vec![];
+        let mut references: HashMap<u32, RecommendationAdapter> = HashMap::new();
         for reference in raw_references {
-            references.push(reference.to_adapter().await);
+            let adapter = reference.to_adapter().await;
+            references.insert(adapter.recommendation.id, adapter);
         }
         Ok(RecommendationComparer::new(instance.to_adapter().await, references).await)
     }

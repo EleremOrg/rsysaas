@@ -18,7 +18,7 @@
 ### Recommendations
 * [ ] Finish the get_X_recommendations 🔴
 * [ ] Finish recommendation struct 🔴
-* [ ] Save recommendations made 🔴
+* [X] Save recommendations made 🔴
 * [ ] Create view to redirect to correct product on click 🔴
 * [ ] Save metadata of clicks and redirects 🔴
 

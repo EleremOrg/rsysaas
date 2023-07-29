@@ -1,7 +1,26 @@
-use crate::data::interfaces::db::Manager;
+use crate::data::{errors::CRUDError, interfaces::db::Manager};
 use crate::web::interface::View;
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
+use sqlx::SqliteConnection;
+use tracing::error;
+
+#[derive(Clone, Debug, sqlx::FromRow, Deserialize, Serialize, Default)]
+pub struct RecommendationUsed {
+    pub id: u32,
+    pub created_at: String,
+    pub recommednation_response_id: u32,
+}
+
+#[async_trait]
+impl Manager<'_> for RecommendationUsed {
+    async fn table() -> String {
+        "recommendations_used".to_string()
+    }
+}
+
+#[async_trait]
+impl View<'_> for RecommendationUsed {}
 
 #[derive(Clone, Debug, sqlx::FromRow, Deserialize, Serialize, Default)]
 pub struct RecommendationResponse {
@@ -20,6 +39,7 @@ pub struct RecommendationResponse {
     pub algorithm: String,
     pub url: String,
     pub created_at: String,
+    pub updated_at: String,
 }
 
 #[async_trait]
@@ -31,6 +51,29 @@ impl Manager<'_> for RecommendationResponse {
 
 #[async_trait]
 impl View<'_> for RecommendationResponse {}
+
+impl RecommendationResponse {
+    pub async fn save_recommendations(query: &str) -> Result<u64, CRUDError> {
+        let mut transaction = match Self::transaction().await.begin().await {
+            Ok(transaction) => transaction,
+            Err(err) => {
+                error!("transaction errror launching: {:?}", err);
+                return Err(CRUDError::NotFound);
+            }
+        };
+
+        match sqlx::query(&query)
+            .execute(&mut transaction as &mut SqliteConnection)
+            .await
+        {
+            Ok(row) => Ok(row.rows_affected()),
+            Err(err) => {
+                error!("deleting: {:?}", err);
+                Err(CRUDError::NotFound)
+            }
+        }
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow, Deserialize, Serialize, Default)]
 pub struct EmbedRecommendationRequestModel {

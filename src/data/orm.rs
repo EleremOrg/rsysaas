@@ -12,6 +12,7 @@ pub struct Where;
 pub struct Join;
 pub struct Limit;
 pub struct Table;
+pub struct Insert;
 
 pub struct Orm<State = Select> {
     query: String,
@@ -32,9 +33,9 @@ impl Orm {
         format!("SELECT {};", columns)
     }
 
-    pub fn insert(columns: &str) -> Orm<Select> {
+    pub fn insert(table: &str) -> Orm<Insert> {
         Orm {
-            query: format!("INSERT {}", columns),
+            query: format!("INSERT INTO {table}"),
             has_where_clause: false,
             state: PhantomData,
         }
@@ -59,8 +60,37 @@ impl Orm {
 
 impl<State> Orm<State> {
     pub fn ready(&mut self) -> String {
+        if self.query.ends_with(",") {
+            self.query.pop();
+        }
         self.query.push_str(";");
         self.query.clone()
+    }
+}
+
+impl Orm<Insert> {
+    pub fn set_columns(self, columns: &str) -> Orm<Insert> {
+        Orm {
+            query: format!("{} ({columns}) VALUES", self.query),
+            has_where_clause: false,
+            state: PhantomData,
+        }
+    }
+
+    pub fn add_value(self, values: &str) -> Orm<Insert> {
+        Orm {
+            query: format!("{} ({values}),", self.query),
+            has_where_clause: false,
+            state: PhantomData,
+        }
+    }
+
+    pub fn add_many(self, values: &str) -> Orm<Insert> {
+        Orm {
+            query: format!("{} {values}", self.query),
+            has_where_clause: false,
+            state: PhantomData,
+        }
     }
 }
 

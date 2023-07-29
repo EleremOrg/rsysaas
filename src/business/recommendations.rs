@@ -1,8 +1,14 @@
 use super::requests::{RecommendationRequest, RecommendationTarget};
-use crate::data::{errors::CRUDError, interface::get_product_comparer};
+use crate::data::{
+    errors::CRUDError, interface::get_product_comparer, interfaces::db::Manager,
+    models::recommendation::RecommendationResponse, orm::Orm,
+};
 use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::{
+    fmt::Write,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Recommendation {
@@ -15,7 +21,7 @@ pub struct Recommendation {
 }
 
 impl Recommendation {
-    pub async fn default(id: u32, title: String, image: String, resume: String) -> Self {
+    pub async fn new(id: u32, title: String, image: String, resume: String) -> Self {
         Recommendation {
             id,
             score: f32::NAN,
@@ -25,16 +31,9 @@ impl Recommendation {
             resume,
         }
     }
-    pub fn new(id: u32, score: f32, domain: Arc<String>) -> Self {
-        Recommendation {
-            id,
-            score,
-            url: Self::get_url(domain, id),
-            image: "https://www.wallstreetmojo.com/wp-content/uploads/2023/04/Current-Cost.png"
-                .to_string(),
-            title: format!("Title {id}"),
-            resume: format!("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s {prod_id}"),
-        }
+    pub fn update(&mut self, score: f32, url: String) {
+        self.score = score;
+        self.url = url;
     }
 
     pub async fn generate_recommendations(
@@ -50,27 +49,98 @@ impl Recommendation {
     async fn get_product_recommendations(
         request: &RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {
-        let comparer = get_product_comparer(request.get_id().await, request.entity.clone()).await?;
+        let mut comparer =
+            get_product_comparer(request.get_id().await, request.entity.clone()).await?;
 
         let sorted_items = Self::calculate_product_recommendations(
-            &comparer.main.item,
-            &comparer.get_items_references().await,
+            comparer.main.item.clone(),
+            &mut comparer.get_items_references().await,
             request.number_recommendations,
         )
         .await;
 
-        Ok()
+        let mut result = Vec::new();
+        let mut query_values = Vec::new();
+
+        for item in sorted_items {
+            let rec_adapter = comparer.references.get(&item.id);
+            if let Some(rec_adapter) = rec_adapter {
+                let mut selected_recommendation = rec_adapter.recommendation.clone();
+                selected_recommendation.update(item.result, Self::get_url("domain", 0));
+
+                query_values.push(format!(
+                    "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},)",
+                    request.request_id,
+                    request.request_type,
+                    request.customer.id,
+                    comparer.main.item.id,
+                    comparer.main.entity,
+                    selected_recommendation.id,
+                    rec_adapter.entity,
+                    selected_recommendation.image,
+                    selected_recommendation.title,
+                    selected_recommendation.resume,
+                    item.result,
+                    "Cosine",
+                    selected_recommendation.url,
+                    get_current_time()
+                ));
+                result.push(selected_recommendation);
+            }
+        }
+
+        let mut query = Orm::insert(&RecommendationResponse::table().await)
+            .set_columns(
+                "request_id,
+            request_type,
+            customer_id,
+            main_item_id,
+            main_item_entity,
+            entity_id,
+            entity,
+            image,
+            title,
+            resume,
+            score,
+            algorithm,
+            url,
+            created_at",
+            )
+            .add_many(&query_values.join(","));
+
+        let _ = RecommendationResponse::save_recommendations(&query.ready());
+
+        Ok(result)
     }
 
     async fn calculate_product_recommendations(
-        item: &Item,
+        item: Item,
         references: &Vec<Item>,
         num_recs: u8,
     ) -> Vec<Item> {
         KNN::new(item.clone(), references.clone(), num_recs).result(SimilarityAlgos::Cosine)
     }
 
-    fn get_url(domain: Arc<String>, prod_id: u32) -> String {
-        format!("my/path/{domain}/{prod_id}/")
+    fn get_url(domain: &str, id: u32) -> String {
+        format!("my/path/{domain}/{id}/")
     }
+}
+
+fn get_current_time() -> String {
+    // Get the current system time
+    let current_time = SystemTime::now();
+
+    // Get the duration since the Unix epoch (January 1, 1970)
+    let duration = current_time
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards");
+
+    // Extract the number of seconds from the duration
+    let seconds = duration.as_secs();
+
+    // Convert the number of seconds to a string
+    let mut time_string = String::new();
+    write!(&mut time_string, "{}", seconds).expect("Failed to write to string");
+
+    time_string
 }
