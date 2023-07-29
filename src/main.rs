@@ -67,16 +67,8 @@ async fn main() {
     //     .await
     //     .unwrap();
 
-    let (sector, sectors) = match Sector::get_for_encoding(1).await {
-        Ok(sectors) => sectors,
-        Err(_e) => (String::from("error"), vec![]),
-    };
-
-    println!("{:?}", sector);
-    println!("{:?}", sectors);
-
-    // axum::Server::bind(&addr)
-    //     .serve(routes().into_make_service())
-    //     .await
-    //     .unwrap();
+    axum::Server::bind(&addr)
+        .serve(routes().into_make_service())
+        .await
+        .unwrap();
 }
