@@ -1,6 +1,10 @@
 use crate::{
     business::interface::{RecommendationAdapter, RecommendationInterface},
-    data::{errors::CRUDError, interfaces::db::Manager},
+    data::{
+        errors::CRUDError,
+        interfaces::db::Manager,
+        models::invfin::sectors_industries::{Industry, Sector},
+    },
     web::interface::View,
 };
 use aromatic::Orm;
@@ -19,8 +23,8 @@ pub struct Company {
     pub resume: String,
     #[sqlx(default)]
     pub image: String,
-    pub sector: String,
-    pub industry: String,
+    pub sector_id: u32,
+    pub industry_id: u32,
     pub exchange: String,
     pub country: String,
     pub adj: String,
@@ -44,8 +48,8 @@ impl AsyncItemAdapter for Company {
     async fn create_values(&self) -> Vec<f32> {
         let mut values = vec![self.growth];
         [
-            self.encode_sector(),
-            self.encode_industry(),
+            self.encode_sector().await,
+            self.encode_industry().await,
             self.encode_exchange(),
             self.encode_country(),
             self.encode_adjs(),
@@ -69,8 +73,6 @@ impl AsyncItemAdapter for Company {
 
 #[async_trait]
 impl RecommendationInterface for Company {
-    type Model = Self;
-
     async fn to_adapter(&self) -> RecommendationAdapter {
         <Company as RecommendationInterface>::new_adapter(
             Company::table().await,
@@ -92,57 +94,37 @@ impl RecommendationInterface for Company {
         .where_clause()
         .not_equal("id", &self.id.to_string())
         .ready();
-        let rows = sqlx::query_as::<_, Self>(&query)
-            .fetch_all(&mut Self::connect().await)
-            .await;
-        match rows {
-            Ok(json) => Ok(json),
-            Err(_e) => Err(CRUDError::WrongParameters),
-        }
+        Self::rows_to_vec(
+            format!("SELECT * FROM {}", Self::table().await),
+            Self::transaction().await?,
+        )
+        .await
     }
 }
 
 impl Company {
-    fn encode_sector(&self) -> Vec<f32> {
-        let sectors = vec![
-            "Healthcare",
-            "Unknown",
-            "Automotive",
-            "Technology",
-            "Communication Services",
-            "Basic Materials",
-            "Consumer Cyclical",
-            "Industrials",
-            "Financial Services",
-            "Energy",
-            "Utilities",
-            "Real Estate",
-            "Consumer Defensive",
-        ];
-        match one_hot_encode(&sectors).get(&self.sector) {
-            Some(val) => val.to_vec(),
-            None => panic!(),
-        }
+    async fn encode_sector(&self) -> Vec<f32> {
+        let (own_sector, sectors) = match Sector::get_for_encoding(self.sector_id).await {
+            Ok(sectors) => sectors,
+            Err(_e) => return vec![],
+        };
+        // match one_hot_encode(&sectors).get(&own_sector) {
+        //     Some(val) => val.to_vec(),
+        //     None => panic!(),
+        // }
+        vec![]
     }
-    fn encode_industry(&self) -> Vec<f32> {
-        let industries: Vec<&str> = vec![
-            "Technology",
-            "Healthcare",
-            "Finance",
-            "Energy",
-            "Unknown",
-            "Retail",
-            "Manufacturing",
-            "Telecommunications",
-            "Automotive",
-            "Hospitality",
-            "Media",
-        ];
+    async fn encode_industry(&self) -> Vec<f32> {
+        let (own_sindustry, industries) = match Industry::get_for_encoding(self.industry_id).await {
+            Ok(industries) => industries,
+            Err(_e) => return vec![],
+        };
 
-        match one_hot_encode(&industries).get(&self.industry) {
-            Some(val) => val.to_vec(),
-            None => panic!(),
-        }
+        // match one_hot_encode(&industries).get(&own_sindustry) {
+        //     Some(val) => val.to_vec(),
+        //     None => panic!(),
+        // }
+        vec![]
     }
     fn encode_exchange(&self) -> Vec<f32> {
         let exchanges = vec![

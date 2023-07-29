@@ -36,9 +36,10 @@ pub struct RecommendationAdapter {
 }
 
 #[async_trait]
-pub trait RecommendationInterface {
-    type Model: RecommendationInterface + for<'a> Manager<'a>;
-
+pub trait RecommendationInterface
+where
+    Self: for<'a> Manager<'a>,
+{
     async fn new_adapter(
         entity: String,
         item: Item,
@@ -57,7 +58,7 @@ pub trait RecommendationInterface {
     async fn to_adapter(&self) -> RecommendationAdapter;
 
     async fn get_adapters(id: u32) -> Result<RecommendationComparer, CRUDError> {
-        let instance = <Self::Model as Manager>::get(id).await?;
+        let instance = <Self as Manager>::get(id).await?;
         let raw_references = instance.get_references_query().await?;
         let mut references: HashMap<u32, RecommendationAdapter> = HashMap::new();
         for reference in raw_references {
@@ -67,5 +68,5 @@ pub trait RecommendationInterface {
         Ok(RecommendationComparer::new(instance.to_adapter().await, references).await)
     }
 
-    async fn get_references_query(&self) -> Result<Vec<Self::Model>, CRUDError>;
+    async fn get_references_query(&self) -> Result<Vec<Self>, CRUDError>;
 }

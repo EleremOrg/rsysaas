@@ -1,3 +1,4 @@
 /target
 database.sqlite*
 logs/*
+1_test_data.sql

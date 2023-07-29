@@ -54,13 +54,7 @@ impl View<'_> for RecommendationResponse {}
 
 impl RecommendationResponse {
     pub async fn save_recommendations(query: &str) -> Result<u64, CRUDError> {
-        let mut transaction = match Self::transaction().await.begin().await {
-            Ok(transaction) => transaction,
-            Err(err) => {
-                error!("transaction errror launching: {:?}", err);
-                return Err(CRUDError::NotFound);
-            }
-        };
+        let mut transaction = Self::transaction().await?;
 
         match sqlx::query(&query)
             .execute(&mut transaction as &mut SqliteConnection)

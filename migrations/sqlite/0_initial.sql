@@ -109,17 +109,30 @@ CREATE TABLE associations (
     row_id INTEGER
 );
 
+CREATE TABLE companies_sectors (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE companies_industries (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+
 CREATE TABLE companies (
     id INTEGER PRIMARY KEY,
     ticker TEXT NOT NULL,
     resume TEXT NOT NULL,
     image TEXT NOT NULL,
-    sector TEXT NOT NULL,
-    industry TEXT NOT NULL,
+    sector_id INTEGER NOT NULL,
+    industry_id INTEGER NOT NULL,
     exchange TEXT NOT NULL,
     country TEXT NOT NULL,
     adj TEXT,
-    growth REAL
+    growth REAL,
+    FOREIGN KEY (sector_id) REFERENCES companies_sectors(id),
+    FOREIGN KEY (industry_id) REFERENCES companies_industries(id)
 );
 
 CREATE TABLE terms (

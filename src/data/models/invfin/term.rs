@@ -7,6 +7,7 @@ use aromatic::Orm;
 use axum::async_trait;
 use rec_rsys::models::{AsyncItemAdapter, Item};
 use serde::{Deserialize, Serialize};
+use sqlx::SqliteConnection;
 
 #[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow, Deserialize, Serialize, Default)]
 
@@ -49,8 +50,6 @@ impl AsyncItemAdapter for Term {
 
 #[async_trait]
 impl RecommendationInterface for Term {
-    type Model = Self;
-
     async fn to_adapter(&self) -> RecommendationAdapter {
         <Term as RecommendationInterface>::new_adapter(
             Term::table().await,
@@ -71,7 +70,7 @@ impl RecommendationInterface for Term {
             .not_equal("id", &self.id.to_string())
             .ready();
         let rows = sqlx::query_as::<_, Self>(&query)
-            .fetch_all(&mut Self::connect().await)
+            .fetch_all(&mut Self::transaction().await? as &mut SqliteConnection)
             .await;
         match rows {
             Ok(json) => Ok(json),

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sqlx::{
     sqlite::{SqliteConnection, SqlitePool, SqliteRow},
-    Connection, FromRow, Row,
+    Connection, FromRow, Row, Sqlite, Transaction,
 };
 use tracing::error;
 
@@ -21,7 +21,15 @@ where
     async fn get(id: u32) -> Result<Self, CRUDError> {
         Self::execute_query(
             format!("SELECT * FROM {} WHERE id = {id}", Self::table().await),
-            Self::connect().await,
+            Self::transaction().await?,
+        )
+        .await
+    }
+
+    async fn get_all() -> Result<Vec<Self>, CRUDError> {
+        Self::rows_to_vec(
+            format!("SELECT * FROM {}", Self::table().await),
+            Self::transaction().await?,
         )
         .await
     }
@@ -42,28 +50,12 @@ where
             limit
         );
 
-        let rows = sqlx::query_as::<_, Self>(&query)
-            .fetch_all(&mut Self::connect().await)
-            .await;
-
-        match rows {
-            Ok(json) => Ok(json),
-            Err(err) => {
-                error!("error findig: {:?}", err);
-                return Err(CRUDError::WrongParameters);
-            }
-        }
+        Self::rows_to_vec(query, Self::transaction().await?).await
     }
 
     async fn create(fields: &str, values: &str) -> Result<Self, CRUDError> {
         //TODO: make it more beautiful
-        let mut transaction = match Self::transaction().await.begin().await {
-            Ok(transaction) => transaction,
-            Err(err) => {
-                error!("transaction errror launching: {:?}", err);
-                return Err(CRUDError::NotFound);
-            }
-        };
+        let mut transaction = Self::transaction().await?;
         let query = format!(
             "INSERT INTO {table} ({fields}) VALUES ({values});",
             table = Self::table().await
@@ -122,7 +114,7 @@ where
                 "UPDATE {table} SET {fields_names} WHERE id = {id}",
                 table = Self::table().await
             ),
-            Self::connect().await,
+            Self::transaction().await?,
         )
         .await
     }
@@ -133,7 +125,7 @@ where
             table = Self::table().await
         );
         match sqlx::query(&query)
-            .execute(&mut Self::connect().await)
+            .execute(&mut Self::transaction().await? as &mut SqliteConnection)
             .await
         {
             Ok(row) => Ok(row.rows_affected()),
@@ -151,7 +143,7 @@ where
             conditions
         );
         let query_result = sqlx::query(&query)
-            .fetch_one(&mut Self::connect().await)
+            .fetch_one(&mut Self::transaction().await? as &mut SqliteConnection)
             .await;
         let row = match query_result {
             Ok(row) => row,
@@ -169,23 +161,83 @@ where
         }
     }
 
-    async fn connect() -> SqliteConnection {
-        //TODO: use a pool
-        connect().await
+    async fn get_for_encoding(id: u32) -> Result<(String, Vec<String>), CRUDError> {
+        let mut transaction = Self::transaction().await?;
+
+        let all_query = format!("SELECT name FROM {}", Self::table().await);
+        let rows = sqlx::query(&all_query)
+            .fetch_all(&mut transaction as &mut SqliteConnection)
+            .await;
+
+        let references = match rows {
+            Ok(json) => json,
+            Err(err) => {
+                error!("error findig: {:?}", err);
+                return Err(CRUDError::WrongParameters);
+            }
+        };
+
+        let query_one = format!("SELECT name FROM {} WHERE id = {id}", Self::table().await);
+        let row = sqlx::query(&query_one)
+            .fetch_one(&mut transaction as &mut SqliteConnection)
+            .await;
+        let main = match row {
+            Ok(row) => row,
+            Err(err) => {
+                error!("executing query {:?}", err);
+                return Err(CRUDError::NotFound);
+            }
+        };
+        Ok((String::from(""), vec![]))
     }
 
-    async fn transaction() -> SqlitePool {
-        transaction().await
-    }
-
-    async fn execute_query(query: String, mut conn: SqliteConnection) -> Result<Self, CRUDError> {
-        let row = sqlx::query_as::<_, Self>(&query).fetch_one(&mut conn).await;
+    async fn execute_query(
+        query: String,
+        mut transaction: Transaction<'a, Sqlite>,
+    ) -> Result<Self, CRUDError> {
+        let row = sqlx::query_as::<_, Self>(&query)
+            .fetch_one(&mut transaction as &mut SqliteConnection)
+            .await;
         match row {
             Ok(row) => Ok(row),
             Err(err) => {
                 error!("executing query {:?}", err);
                 Err(CRUDError::NotFound)
             }
+        }
+    }
+
+    async fn rows_to_vec(
+        query: String,
+        mut transaction: Transaction<'a, Sqlite>,
+    ) -> Result<Vec<Self>, CRUDError> {
+        let rows = sqlx::query_as::<_, Self>(&query)
+            .fetch_all(&mut transaction as &mut SqliteConnection)
+            .await;
+
+        match rows {
+            Ok(json) => Ok(json),
+            Err(err) => {
+                error!("error findig: {:?}", err);
+                return Err(CRUDError::WrongParameters);
+            }
+        }
+    }
+
+    async fn transaction() -> Result<Transaction<'a, Sqlite>, CRUDError> {
+        match Self::connect().await.begin().await {
+            Ok(transaction) => Ok(transaction),
+            Err(err) => {
+                error!("transaction errror launching: {:?}", err);
+                return Err(CRUDError::InternalError);
+            }
+        }
+    }
+
+    async fn connect() -> SqlitePool {
+        match SqlitePool::connect(&get_env("DATABASE_URL")).await {
+            Ok(db) => db,
+            Err(e) => panic!("{}", e),
         }
     }
 
@@ -200,19 +252,4 @@ where
     }
 
     async fn table() -> String;
-}
-
-pub async fn connect() -> SqliteConnection {
-    //TODO: use a pool
-    match SqliteConnection::connect(&get_env("DATABASE_URL")).await {
-        Ok(db) => db,
-        Err(e) => panic!("{}", e),
-    }
-}
-
-pub async fn transaction() -> SqlitePool {
-    match SqlitePool::connect(&get_env("DATABASE_URL")).await {
-        Ok(db) => db,
-        Err(e) => panic!("{}", e),
-    }
 }

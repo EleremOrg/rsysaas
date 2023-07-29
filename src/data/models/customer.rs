@@ -69,7 +69,7 @@ impl Customer {
                 "SELECT * FROM {} WHERE public_token = '{token}' AND domain = '{domain}'",
                 Self::table().await
             ),
-            Self::connect().await,
+            Self::transaction().await?,
         )
         .await
     }
@@ -80,7 +80,7 @@ impl Customer {
                 "SELECT * FROM {} WHERE token = '{token}'",
                 Self::table().await
             ),
-            Self::connect().await,
+            Self::transaction().await?,
         )
         .await
     }
