@@ -5,7 +5,7 @@ mod web;
 
 use envy::read_env_file;
 
-use data::orm::run_migrations;
+
 use std::net::SocketAddr;
 use web::routes::routes;
 
@@ -14,7 +14,7 @@ use web::routes::routes;
 use tracing_appender::{non_blocking, rolling::hourly};
 use tracing_subscriber::{fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::data::{interfaces::db::Manager, models::invfin::sectors_industries::Sector};
+
 
 #[tokio::main]
 async fn main() {

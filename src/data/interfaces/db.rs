@@ -4,8 +4,7 @@ use axum::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sqlx::{
-    sqlite::{SqliteConnection, SqlitePool, SqliteRow},
-    Column, Connection, FromRow, Row, Sqlite, Transaction, ValueRef,
+    sqlite::{SqliteConnection, SqlitePool, SqliteRow}, Connection, FromRow, Row, Sqlite, Transaction,
 };
 use tracing::error;
 

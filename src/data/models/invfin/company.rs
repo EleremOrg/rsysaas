@@ -87,7 +87,7 @@ impl RecommendationInterface for Company {
 
     // TODO: take into consideration the fact that a customer may query a table with data from other customers
     async fn get_references_query(&self) -> Result<Vec<Company>, CRUDError> {
-        let query = Orm::select(
+        let _query = Orm::select(
             "id, ticker, resume, image, sector, industry, exchange, country, adj, growth",
         )
         .from(&Self::table().await)

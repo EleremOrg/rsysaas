@@ -13,7 +13,6 @@ use axum::{
     async_trait,
     extract::{Path, Query, TypedHeader},
     headers::{authorization::Bearer, Authorization},
-    http::HeaderMap,
     response::Response,
     routing::get,
     Router,

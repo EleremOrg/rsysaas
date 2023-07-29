@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::{fs, marker::PhantomData, path::PathBuf};
+use std::{fs, path::PathBuf};
 
 use sqlx::{migrate::MigrateDatabase, sqlite::SqliteConnection, Connection, Executor, Sqlite};
 

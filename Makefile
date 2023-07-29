@@ -14,3 +14,6 @@ run:
 clean-logs:
 	rm -rf logs
 	mkdir logs
+
+clean:
+	cargo fix --bin "webservice" --allow-dirty

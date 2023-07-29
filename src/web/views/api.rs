@@ -1,16 +1,16 @@
-use std::sync::Arc;
+
 
 use crate::{
-    business::{facade::CustomerFacade, recommendations::Recommendation, versioning::Version},
+    business::{facade::CustomerFacade, versioning::Version},
     web::{
         requests::recommendation::{
             APIRecommendationRequest, EmbedRecommendationRequest, QueryRequest,
         },
-        responses::{non_auth, success, wrong_query},
+        responses::{non_auth},
     },
 };
 use axum::{
-    extract::{Query, TypedHeader},
+    extract::{TypedHeader},
     headers::{authorization::Bearer, Authorization},
     response::Response,
 };
