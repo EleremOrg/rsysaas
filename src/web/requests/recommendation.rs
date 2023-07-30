@@ -91,7 +91,7 @@ impl<'a> QueryRequest<'a> for APIRecommendationRequest {
             entity: self.entity.clone(),
             customer: customer.clone(),
             target,
-            request_id: RecommendationRequest::save_api_query(self).await,
+            request_id: RecommendationRequest::save_api_query(self, customer.id).await,
             request_type: String::from("API"),
         }
     }
@@ -169,7 +169,7 @@ impl<'a> QueryRequest<'a> for EmbedRecommendationRequest {
             entity: self.entity.clone(),
             customer: customer.clone(),
             target,
-            request_id: RecommendationRequest::save_embed_query(self).await,
+            request_id: RecommendationRequest::save_embed_query(self, customer.id).await,
             request_type: String::from("Embed"),
         }
     }

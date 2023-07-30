@@ -106,17 +106,20 @@ impl RecommendationRequest {
         Err(wrong_query(&format!("wrong entity {:?}", self.entity)))
     }
 
-    pub async fn save_embed_query(payload: &EmbedRecommendationRequest) -> u32 {
-        let (fields, values) = payload.get_fields_and_values().await;
+    pub async fn save_embed_query(payload: &EmbedRecommendationRequest, customer_id: u32) -> u32 {
+        let (mut fields, mut values) = payload.get_fields_and_values().await;
+        fields.push_str(",customer_id");
+        values.push_str(&format!(",{}", customer_id));
         match EmbedRecommendationRequestModel::create(&fields, &values).await {
             Ok(result) => result.id,
             Err(_) => 0,
         }
     }
 
-    pub async fn save_api_query(payload: &APIRecommendationRequest) -> u32 {
-        let (fields, values) = payload.get_fields_and_values().await;
-        println!("{:?}", values);
+    pub async fn save_api_query(payload: &APIRecommendationRequest, customer_id: u32) -> u32 {
+        let (mut fields, mut values) = payload.get_fields_and_values().await;
+        fields.push_str(",customer_id");
+        values.push_str(&format!(",{}", customer_id));
         match APIRecommendationRequestModel::create(&fields, &values).await {
             Ok(result) => result.id,
             Err(_) => 0,
