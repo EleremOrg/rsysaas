@@ -96,9 +96,13 @@ impl RecommendationRequest {
     }
 
     pub async fn validate_product_request(&self) -> Result<(), Response> {
+        if self.entity.is_empty() {
+            return Err(wrong_query("entity needed"));
+        }
         if self.customer.models_related.contains(self.entity.as_ref()) {
             return Ok(());
         }
+        //TODO: clean the response message
         Err(wrong_query(&format!("wrong entity {:?}", self.entity)))
     }
 
@@ -112,6 +116,7 @@ impl RecommendationRequest {
 
     pub async fn save_api_query(payload: &APIRecommendationRequest) -> u32 {
         let (fields, values) = payload.get_fields_and_values().await;
+        println!("{:?}", values);
         match APIRecommendationRequestModel::create(&fields, &values).await {
             Ok(result) => result.id,
             Err(_) => 0,

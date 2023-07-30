@@ -3,8 +3,8 @@ mod data;
 
 mod web;
 
+use data::orm::run_migrations;
 use envy::read_env_file;
-
 
 use std::net::SocketAddr;
 use web::routes::routes;
@@ -14,17 +14,18 @@ use web::routes::routes;
 use tracing_appender::{non_blocking, rolling::hourly};
 use tracing_subscriber::{fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt};
 
-
-
 #[tokio::main]
 async fn main() {
+    read_env_file();
+
     let (non_blocking, _guard) = non_blocking(hourly("logs", "webservice"));
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
                 // axum logs rejections from built-in extractors with the `axum::rejection`
                 // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
-                "webservice=debug,tower_http=debug,axum::rejection=trace".into()
+                // "tower_http=debug,axum::rejection=trace".into()
+                "".into()
             }),
         )
         .with(
@@ -44,7 +45,6 @@ async fn main() {
         )
         .init();
 
-    read_env_file();
     // run_migrations("migrations/sqlite").await;
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8001));

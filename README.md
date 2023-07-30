@@ -16,11 +16,13 @@
 * [ ] Create custom ORM 🟢
 
 ### Recommendations
-* [ ] Finish the get_X_recommendations 🔴
-* [ ] Finish recommendation struct 🔴
+* [X] Finish the get_product_recommendations 🔴
+* [X] Finish recommendation struct 🔴
 * [X] Save recommendations made 🔴
 * [ ] Create view to redirect to correct product on click 🔴
 * [ ] Save metadata of clicks and redirects 🔴
+* [ ] Finish the get_generic_recommendations 🟠
+* [ ] Finish the get_user_recommendations 🟠
 
 ### Models
 * [ ] Convert the correct fields/information to vectors 🟠

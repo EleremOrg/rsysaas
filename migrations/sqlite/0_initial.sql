@@ -36,6 +36,7 @@ CREATE TABLE customers (
 
 CREATE TABLE recommendations_responses (
     id INTEGER PRIMARY KEY,
+    ulid BLOB,
     request_id INTEGER,
     request_type TEXT NOT NULL,
     main_item_id INTEGER,
@@ -51,6 +52,7 @@ CREATE TABLE recommendations_responses (
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     customer_id INTEGER,
+    UNIQUE(ulid),
     FOREIGN KEY (customer_id) REFERENCES customers (id)
 );
 
@@ -64,6 +66,7 @@ CREATE TABLE recommendations_used (
 CREATE TABLE embed_recommendation_requests (
     id INTEGER PRIMARY KEY,
     orientation TEXT,
+    target TEXT,
     entity TEXT,
     title TEXT,
     show_image BOOLEAN,
@@ -96,6 +99,7 @@ CREATE TABLE embed_recommendation_requests (
 CREATE TABLE api_recommendation_request (
     id INTEGER PRIMARY KEY,
     entity TEXT,
+    target TEXT,
     user_id INTEGER,
     prod_id INTEGER,
     number_recommendations INTEGER,

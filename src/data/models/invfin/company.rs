@@ -12,6 +12,7 @@ use axum::async_trait;
 use futures::stream::StreamExt;
 use rec_rsys::models::{one_hot_encode, sum_encoding_vectors, AsyncItemAdapter, Item};
 use serde::{Deserialize, Serialize};
+use tracing::error;
 
 #[derive(Clone, Debug, PartialEq, sqlx::FromRow, Deserialize, Serialize, Default)]
 
@@ -87,18 +88,14 @@ impl RecommendationInterface for Company {
 
     // TODO: take into consideration the fact that a customer may query a table with data from other customers
     async fn get_references_query(&self) -> Result<Vec<Company>, CRUDError> {
-        let _query = Orm::select(
-            "id, ticker, resume, image, sector, industry, exchange, country, adj, growth",
+        let query = Orm::select(
+            "id, ticker, resume, image, sector_id, industry_id, exchange, country, adj, growth",
         )
         .from(&Self::table().await)
         .where_clause()
         .not_equal("id", &self.id.to_string())
         .ready();
-        Self::rows_to_vec(
-            format!("SELECT * FROM {}", Self::table().await),
-            Self::transaction().await?,
-        )
-        .await
+        Self::rows_to_vec(query, Self::transaction().await?).await
     }
 }
 
@@ -106,23 +103,35 @@ impl Company {
     async fn encode_sector(&self) -> Vec<f32> {
         let (own_sector, sectors) = match Sector::get_for_encoding(self.sector_id).await {
             Ok(sectors) => sectors,
-            Err(_e) => return vec![],
+            Err(err) => {
+                error!("error get_for_encoding sectors {:?}", err);
+                return vec![];
+            }
         };
         let sectors: Vec<&str> = sectors.iter().map(|f| f.as_str()).collect();
         match one_hot_encode(&sectors).get(&own_sector) {
             Some(val) => val.to_vec(),
-            None => panic!(),
+            None => {
+                error!("error one_hot_encode sectors");
+                vec![]
+            }
         }
     }
     async fn encode_industry(&self) -> Vec<f32> {
         let (own_sindustry, industries) = match Industry::get_for_encoding(self.industry_id).await {
             Ok(industries) => industries,
-            Err(_e) => return vec![],
+            Err(err) => {
+                error!("error get_for_encoding industries {:?}", err);
+                return vec![];
+            }
         };
         let industries: Vec<&str> = industries.iter().map(|f| f.as_str()).collect();
         match one_hot_encode(&industries).get(&own_sindustry) {
             Some(val) => val.to_vec(),
-            None => panic!(),
+            None => {
+                error!("error one_hot_encode industries");
+                vec![]
+            }
         }
     }
     fn encode_exchange(&self) -> Vec<f32> {
@@ -140,14 +149,20 @@ impl Company {
         ];
         match one_hot_encode(&exchanges).get(&self.exchange) {
             Some(val) => val.to_vec(),
-            None => panic!(),
+            None => {
+                error!("error one_hot_encode");
+                vec![]
+            }
         }
     }
     fn encode_country(&self) -> Vec<f32> {
-        let countries = vec!["USA", "FR", "ESP"];
+        let countries = vec!["United States", "France", "Spain"];
         match one_hot_encode(&countries).get(&self.country) {
             Some(val) => val.to_vec(),
-            None => panic!(),
+            None => {
+                error!("error encode_country ");
+                vec![]
+            }
         }
     }
     fn encode_adjs(&self) -> Vec<f32> {

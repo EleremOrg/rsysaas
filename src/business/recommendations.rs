@@ -7,7 +7,10 @@ use aromatic::Orm;
 use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
 
-use super::requests::{RecommendationRequest, RecommendationTarget};
+use super::{
+    requests::{RecommendationRequest, RecommendationTarget},
+    ulid::Ulid,
+};
 use crate::data::{
     errors::CRUDError, interface::get_product_comparer, interfaces::db::Manager,
     models::recommendation::RecommendationResponse,
@@ -76,6 +79,7 @@ impl Recommendation {
 
         let mut result = Vec::new();
         let mut query_values = Vec::new();
+        let mut ulid_generator = Ulid::new();
 
         for item in sorted_items {
             let rec_adapter = comparer.references.get(&item.id);
@@ -84,7 +88,7 @@ impl Recommendation {
                 selected_recommendation.update(item.result, Self::get_url("domain", 0));
 
                 query_values.push(format!(
-                    "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},)",
+                    "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
                     request.request_id,
                     request.request_type,
                     request.customer.id,
@@ -98,7 +102,15 @@ impl Recommendation {
                     item.result,
                     "Cosine",
                     selected_recommendation.url,
-                    get_current_time()
+                    get_current_time(),
+                    ulid_generator
+                        .generate(
+                            request.request_id,
+                            request.customer.id,
+                            comparer.main.item.id,
+                            selected_recommendation.id
+                        )
+                        .await
                 ));
                 result.push(selected_recommendation);
             }

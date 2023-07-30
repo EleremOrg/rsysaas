@@ -7,7 +7,7 @@ use sqlx::{
     sqlite::{SqliteConnection, SqlitePool, SqliteRow},
     FromRow, Row, Sqlite, Transaction,
 };
-use tracing::error;
+use tracing::{error, info};
 
 use envy::get_env;
 
@@ -61,16 +61,13 @@ where
             table = Self::table().await
         );
 
-        match sqlx::query(&query)
+        sqlx::query(&query)
             .execute(&mut transaction as &mut SqliteConnection)
             .await
-        {
-            Ok(row) => row,
-            Err(err) => {
+            .map_err(|err| {
                 error!("run insert: {:?}", err);
-                return Err(CRUDError::NotFound);
-            }
-        };
+                CRUDError::InternalError
+            })?;
 
         let retreival_query = format!(
             "SELECT * FROM {} WHERE id = last_insert_rowid()",
@@ -82,13 +79,7 @@ where
             .await
         {
             Ok(row) => {
-                match transaction.commit().await {
-                    Ok(_) => error!("transacttion commit succeeded"),
-                    Err(err) => {
-                        error!("transacttion commit error: {:?}", err);
-                        return Err(CRUDError::NotFound);
-                    }
-                };
+                Self::commit_transaction(transaction).await?;
                 Ok(row)
             }
             Err(err) => {
@@ -124,11 +115,15 @@ where
             "DELETE FROM {table} WHERE id = {id}",
             table = Self::table().await
         );
+        let mut transaction = Self::transaction().await?;
         match sqlx::query(&query)
-            .execute(&mut Self::transaction().await? as &mut SqliteConnection)
+            .execute(&mut transaction as &mut SqliteConnection)
             .await
         {
-            Ok(row) => Ok(row.rows_affected()),
+            Ok(row) => {
+                Self::commit_transaction(transaction).await?;
+                Ok(row.rows_affected())
+            }
             Err(err) => {
                 error!("deleting: {:?}", err);
                 Err(CRUDError::NotFound)
@@ -202,7 +197,7 @@ where
             .fetch_one(&mut transaction as &mut SqliteConnection)
             .await;
         match row {
-            Ok(row) => Ok(row),
+            Ok(result) => Ok(result),
             Err(err) => {
                 error!("executing query {:?}", err);
                 Err(CRUDError::NotFound)
@@ -219,10 +214,23 @@ where
             .await;
 
         match rows {
-            Ok(json) => Ok(json),
+            Ok(result) => Ok(result),
             Err(err) => {
                 error!("error findig: {:?}", err);
-                return Err(CRUDError::WrongParameters);
+                Err(CRUDError::WrongParameters)
+            }
+        }
+    }
+
+    async fn commit_transaction(transaction: Transaction<'a, Sqlite>) -> Result<(), CRUDError> {
+        match transaction.commit().await {
+            Ok(_) => {
+                info!("transacttion commit succeeded");
+                Ok(())
+            }
+            Err(err) => {
+                error!("transacttion commit error: {:?}", err);
+                Err(CRUDError::NotFound)
             }
         }
     }

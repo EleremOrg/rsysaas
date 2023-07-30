@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{
     async_trait,
     extract::{FromRequestParts, Query},
@@ -6,9 +8,6 @@ use axum::{
 };
 use hyper::http::request::Parts;
 use serde::{Deserialize, Serialize};
-use tracing::error;
-
-use std::sync::Arc;
 
 use crate::{
     business::{
@@ -19,8 +18,32 @@ use crate::{
 };
 
 #[async_trait]
-pub trait QueryRequest<'a> {
-    async fn get_fields_and_values(&self) -> (String, String);
+pub trait QueryRequest<'a>
+where
+    Self: Serialize + Deserialize<'a>,
+{
+    async fn get_fields_and_values(&self) -> (String, String) {
+        let mut fields = String::from("");
+        let mut values = String::from("");
+        let parameters = match serde_json::to_value(&self) {
+            Ok(obj) => obj,
+            _ => panic!("Unexpected JSON value"),
+        };
+        for (key, raw_value) in parameters.as_object().unwrap() {
+            if let Some(value) = raw_value.as_str() {
+                if !value.is_empty() {
+                    fields.push_str(format!("{key},").as_str());
+                    match value.parse::<u8>() {
+                        Ok(v) => values.push_str(format!("{v},").as_str()),
+                        Err(_) => values.push_str(format!("'{value}',").as_str()),
+                    }
+                };
+            }
+        }
+        fields.pop();
+        values.pop();
+        (fields, values)
+    }
 
     async fn get_request(
         &self,
@@ -35,7 +58,7 @@ pub trait QueryRequest<'a> {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all(serialize = "snake_case", deserialize = "camelCase"))]
 pub struct APIRecommendationRequest {
     pub entity: Arc<String>,
     pub target: Arc<String>,
@@ -46,24 +69,6 @@ pub struct APIRecommendationRequest {
 
 #[async_trait]
 impl<'a> QueryRequest<'a> for APIRecommendationRequest {
-    async fn get_fields_and_values(&self) -> (String, String) {
-        let mut fields = String::from("");
-        let mut values = String::from("");
-        let parameters = match serde_json::to_value(&self) {
-            Ok(obj) => obj,
-            _ => panic!("Unexpected JSON value"),
-        };
-        let obj = match parameters.as_object() {
-            Some(val) => val,
-            None => panic!("Unexpected JSON value"),
-        };
-        for (key, value) in obj {
-            fields.push_str(format!("{fields}, {key}").as_str());
-            values.push_str(format!("{values}, {value}").as_str());
-        }
-        (fields, values)
-    }
-
     async fn get_request(
         &self,
         customer: &CustomerFacade,
@@ -142,30 +147,6 @@ pub struct EmbedRecommendationRequest {
 
 #[async_trait]
 impl<'a> QueryRequest<'a> for EmbedRecommendationRequest {
-    async fn get_fields_and_values(&self) -> (String, String) {
-        let mut fields = String::from("");
-        let mut values = String::from("");
-        let parameters = match serde_json::to_value(&self) {
-            Ok(obj) => obj,
-            Err(err) => {
-                error!("Unexpected error {}", err);
-                return (fields, values);
-            }
-        };
-        let obj = match parameters.as_object() {
-            Some(val) => val,
-            None => {
-                error!("Unexpected JSON value");
-                return (fields, values);
-            }
-        };
-        for (key, value) in obj {
-            fields.push_str(format!("{fields}, {key}").as_str());
-            values.push_str(format!("{values}, {value}").as_str());
-        }
-        (fields, values)
-    }
-
     async fn get_request(
         &self,
         customer: &CustomerFacade,
@@ -226,4 +207,40 @@ async fn correct_number(value: &Option<String>) -> u8 {
         .unwrap_or("5".to_string())
         .parse::<u8>()
         .unwrap_or(5)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_get_fields_and_values_with_valid_struct() {
+        let my_struct = APIRecommendationRequest {
+            entity: Arc::new(String::from("entity")),
+            target: Arc::new(String::from("target")),
+            user_id: Some(String::from("15")),
+            prod_id: Some(String::from("2")),
+            number_recommendations: Some(String::from("5")),
+        };
+        let (fields, values) = my_struct.get_fields_and_values().await;
+        assert_eq!(
+            fields,
+            "entity,number_recommendations,prod_id,target,user_id"
+        );
+        assert_eq!(values, "'entity',5,2,'target',15");
+    }
+
+    #[tokio::test]
+    async fn test_get_fields_and_values_none_with_valid_struct() {
+        let my_struct = APIRecommendationRequest {
+            entity: Arc::new(String::from("entity")),
+            target: Arc::new(String::from("target")),
+            user_id: Some(String::from("")),
+            prod_id: None,
+            number_recommendations: None,
+        };
+        let (fields, values) = my_struct.get_fields_and_values().await;
+        assert_eq!(fields, "entity,target");
+        assert_eq!(values, "'entity','target'");
+    }
 }

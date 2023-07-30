@@ -2,3 +2,6 @@
 database.sqlite*
 logs/*
 1_test_data.sql
+.env
+test_api.py
+populate-redis.sh

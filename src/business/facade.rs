@@ -16,27 +16,21 @@ impl CustomerFacade {
         &self,
         request: &RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {
-        match Recommendation::generate_recommendations(request).await {
-            Ok(recommendations) => Ok(recommendations),
-            Err(err) => Err(err),
-        }
+        Recommendation::generate_recommendations(request).await
     }
 
     pub async fn get_by_token(token: &str) -> Result<CustomerFacade, CRUDError> {
-        match Customer::get_by_token(token).await {
-            Ok(customer) => Ok(Self::customer_to_interface(customer).await),
-            Err(err) => Err(err),
-        }
+        Ok(Self::customer_to_interface(Customer::get_by_token(token).await?).await)
     }
 
     pub async fn get_by_public_token_and_domain(
         token: &str,
         domain: Arc<String>,
     ) -> Result<CustomerFacade, CRUDError> {
-        match Customer::get_by_public_token_and_domain(token, domain).await {
-            Ok(customer) => Ok(Self::customer_to_interface(customer).await),
-            Err(err) => Err(err),
-        }
+        Ok(Self::customer_to_interface(
+            Customer::get_by_public_token_and_domain(token, domain).await?,
+        )
+        .await)
     }
 
     async fn customer_to_interface(customer: Customer) -> Self {
@@ -45,15 +39,15 @@ impl CustomerFacade {
             domain: Arc::new(customer.domain),
             models_related: customer
                 .models_related
-                .split(", ")
+                .split(",")
                 .map(|s| s.to_string())
                 .collect(),
         }
     }
 
     pub async fn is_allowed(entity: Arc<String>, token: &str) -> bool {
-        let query = format!("token = '{token}' AND models_related LIKE '%{entity}%'");
-        match Customer::exists(&query).await {
+        let condition = format!("token = '{token}' AND models_related LIKE '%{entity}%'");
+        match Customer::exists(&condition).await {
             Ok(exists) => exists,
             Err(_err) => {
                 return false;

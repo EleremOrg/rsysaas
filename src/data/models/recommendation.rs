@@ -25,6 +25,7 @@ impl View<'_> for RecommendationUsed {}
 #[derive(Clone, Debug, sqlx::FromRow, Deserialize, Serialize, Default)]
 pub struct RecommendationResponse {
     pub id: u32,
+    pub ulid: String,
     pub request_id: u32,      // One of the models below
     pub request_type: String, // API or Embed
     pub customer_id: u32,
