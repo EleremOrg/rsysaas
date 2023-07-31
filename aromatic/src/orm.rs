@@ -80,6 +80,7 @@ impl Orm<Insert> {
     }
 
     pub fn add_many(self, values: &str) -> Orm<Insert> {
+        println!("{:?}", format!("{} {values}", self.query));
         Orm {
             query: format!("{} {values}", self.query),
             has_where_clause: false,

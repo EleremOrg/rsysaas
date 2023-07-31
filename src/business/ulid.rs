@@ -17,10 +17,10 @@ impl Ulid {
 
     pub async fn generate(
         &mut self,
-        request_id: u32,
-        customer_id: u32,
-        main_item_id: u32,
-        entity_id: u32,
+        request_id: &u32,
+        customer_id: &u32,
+        main_item_id: &u32,
+        entity_id: &u32,
     ) -> String {
         let mut ulid_bytes = [0u8; 16];
 
@@ -61,10 +61,10 @@ impl Ulid {
     }
 
     async fn get_random_portion(
-        request_id: u32,
-        customer_id: u32,
-        main_item_id: u32,
-        entity_id: u32,
+        request_id: &u32,
+        customer_id: &u32,
+        main_item_id: &u32,
+        entity_id: &u32,
     ) -> u64 {
         // Generate the random portion using the hash of the fields
         let mut hasher = DefaultHasher::new();

@@ -61,10 +61,13 @@ impl RecommendationResponse {
             .execute(&mut transaction as &mut SqliteConnection)
             .await
         {
-            Ok(row) => Ok(row.rows_affected()),
+            Ok(row) => {
+                Self::commit_transaction(transaction).await?;
+                Ok(row.rows_affected())
+            }
             Err(err) => {
-                error!("deleting: {:?}", err);
-                Err(CRUDError::NotFound)
+                error!("save_recommendations: {:?}", err);
+                Err(CRUDError::InternalError)
             }
         }
     }

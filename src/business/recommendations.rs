@@ -8,6 +8,7 @@ use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
 
 use super::{
+    interface::{RecommendationAdapter, RecommendationComparer},
     requests::{RecommendationRequest, RecommendationTarget},
     ulid::Ulid,
 };
@@ -87,57 +88,70 @@ impl Recommendation {
                 let mut selected_recommendation = rec_adapter.recommendation.clone();
                 selected_recommendation.update(item.result, Self::get_url("domain", 0));
 
-                query_values.push(format!(
-                    "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
-                    request.request_id,
-                    request.request_type,
-                    request.customer.id,
-                    comparer.main.item.id,
-                    comparer.main.entity,
-                    selected_recommendation.id,
-                    rec_adapter.entity,
-                    selected_recommendation.image,
-                    selected_recommendation.title,
-                    selected_recommendation.resume,
-                    item.result,
-                    "Cosine",
-                    selected_recommendation.url,
-                    get_current_time(),
-                    ulid_generator
-                        .generate(
-                            request.request_id,
-                            request.customer.id,
-                            comparer.main.item.id,
-                            selected_recommendation.id
-                        )
-                        .await
-                ));
+                query_values.push(
+                    Self::create_query_value(
+                        request,
+                        &comparer,
+                        &selected_recommendation,
+                        rec_adapter,
+                        item.result,
+                        "Cosine".to_string(),
+                        &mut ulid_generator,
+                    )
+                    .await,
+                );
                 result.push(selected_recommendation);
             }
         }
-
-        let mut query = Orm::insert(&RecommendationResponse::table().await)
-            .set_columns(
-                "request_id,
-            request_type,
-            customer_id,
-            main_item_id,
-            main_item_entity,
-            entity_id,
-            entity,
-            image,
-            title,
-            resume,
-            score,
-            algorithm,
-            url,
-            created_at",
-            )
-            .add_many(&query_values.join(","));
-
-        let _ = RecommendationResponse::save_recommendations(&query.ready());
+        println!("query_values: {:?}", query_values);
+        let query = Self::create_query(&query_values).await;
+        let _ = RecommendationResponse::save_recommendations(&query).await?;
 
         Ok(result)
+    }
+
+    async fn create_query(query_values: &Vec<String>) -> String {
+        let columns = "request_id,customer_id,main_item_id,entity_id,score,request_type,main_item_entity,entity,image,title,resume,algorithm,url,created_at,ulid";
+        Orm::insert(&RecommendationResponse::table().await)
+            .set_columns(columns)
+            .add_many(&query_values.join(","))
+            .ready()
+    }
+
+    async fn create_query_value(
+        request: &RecommendationRequest,
+        comparer: &RecommendationComparer,
+        selected_recommendation: &Recommendation,
+        rec_adapter: &RecommendationAdapter,
+        item_result: f32,
+        algorithm: String,
+        ulid_generator: &mut Ulid,
+    ) -> String {
+        format!(
+            "({},{},{},{},{},'{}','{}','{}','{}','{}','{}','{}','{}','{}','{}')",
+            request.request_id,
+            request.customer.id,
+            comparer.main.item.id,
+            selected_recommendation.id,
+            item_result,
+            request.request_type,
+            comparer.main.entity,
+            rec_adapter.entity,
+            selected_recommendation.image,
+            selected_recommendation.title,
+            selected_recommendation.resume,
+            algorithm,
+            selected_recommendation.url,
+            get_current_time(),
+            ulid_generator
+                .generate(
+                    &request.request_id,
+                    &request.customer.id,
+                    &comparer.main.item.id,
+                    &selected_recommendation.id
+                )
+                .await
+        )
     }
 
     async fn calculate_product_recommendations(
