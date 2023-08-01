@@ -33,6 +33,7 @@ pub struct RecommendationAdapter {
     pub item: Item,
     pub recommendation: Recommendation,
     pub entity: String,
+    pub entity_path: String,
 }
 
 #[async_trait]
@@ -47,11 +48,13 @@ where
         title: String,
         image: String,
         resume: String,
+        entity_path: String,
     ) -> RecommendationAdapter {
         RecommendationAdapter {
             item,
             recommendation: Recommendation::new(id, title, image, resume).await,
             entity,
+            entity_path,
         }
     }
 

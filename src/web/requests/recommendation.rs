@@ -1,13 +1,15 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use axum::{
     async_trait,
-    extract::{FromRequestParts, Query},
-    response::Response,
-    RequestPartsExt,
+    extract::{FromRequestParts, Path, Query},
+    response::{IntoResponse, Response},
+    RequestPartsExt, TypedHeader,
 };
-use hyper::http::request::Parts;
+use headers::{Host, UserAgent};
+use hyper::{http::request::Parts, StatusCode};
 use serde::{Deserialize, Serialize};
+use tracing::error;
 
 use crate::{
     business::{
@@ -65,6 +67,15 @@ pub struct APIRecommendationRequest {
     pub user_id: Option<String>,
     pub prod_id: Option<String>,
     pub number_recommendations: Option<String>,
+    pub user_agent: Option<String>,
+    pub host: Option<String>,
+}
+
+impl APIRecommendationRequest {
+    async fn add_headers_values(&mut self, user_agent: String, host: String) {
+        self.user_agent = Some(user_agent);
+        self.host = Some(host);
+    }
 }
 
 #[async_trait]
@@ -105,15 +116,56 @@ where
     type Rejection = Response;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        match parts.extract::<Query<Self>>().await {
-            Ok(params) => Ok(params.0),
-            Err(err) => return Err(wrong_query(&clean_error_message(err.body_text()).await)),
+        let mut x = match parts.extract::<Query<Self>>().await {
+            Ok(params) => params.0,
+            Err(err) => {
+                error!("APIRecommendationRequest from_request_parts: {:?}", err);
+                return Err(wrong_query(&clean_error_message(err.body_text()).await));
+            }
+        };
+        let user_agent = get_user_agent(parts).await?;
+        let host = get_host(parts).await?;
+        x.add_headers_values(user_agent, host).await;
+        Ok(x)
+    }
+}
+
+async fn get_user_agent(parts: &mut Parts) -> Result<String, Response> {
+    match parts
+        .extract::<TypedHeader<UserAgent>>()
+        .await
+        .map(|user_agent| user_agent.as_str().to_owned())
+    {
+        Ok(user_agent) => Ok(user_agent),
+        Err(err) => {
+            error!(
+                "APIRecommendationRequest from_request_parts get_user_agent: {:?}",
+                err
+            );
+            Err(wrong_query(&err.reason()))
+        }
+    }
+}
+
+async fn get_host(parts: &mut Parts) -> Result<String, Response> {
+    match parts
+        .extract::<TypedHeader<Host>>()
+        .await
+        .map(|host: TypedHeader<Host>| host.hostname().to_owned())
+    {
+        Ok(host) => Ok(host),
+        Err(err) => {
+            error!(
+                "APIRecommendationRequest from_request_parts get_host: {:?}",
+                err
+            );
+            Err(wrong_query(&err.reason()))
         }
     }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all(serialize = "snake_case", deserialize = "camelCase"))]
 pub struct EmbedRecommendationRequest {
     pub entity: Arc<String>,
     pub target: Arc<String>,
@@ -130,7 +182,6 @@ pub struct EmbedRecommendationRequest {
     pub width: Option<u32>,
     pub locale: Arc<String>,
     pub color_theme: Arc<String>,
-    pub public_key: Arc<String>,
     pub location_href: Arc<String>,
     pub base_uri: Arc<String>,
     pub doc_url: Arc<String>,
@@ -209,6 +260,38 @@ async fn correct_number(value: &Option<String>) -> u8 {
         .unwrap_or(5)
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct RecommendationRedirect {
+    pub user_agent: Arc<String>,
+    pub host: Arc<String>,
+    pub uild: Arc<String>,
+}
+
+#[async_trait]
+impl<S> FromRequestParts<S> for RecommendationRedirect
+where
+    S: Send + Sync,
+{
+    type Rejection = Response;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let params: Path<HashMap<String, String>> =
+            parts.extract().await.map_err(IntoResponse::into_response)?;
+
+        let uild = params
+            .get("ulid")
+            .ok_or_else(|| (StatusCode::NOT_FOUND, "ulid missing").into_response())?;
+
+        let user_agent = get_user_agent(parts).await?;
+        let host = get_host(parts).await?;
+        Ok(Self {
+            user_agent: Arc::new(user_agent),
+            host: Arc::new(host),
+            uild: Arc::new(uild.to_owned()),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -221,6 +304,8 @@ mod tests {
             user_id: Some(String::from("15")),
             prod_id: Some(String::from("2")),
             number_recommendations: Some(String::from("5")),
+            user_agent: None,
+            host: None,
         };
         let (fields, values) = my_struct.get_fields_and_values().await;
         assert_eq!(
@@ -238,6 +323,8 @@ mod tests {
             user_id: Some(String::from("")),
             prod_id: None,
             number_recommendations: None,
+            user_agent: None,
+            host: None,
         };
         let (fields, values) = my_struct.get_fields_and_values().await;
         assert_eq!(fields, "entity,target");

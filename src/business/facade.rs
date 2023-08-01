@@ -12,13 +12,6 @@ pub struct CustomerFacade {
 }
 
 impl CustomerFacade {
-    pub async fn get_recommendations(
-        &self,
-        request: &RecommendationRequest,
-    ) -> Result<Vec<Recommendation>, CRUDError> {
-        Recommendation::generate_recommendations(request).await
-    }
-
     pub async fn get_by_token(token: &str) -> Result<CustomerFacade, CRUDError> {
         Ok(Self::customer_to_interface(Customer::get_by_token(token).await?).await)
     }

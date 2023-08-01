@@ -24,6 +24,8 @@ pub struct Company {
     pub resume: String,
     #[sqlx(default)]
     pub image: String,
+    #[sqlx(default)]
+    pub path: String,
     pub sector_id: u32,
     pub industry_id: u32,
     pub exchange: String,
@@ -82,6 +84,7 @@ impl RecommendationInterface for Company {
             self.ticker.clone(),
             self.image.clone(),
             self.resume.clone(),
+            self.path.clone(),
         )
         .await
     }
@@ -89,10 +92,10 @@ impl RecommendationInterface for Company {
     // TODO: take into consideration the fact that a customer may query a table with data from other customers
     async fn get_references_query(&self) -> Result<Vec<Company>, CRUDError> {
         let query = Orm::select(
-            "id, ticker, resume, image, sector_id, industry_id, exchange, country, adj, growth",
+            "id, path, ticker, resume, image, sector_id, industry_id, exchange, country, adj, growth",
         )
         .from(&Self::table().await)
-        .where_clause()
+        .where_()
         .not_equal("id", &self.id.to_string())
         .ready();
         Self::rows_to_vec(query, Self::transaction().await?).await

@@ -16,10 +16,10 @@ use tower_http::{
 use tracing::{info_span, Level};
 
 use super::{
-    middlewares::{cors, post_cors},
+    middlewares::{get_cors, post_cors},
     views::{
         api::{get_embed_recommendations, get_recommendations},
-        regular::{error_404, home, new_potential_customer},
+        regular::{error_404, home, new_potential_customer, redirect_recommendation},
         sse::sse_handler,
         ws::ws_handler,
     },
@@ -35,6 +35,10 @@ pub fn routes() -> Router {
     Router::new()
         .route("/save-new-user/", post(new_potential_customer))
         .layer(post_cors())
+        .route(
+            "/redirect-recommendation/:ulid/",
+            get(redirect_recommendation),
+        )
         .route("/", get(home))
         .nest_service(
             "/assets/embed-widget.js",
@@ -96,5 +100,5 @@ fn recommendations_routes() -> Router {
         .route("/sse/", get(sse_handler))
         .route("/recommendations/", get(get_recommendations))
         .route("/embed-recommendations/", get(get_embed_recommendations))
-        .layer(cors())
+        .layer(get_cors())
 }

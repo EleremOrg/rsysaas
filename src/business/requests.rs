@@ -2,22 +2,26 @@ use std::sync::Arc;
 
 use axum::response::Response;
 use serde::{Deserialize, Serialize};
+use tracing::error;
 
 use crate::{
     data::{
         errors::CRUDError,
         interfaces::db::Manager,
-        models::recommendation::{APIRecommendationRequestModel, EmbedRecommendationRequestModel},
+        models::recommendation::{
+            APIRecommendationRequestModel, EmbedRecommendationRequestModel, RecommendationUsed,
+        },
     },
     web::{
         requests::recommendation::{
             APIRecommendationRequest, EmbedRecommendationRequest, QueryRequest,
+            RecommendationRedirect,
         },
         responses::{our_fault, success, wrong_query},
     },
 };
 
-use super::facade::CustomerFacade;
+use super::{facade::CustomerFacade, recommendations::Recommendation};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RecommendationRequest {
@@ -66,12 +70,14 @@ impl RecommendationRequest {
     }
 
     pub async fn get_recommendations(&self) -> Response {
-        match self.customer.get_recommendations(self).await {
+        match Recommendation::generate_recommendations(self).await {
             Ok(recs) => success(recs),
             Err(err) => match err {
                 CRUDError::NotFound => wrong_query(&format!("wrong id {:?}", self.get_id().await)),
-                CRUDError::MaxRetry => our_fault(),
-                _ => our_fault(),
+                _ => {
+                    error!("some error comming from get_recommendations: {:?}", err);
+                    our_fault()
+                }
             },
         }
     }
@@ -112,7 +118,10 @@ impl RecommendationRequest {
         values.push_str(&format!(",{}", customer_id));
         match EmbedRecommendationRequestModel::create(&fields, &values).await {
             Ok(result) => result.id,
-            Err(_) => 0,
+            Err(err) => {
+                error!("error creating the save_embed_query: {:?}", err);
+                0
+            }
         }
     }
 
@@ -122,7 +131,17 @@ impl RecommendationRequest {
         values.push_str(&format!(",{}", customer_id));
         match APIRecommendationRequestModel::create(&fields, &values).await {
             Ok(result) => result.id,
-            Err(_) => 0,
+            Err(err) => {
+                error!("error creating the save_api_query: {:?}", err);
+                0
+            }
         }
+    }
+}
+
+pub async fn handle_recommendation_redirection(payload: &RecommendationRedirect) -> String {
+    match RecommendationUsed::handle_recommendation_usage(payload).await {
+        Ok(path) => path,
+        Err(_err) => String::from("oupsi"),
     }
 }

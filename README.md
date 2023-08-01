@@ -12,15 +12,17 @@
 ### Data
 * [X] Connect to DB 🔴
 * [ ] Connect to cache (redis) 🟢
-* [ ] Create custom migration CLI 🟠
+* [ ] Create custom migration CLI 🟢
 * [ ] Create custom ORM 🟢
 
 ### Recommendations
 * [X] Finish the get_product_recommendations 🔴
 * [X] Finish recommendation struct 🔴
 * [X] Save recommendations made 🔴
-* [ ] Create view to redirect to correct product on click 🔴
-* [ ] Save metadata of clicks and redirects 🔴
+* [X] Create view to redirect to correct product on click 🔴
+* [X] Save metadata of clicks and redirects 🔴
+* [ ] Ensure that the ULIDs are truly unique (query the database) 🔴
+* [ ] Create facades for the models that will be used directly 🟠
 * [ ] Finish the get_generic_recommendations 🟠
 * [ ] Finish the get_user_recommendations 🟠
 

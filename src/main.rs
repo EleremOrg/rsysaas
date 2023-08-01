@@ -6,10 +6,10 @@ mod web;
 use data::orm::run_migrations;
 use envy::read_env_file;
 
-use std::net::SocketAddr;
+use std::{net::SocketAddr, path::PathBuf};
 use web::routes::routes;
 
-// use axum_server::tls_rustls::RustlsConfig;
+use axum_server::tls_rustls::RustlsConfig;
 
 use tracing_appender::{non_blocking, rolling::hourly};
 use tracing_subscriber::{fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt};
@@ -24,15 +24,15 @@ async fn main() {
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
                 // axum logs rejections from built-in extractors with the `axum::rejection`
                 // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
-                // "tower_http=debug,axum::rejection=trace".into()
-                "".into()
+                "webservice=error".into()
             }),
         )
+        // .with(tracing_subscriber::EnvFilter::from_env("LOGGING_STRAT"))
         .with(
             // We might not need them all.
             tracing_subscriber::fmt::layer()
                 .json()
-                .with_writer(non_blocking)
+                // .with_writer(non_blocking)
                 .log_internal_errors(true)
                 .with_file(true)
                 .with_line_number(true)
@@ -50,16 +50,16 @@ async fn main() {
     let addr = SocketAddr::from(([127, 0, 0, 1], 8001));
 
     // configure certificate and private key used by https
-    // let config = RustlsConfig::from_pem_file(
-    //     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-    //         .join("self_signed_certs")
-    //         .join("cert.pem"),
-    //     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-    //         .join("self_signed_certs")
-    //         .join("key.pem"),
-    // )
-    // .await
-    // .unwrap();
+    let config = RustlsConfig::from_pem_file(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("self_signed_certs")
+            .join("cert.pem"),
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("self_signed_certs")
+            .join("key.pem"),
+    )
+    .await
+    .unwrap();
 
     // To use with https
     // axum_server::bind_rustls(addr, config)

@@ -8,6 +8,7 @@ use axum::async_trait;
 use rec_rsys::models::{AsyncItemAdapter, Item};
 use serde::{Deserialize, Serialize};
 use sqlx::SqliteConnection;
+use tracing::error;
 
 #[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow, Deserialize, Serialize, Default)]
 
@@ -19,8 +20,11 @@ pub struct Term {
     pub image: String,
     #[sqlx(default)]
     pub resume: String,
-    pub slug: String,
+    #[sqlx(default)]
+    pub path: String,
+    #[sqlx(default)]
     pub category: String,
+    #[sqlx(default)]
     pub tags: String,
 }
 #[async_trait]
@@ -38,9 +42,7 @@ impl AsyncItemAdapter for Term {
         Item::new(self.id, self.create_values().await, None)
     }
     async fn create_values(&self) -> Vec<f32> {
-        // let mut values = vec![0.0];
-        // [].iter().for_each(|f| values.extend(f));
-        vec![0.0]
+        vec![22.33]
     }
 
     async fn get_references(&self) -> Vec<Item> {
@@ -58,23 +60,18 @@ impl RecommendationInterface for Term {
             self.title.clone(),
             self.image.clone(),
             self.resume.clone(),
+            self.path.clone(),
         )
         .await
     }
 
     // TODO: take into consideration the fact that a customer may query a table with data from other customers
     async fn get_references_query(&self) -> Result<Vec<Term>, CRUDError> {
-        let query = Orm::select("id, title, resume, image, tags, category")
+        let query = Orm::select("id, path, title, resume, image, tags, category")
             .from(&Self::table().await)
-            .where_clause()
+            .where_()
             .not_equal("id", &self.id.to_string())
             .ready();
-        let rows = sqlx::query_as::<_, Self>(&query)
-            .fetch_all(&mut Self::transaction().await? as &mut SqliteConnection)
-            .await;
-        match rows {
-            Ok(json) => Ok(json),
-            Err(_e) => Err(CRUDError::WrongParameters),
-        }
+        Self::rows_to_vec(query, Self::transaction().await?).await
     }
 }

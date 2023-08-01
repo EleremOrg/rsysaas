@@ -43,14 +43,13 @@ CREATE TABLE recommendations_responses (
     main_item_entity TEXT NOT NULL,
     entity_id INTEGER,
     entity TEXT NOT NULL,
+    entity_path TEXT NOT NULL,
     image TEXT NOT NULL,
     title TEXT NOT NULL,
     resume TEXT NOT NULL,
     score REAL,
     algorithm TEXT NOT NULL,
-    url TEXT NOT NULL,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     customer_id INTEGER,
     UNIQUE(ulid),
     FOREIGN KEY (customer_id) REFERENCES customers (id)
@@ -58,7 +57,9 @@ CREATE TABLE recommendations_responses (
 
 CREATE TABLE recommendations_used (
     id INTEGER PRIMARY KEY,
-    created_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_agent TEXT,
+    host TEXT,
     recommendation_response_id INTEGER,
     FOREIGN KEY (recommendation_response_id) REFERENCES recommendations_responses (id)
 );
@@ -79,7 +80,6 @@ CREATE TABLE embed_recommendation_requests (
     width INTEGER,
     locale TEXT,
     color_theme TEXT,
-    public_key TEXT,
     location_href TEXT,
     base_uri TEXT,
     doc_url TEXT,
@@ -103,6 +103,8 @@ CREATE TABLE api_recommendation_request (
     user_id INTEGER,
     prod_id INTEGER,
     number_recommendations INTEGER,
+    user_agent TEXT,
+    host TEXT,
     customer_id INTEGER,
     FOREIGN KEY (customer_id) REFERENCES customers (id)
 );
@@ -135,6 +137,7 @@ CREATE TABLE companies (
     country TEXT NOT NULL,
     adj TEXT,
     growth REAL,
+    path TEXT NOT NULL,
     FOREIGN KEY (sector_id) REFERENCES companies_sectors(id),
     FOREIGN KEY (industry_id) REFERENCES companies_industries(id)
 );
@@ -144,7 +147,7 @@ CREATE TABLE terms (
     title TEXT NOT NULL,
     resume TEXT NOT NULL,
     image TEXT NOT NULL,
-    slug TEXT NOT NULL,
+    path TEXT NOT NULL,
     category TEXT NOT NULL,
     tags TEXT NOT NULL
 );

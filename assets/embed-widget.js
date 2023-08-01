@@ -18,7 +18,7 @@ async function sendGetRequestWithPayload() {
     });
     await handleResponse(response);
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Request error:', error);
   }
 }
 
@@ -80,8 +80,9 @@ async function handleResponse(response) {
   const data = await response.json();
   if (response.ok) {
     await populateResults(data.data);
+  } else {
+    console.error('Error inside the response:', data.message);
   };
-  console.error('Error:', data.message);
 }
 
 async function populateResults(data) {
@@ -103,7 +104,7 @@ async function generateRecommendationHTML(data) {
     const cardClass = item.image ? 'elerem-recommendation-card--with-image' : 'elerem-recommendation-card';
 
     html += `
-        <a href="${item.path}" class="elerem-recommendation-link">
+        <a href="${item.url}" class="elerem-recommendation-link">
         <div class="${cardClass}">
           ${item.image ? `<img src="${item.image}" alt="Product Image" class="elerem-product-image">` : ''}
           <div class="elerem-recommendation-content">

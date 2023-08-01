@@ -65,7 +65,7 @@ where
             .execute(&mut transaction as &mut SqliteConnection)
             .await
             .map_err(|err| {
-                error!("run insert: {:?}", err);
+                error!("run insert inside create: {:?}", err);
                 CRUDError::InternalError
             })?;
 
@@ -83,7 +83,7 @@ where
                 Ok(row)
             }
             Err(err) => {
-                error!("run fetch: {:?}", err);
+                error!("run fetch after create: {:?}", err);
                 Err(CRUDError::NotFound)
             }
         }
@@ -216,7 +216,7 @@ where
         match rows {
             Ok(result) => Ok(result),
             Err(err) => {
-                error!("error findig: {:?}", err);
+                error!("rows_to_vec error findig: {:?}", err);
                 Err(CRUDError::WrongParameters)
             }
         }
