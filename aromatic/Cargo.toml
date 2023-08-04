@@ -14,4 +14,6 @@ path = "src/lib.rs"
 [dependencies]
 tokio = { version = "1.28.2", features = ["full"] }
 envy = { workspace = true }
-#migrations = { path = "migration" }
+sqlx = { workspace = true}
+tracing = { workspace = true}
+serde = { workspace = true}

@@ -21,7 +21,7 @@
 * [X] Save recommendations made 🔴
 * [X] Create view to redirect to correct product on click 🔴
 * [X] Save metadata of clicks and redirects 🔴
-* [ ] Ensure that the ULIDs are truly unique (query the database) 🔴
+* [X] Ensure that the ULIDs are truly unique (query the database) 🔴
 * [ ] Create facades for the models that will be used directly 🟠
 * [ ] Finish the get_generic_recommendations 🟠
 * [ ] Finish the get_user_recommendations 🟠

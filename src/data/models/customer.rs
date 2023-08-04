@@ -84,4 +84,11 @@ impl Customer {
         )
         .await
     }
+
+    pub async fn is_unique_key(token: &str) -> bool {
+        match Self::exists(&format!("public_token = '{token}' OR token = '{token}'")).await {
+            Ok(result) => !result,
+            Err(_) => false,
+        }
+    }
 }

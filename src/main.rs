@@ -3,7 +3,6 @@ mod data;
 
 mod web;
 
-use data::orm::run_migrations;
 use envy::read_env_file;
 
 use std::{net::SocketAddr, path::PathBuf};
@@ -27,12 +26,10 @@ async fn main() {
                 "webservice=error".into()
             }),
         )
-        // .with(tracing_subscriber::EnvFilter::from_env("LOGGING_STRAT"))
         .with(
-            // We might not need them all.
             tracing_subscriber::fmt::layer()
                 .json()
-                // .with_writer(non_blocking)
+                .with_writer(non_blocking)
                 .log_internal_errors(true)
                 .with_file(true)
                 .with_line_number(true)
@@ -45,12 +42,12 @@ async fn main() {
         )
         .init();
 
-    // run_migrations("migrations/sqlite").await;
+    run_migrations("migrations/sqlite").await;
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8001));
 
     // configure certificate and private key used by https
-    let config = RustlsConfig::from_pem_file(
+    let _config = RustlsConfig::from_pem_file(
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("self_signed_certs")
             .join("cert.pem"),

@@ -6,16 +6,18 @@ use std::{
 use aromatic::Orm;
 use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
-use tracing::{event, instrument, Level};
+
 
 use super::{
     interface::{RecommendationAdapter, RecommendationComparer},
-    requests::{RecommendationRequest, RecommendationTarget},
+    requests::{RecommendationRequest},
     ulid::Ulid,
 };
 use crate::data::{
-    errors::CRUDError, interface::get_product_comparer, interfaces::db::Manager,
-    models::recommendation::RecommendationResponse,
+    errors::CRUDError,
+    interface::get_product_comparer,
+    interfaces::db::Manager,
+    models::{customer::Customer, recommendation::RecommendationResponse},
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -88,14 +90,13 @@ impl Recommendation {
             let rec_adapter = comparer.references.get(&item.id);
             if let Some(rec_adapter) = rec_adapter {
                 let mut recommendation = rec_adapter.recommendation.clone();
-                let ulid = ulid_generator
-                    .generate(
-                        &request.request_id,
-                        &request.customer.id,
-                        &comparer.main.item.id,
-                        &recommendation.id,
-                    )
-                    .await;
+                let ulid = Self::get_unique_token(
+                    &mut ulid_generator,
+                    &request,
+                    &comparer,
+                    &recommendation,
+                )
+                .await;
                 recommendation.update(item.result, Self::get_url(&ulid));
 
                 query_values.push(
@@ -117,6 +118,27 @@ impl Recommendation {
         let _ = RecommendationResponse::save_recommendations(&query).await?;
 
         Ok(result)
+    }
+
+    async fn get_unique_token(
+        ulid_generator: &mut Ulid,
+        request: &RecommendationRequest,
+        comparer: &RecommendationComparer,
+        recommendation: &Recommendation,
+    ) -> String {
+        loop {
+            let ulid = ulid_generator
+                .generate(
+                    &request.request_id,
+                    &request.customer.id,
+                    &comparer.main.item.id,
+                    &recommendation.id,
+                )
+                .await;
+            if Customer::is_unique_key(&ulid).await {
+                return ulid;
+            }
+        }
     }
 
     async fn create_query_value(

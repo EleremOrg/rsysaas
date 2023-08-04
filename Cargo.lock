@@ -76,7 +76,10 @@ name = "aromatic"
 version = "0.1.0"
 dependencies = [
  "envy",
+ "serde",
+ "sqlx",
  "tokio",
+ "tracing",
 ]
 
 [[package]]

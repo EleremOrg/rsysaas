@@ -2,7 +2,7 @@ use crate::data::{errors::CRUDError, interfaces::db::Manager, models::customer::
 use serde::{Deserialize, Serialize};
 use std::{collections::HashSet, sync::Arc};
 
-use super::{recommendations::Recommendation, requests::RecommendationRequest};
+
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CustomerFacade {
