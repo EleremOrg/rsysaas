@@ -1,29 +1,51 @@
-use std::{fs, path::PathBuf};
+use std::{
+    fs::{read_dir, DirEntry},
+    path::PathBuf,
+};
 
-use envy::get_env;
-use serde::{Deserialize, Serialize};
+use envy::{get_bool_env, get_env};
 use sqlx::{
     migrate::MigrateDatabase, sqlite::SqliteConnection, FromRow, Sqlite, SqlitePool, Transaction,
 };
 use tracing::{error, info};
+
+use super::Orm;
 
 #[derive(Debug)]
 enum MigrationError {
     Failed,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, FromRow, Deserialize, Serialize, Default)]
+#[derive(FromRow, Debug)]
 struct Migration {
     id: u32,
     name: String,
+    path: String,
     ran: bool,
     timestamp: String,
 }
 
-pub async fn run_migrations(folder_path: &str) {
+#[derive(Debug)]
+struct MigrationFile {
+    name: String,
+    ran: bool,
+    path: PathBuf,
+}
+
+impl MigrationFile {
+    fn new(entry: DirEntry) -> Self {
+        Self {
+            name: entry.file_name().to_string_lossy().to_string(),
+            ran: false,
+            path: entry.path(),
+        }
+    }
+}
+
+pub async fn migrate(folder_path: &str) {
     let db_url = get_env("DATABASE_URL");
     create_database(&db_url).await;
-    // Open a connection to the SQLite database
+
     let mut transaction = match transaction().await {
         Ok(t) => t,
         Err(e) => {
@@ -31,28 +53,40 @@ pub async fn run_migrations(folder_path: &str) {
             return;
         }
     };
-
-    let entries = match fs::read_dir(folder_path) {
-        Ok(result) => result,
-        Err(err) => {
-            println!("error reading dir: {err}");
+    let _ = create_migrations_table(&mut transaction)
+        .await
+        .map_err(|e| {
+            println!("Could not create_migrations_table: {:?}", e);
+            return;
+        });
+    let migrations_history = match get_migrations_history(&mut transaction).await {
+        Ok(m) => m,
+        Err(e) => {
+            println!("Could not get migrations history: {:?}", e);
             return;
         }
     };
-    for entry in entries {
-        match entry {
-            Ok(entry) => match execute_migration(entry.path(), &mut transaction).await {
-                Ok(_) => {}
-                Err(e) => {
-                    println!("error executing migration: {:?}", e);
-                }
-            },
-            Err(err) => {
-                println!("error executing migration: {err}");
-                return;
-            }
+
+    let migrations_files = match get_migrations_file(folder_path).await {
+        Ok(m) => m,
+        Err(e) => {
+            println!("Could not get migrations files: {:?}", e);
+            return;
         }
+    };
+
+    println!("Found {:?} migrations files", migrations_files);
+    println!("Found {:?} migrations history", migrations_history);
+    // maybe just loop over all the files migrations, save them into the database if they don0t exists.
+    // then query the database to get the list of migrations and execute them.
+    match migrations_history.is_empty() {
+        true => run_inital_migrations(migrations_files, &mut transaction).await,
+        false => run_migrations(migrations_files, migrations_history, &mut transaction).await,
     }
+    match commit_transaction(transaction).await {
+        Ok(_) => println!("Migration completed"),
+        Err(e) => println!("Could not commit transaction: {:?}", e),
+    };
 }
 
 async fn create_database(db_url: &str) {
@@ -65,8 +99,114 @@ async fn create_database(db_url: &str) {
     };
 }
 
+async fn create_migrations_table<'a>(
+    transaction: &mut Transaction<'a, Sqlite>,
+) -> Result<u64, sqlx::Error> {
+    let query = r#"
+        CREATE TABLE IF NOT EXISTS migrations (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            path TEXT NOT NULL,
+            ran BOOLEAN NOT NULL,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    "#;
+    let result = sqlx::query(query)
+        .execute(transaction as &mut SqliteConnection)
+        .await?;
+    Ok(result.rows_affected())
+}
+
+async fn get_migrations_history<'a>(
+    transaction: &mut Transaction<'a, Sqlite>,
+) -> Result<Vec<Migration>, sqlx::Error> {
+    let query = Orm::select("*").from("migrations").ready();
+    let rows = sqlx::query_as::<_, Migration>(&query)
+        .fetch_all(transaction as &mut SqliteConnection)
+        .await;
+
+    match rows {
+        Ok(result) => Ok(result),
+        Err(err) => {
+            println!("get_migrations_history error findig: {:?}", err);
+            Err(err)
+        }
+    }
+}
+
+async fn get_migrations_file(folder_path: &str) -> Result<Vec<MigrationFile>, std::io::Error> {
+    let entries = match read_dir(folder_path) {
+        Ok(result) => result,
+        Err(err) => {
+            println!("error reading dir: {err}");
+            return Err(err);
+        }
+    };
+
+    Ok(entries
+        .into_iter()
+        .map(|f| MigrationFile::new(f.ok().unwrap()))
+        .collect())
+}
+
+async fn run_migrations<'a>(
+    migrations_files: Vec<MigrationFile>,
+    migrations_history: Vec<Migration>,
+    transaction: &mut Transaction<'a, Sqlite>,
+) {
+    for mut migration_file in migrations_files {
+        if migration_file.ran {
+            continue;
+        }
+
+        match execute_migration(&migration_file.path, transaction).await {
+            Ok(_) => {
+                migration_file.ran = true;
+                save_migration_to_history(&migration_file, transaction).await;
+            }
+            Err(e) => {
+                println!("Could not run migration: {:?}", e);
+                return;
+            }
+        }
+    }
+}
+
+async fn run_inital_migrations<'a>(
+    migrations_files: Vec<MigrationFile>,
+    transaction: &mut Transaction<'a, Sqlite>,
+) {
+    for mut migration_file in migrations_files {
+        if migration_file.ran || skip_test_migration(&migration_file.name).await {
+            continue;
+        }
+
+        match execute_migration(&migration_file.path, transaction).await {
+            Ok(_) => {
+                migration_file.ran = true;
+                match save_migration_to_history(&migration_file, transaction).await {
+                    Ok(_) => {}
+                    Err(e) => {
+                        // revert commit, etc...
+                        println!("Could not save migration to history: {:?}", e);
+                        return;
+                    }
+                };
+            }
+            Err(e) => {
+                println!("Could not run migration: {:?}", e);
+                return;
+            }
+        }
+    }
+}
+
+async fn skip_test_migration(migration_name: &str) -> bool {
+    get_bool_env("RUN_TEST_MIGRATIONS") && migration_name.contains("test")
+}
+
 async fn execute_migration<'a>(
-    file_path: PathBuf,
+    file_path: &PathBuf,
     transaction: &mut Transaction<'a, Sqlite>,
 ) -> Result<u64, MigrationError> {
     let query = match tokio::fs::read_to_string(file_path).await {
@@ -82,44 +222,32 @@ async fn execute_migration<'a>(
     {
         Ok(row) => Ok(row.rows_affected()),
         Err(err) => {
-            error!("deleting: {:?}", err);
+            println!("deleting: {:?}", err);
             Err(MigrationError::Failed)
         }
     }
 }
 
-async fn rows_to_vec<'a>(
-    query: String,
+async fn save_migration_to_history<'a>(
+    migration_file: &MigrationFile,
     transaction: &mut Transaction<'a, Sqlite>,
-) -> Result<Vec<Migration>, sqlx::Error> {
-    let rows = sqlx::query_as::<_, Migration>(&query)
-        .fetch_all(transaction as &mut SqliteConnection)
-        .await;
-
-    match rows {
-        Ok(result) => Ok(result),
-        Err(err) => {
-            error!("rows_to_vec error findig: {:?}", err);
-            Err(err)
-        }
-    }
-}
-
-async fn update_migrations_history<'a>(
-    transaction: &mut Transaction<'a, Sqlite>,
-    id: u32,
 ) -> Result<u64, sqlx::Error> {
-    let query = format!(
-        "DELETE FROM {table} WHERE id = {id}",
-        table = "Self::table().await"
-    );
+    let query = Orm::insert("migrations")
+        .set_columns("name,path,ran")
+        .add_value(&format!(
+            "'{}','{}',{}",
+            migration_file.name,
+            migration_file.path.display(),
+            migration_file.ran
+        ))
+        .ready();
     match sqlx::query(&query)
         .execute(transaction as &mut SqliteConnection)
         .await
     {
         Ok(row) => Ok(row.rows_affected()),
         Err(err) => {
-            error!("deleting: {:?}", err);
+            println!("deleting: {:?}", err);
             Err(err)
         }
     }

@@ -7,6 +7,7 @@ pub struct Join;
 pub struct Limit;
 pub struct Table;
 pub struct Insert;
+pub struct InsertColumns;
 
 pub struct Orm<State = Select> {
     query: String,
@@ -27,7 +28,7 @@ impl Orm {
         format!("SELECT {};", columns)
     }
 
-    pub fn insert(table: &str) -> Orm<Insert> {
+    pub fn insert(table: &str) -> Orm<InsertColumns> {
         Orm {
             query: format!("INSERT INTO {table}"),
             has_where_clause: false,
@@ -86,7 +87,7 @@ impl<State> Orm<State> {
     }
 }
 
-impl Orm<Insert> {
+impl Orm<InsertColumns> {
     pub fn set_columns(self, columns: &str) -> Orm<Insert> {
         Orm {
             query: format!("{} ({columns}) VALUES", self.query),
@@ -94,7 +95,9 @@ impl Orm<Insert> {
             state: PhantomData,
         }
     }
+}
 
+impl Orm<Insert> {
     pub fn add_value(self, values: &str) -> Orm<Insert> {
         Orm {
             query: format!("{} ({values}),", self.query),

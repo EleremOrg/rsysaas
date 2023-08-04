@@ -3,6 +3,7 @@ mod data;
 
 mod web;
 
+use aromatic::migrate;
 use envy::read_env_file;
 
 use std::{net::SocketAddr, path::PathBuf};
@@ -42,30 +43,30 @@ async fn main() {
         )
         .init();
 
-    run_migrations("migrations/sqlite").await;
+    migrate("migrations/sqlite").await;
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8001));
+    // let addr = SocketAddr::from(([127, 0, 0, 1], 8001));
 
-    // configure certificate and private key used by https
-    let _config = RustlsConfig::from_pem_file(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("self_signed_certs")
-            .join("cert.pem"),
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("self_signed_certs")
-            .join("key.pem"),
-    )
-    .await
-    .unwrap();
+    // // configure certificate and private key used by https
+    // let _config = RustlsConfig::from_pem_file(
+    //     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    //         .join("self_signed_certs")
+    //         .join("cert.pem"),
+    //     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    //         .join("self_signed_certs")
+    //         .join("key.pem"),
+    // )
+    // .await
+    // .unwrap();
 
-    // To use with https
-    // axum_server::bind_rustls(addr, config)
+    // // To use with https
+    // // axum_server::bind_rustls(addr, config)
+    // //     .serve(routes().into_make_service())
+    // //     .await
+    // //     .unwrap();
+
+    // axum::Server::bind(&addr)
     //     .serve(routes().into_make_service())
     //     .await
     //     .unwrap();
-
-    axum::Server::bind(&addr)
-        .serve(routes().into_make_service())
-        .await
-        .unwrap();
 }

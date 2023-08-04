@@ -12,8 +12,15 @@
 ### Data
 * [X] Connect to DB 🔴
 * [ ] Connect to cache (redis) 🟢
-* [ ] Create custom migration CLI 🟢
+
+#### Migrations
+* [ ] Create CLI commands 🟢
+* [ ] Generalise migrations so it can be used with any DB 🟢
+* [ ] Create migrations based on past and current models states 🟢
+
+#### ORM
 * [ ] Create custom ORM 🟢
+* [ ] Add ORM as trait 🟢
 
 ### Recommendations
 * [X] Finish the get_product_recommendations 🔴

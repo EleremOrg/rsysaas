@@ -1,10 +1,3 @@
-CREATE TABLE migrations (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    ran BOOLEAN DEFAULT false,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE users (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
