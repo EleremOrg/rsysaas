@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fs::{read_dir, DirEntry},
     path::PathBuf,
 };
@@ -67,7 +68,7 @@ pub async fn migrate(folder_path: &str) {
         }
     };
 
-    let migrations_files = match get_migrations_file(folder_path).await {
+    let migrations_files = match get_migrations_files(folder_path).await {
         Ok(m) => m,
         Err(e) => {
             println!("Could not get migrations files: {:?}", e);
@@ -134,7 +135,7 @@ async fn get_migrations_history<'a>(
     }
 }
 
-async fn get_migrations_file(folder_path: &str) -> Result<Vec<MigrationFile>, std::io::Error> {
+async fn get_migrations_files(folder_path: &str) -> Result<Vec<MigrationFile>, std::io::Error> {
     let entries = match read_dir(folder_path) {
         Ok(result) => result,
         Err(err) => {
@@ -154,20 +155,16 @@ async fn run_migrations<'a>(
     migrations_history: Vec<Migration>,
     transaction: &mut Transaction<'a, Sqlite>,
 ) {
-    for mut migration_file in migrations_files {
-        if migration_file.ran {
-            continue;
+    let mut migrations_to_save = HashMap::new();
+    migrations_history.iter().for_each(|m| {
+        if !m.ran {
+            migrations_to_save.insert(&m.name, m);
         }
-
-        match execute_migration(&migration_file.path, transaction).await {
-            Ok(_) => {
-                migration_file.ran = true;
-                save_migration_to_history(&migration_file, transaction).await;
-            }
-            Err(e) => {
-                println!("Could not run migration: {:?}", e);
-                return;
-            }
+    });
+    // It might be wrong IDK
+    for mut migration_file in migrations_files {
+        if !migrations_to_save.contains_key(&migration_file.name) {
+            make_migration(&mut migration_file, transaction).await;
         }
     }
 }
@@ -180,29 +177,35 @@ async fn run_inital_migrations<'a>(
         if migration_file.ran || skip_test_migration(&migration_file.name).await {
             continue;
         }
-
-        match execute_migration(&migration_file.path, transaction).await {
-            Ok(_) => {
-                migration_file.ran = true;
-                match save_migration_to_history(&migration_file, transaction).await {
-                    Ok(_) => {}
-                    Err(e) => {
-                        // revert commit, etc...
-                        println!("Could not save migration to history: {:?}", e);
-                        return;
-                    }
-                };
-            }
-            Err(e) => {
-                println!("Could not run migration: {:?}", e);
-                return;
-            }
-        }
+        make_migration(&mut migration_file, transaction).await;
     }
 }
 
 async fn skip_test_migration(migration_name: &str) -> bool {
     get_bool_env("RUN_TEST_MIGRATIONS") && migration_name.contains("test")
+}
+
+async fn make_migration<'a>(
+    migration_file: &mut MigrationFile,
+    transaction: &mut Transaction<'a, Sqlite>,
+) {
+    match execute_migration(&migration_file.path, transaction).await {
+        Ok(_) => {
+            migration_file.ran = true;
+            match save_migration_to_history(migration_file, transaction).await {
+                Ok(_) => {}
+                Err(e) => {
+                    // revert commit, etc...
+                    println!("Could not save migration to history: {:?}", e);
+                    return;
+                }
+            };
+        }
+        Err(e) => {
+            println!("Could not run migration: {:?}", e);
+            return;
+        }
+    }
 }
 
 async fn execute_migration<'a>(
