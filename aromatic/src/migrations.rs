@@ -8,7 +8,6 @@ use envy::{get_bool_env, get_env};
 use sqlx::{
     migrate::MigrateDatabase, sqlite::SqliteConnection, FromRow, Sqlite, SqlitePool, Transaction,
 };
-use tracing::{error, info};
 
 use super::Orm;
 
@@ -17,6 +16,7 @@ enum MigrationError {
     Failed,
 }
 
+#[allow(dead_code)]
 #[derive(FromRow, Debug)]
 struct Migration {
     id: u32,
@@ -75,9 +75,6 @@ pub async fn migrate(folder_path: &str) {
             return;
         }
     };
-
-    println!("Found {:?} migrations files", migrations_files);
-    println!("Found {:?} migrations history", migrations_history);
     // maybe just loop over all the files migrations, save them into the database if they don0t exists.
     // then query the database to get the list of migrations and execute them.
     match migrations_history.is_empty() {
@@ -157,15 +154,27 @@ async fn run_migrations<'a>(
 ) {
     let mut migrations_to_save = HashMap::new();
     migrations_history.iter().for_each(|m| {
-        if !m.ran {
-            migrations_to_save.insert(&m.name, m);
-        }
+        migrations_to_save.insert(&m.name, m);
     });
-    // It might be wrong IDK
+
     for mut migration_file in migrations_files {
-        if !migrations_to_save.contains_key(&migration_file.name) {
-            make_migration(&mut migration_file, transaction).await;
-        }
+        let mut id_to_update = None;
+        if let Some(migration) = migrations_to_save.get(&migration_file.name) {
+            if skip_migration(
+                migration.ran,
+                &migration.name,
+                get_bool_env("RUN_TEST_MIGRATIONS"),
+            )
+            .await
+            {
+                println!("skip me: {:?}", &migration);
+                continue;
+            } else {
+                id_to_update = Some(migration.id);
+            }
+        };
+        println!("running not initial migrations: {:?}", &migration_file.name);
+        make_migration(&mut migration_file, transaction, id_to_update).await;
     }
 }
 
@@ -174,37 +183,68 @@ async fn run_inital_migrations<'a>(
     transaction: &mut Transaction<'a, Sqlite>,
 ) {
     for mut migration_file in migrations_files {
-        if migration_file.ran || skip_test_migration(&migration_file.name).await {
+        if skip_migration(
+            migration_file.ran,
+            &migration_file.name,
+            get_bool_env("RUN_TEST_MIGRATIONS"),
+        )
+        .await
+        {
             continue;
         }
-        make_migration(&mut migration_file, transaction).await;
+        make_migration(&mut migration_file, transaction, None).await;
     }
 }
 
-async fn skip_test_migration(migration_name: &str) -> bool {
-    get_bool_env("RUN_TEST_MIGRATIONS") && migration_name.contains("test")
+async fn skip_migration(
+    migration_has_been_run: bool,
+    name: &str,
+    run_test_migrations: bool,
+) -> bool {
+    if migration_has_been_run {
+        // if the migration has been ran we skip it
+        return true;
+    } else {
+        if run_test_migrations {
+            // if the migration hasn't been ran and we want to run the tests migrations, we don't want to skip this migration
+            return false;
+        } else {
+            // if we don't want to run the tests migrations we'll check if it contains "test" in the name
+            // if it contains "test" we skip the migration
+            return name.contains("test");
+        }
+    }
 }
 
 async fn make_migration<'a>(
     migration_file: &mut MigrationFile,
     transaction: &mut Transaction<'a, Sqlite>,
+    id_to_update: Option<u32>,
 ) {
     match execute_migration(&migration_file.path, transaction).await {
         Ok(_) => {
             migration_file.ran = true;
-            match save_migration_to_history(migration_file, transaction).await {
-                Ok(_) => {}
-                Err(e) => {
-                    // revert commit, etc...
-                    println!("Could not save migration to history: {:?}", e);
-                    return;
-                }
-            };
+            save_or_update(migration_file, transaction, id_to_update).await;
         }
         Err(e) => {
             println!("Could not run migration: {:?}", e);
             return;
         }
+    }
+}
+
+async fn save_or_update<'a>(
+    migration_file: &mut MigrationFile,
+    transaction: &mut Transaction<'a, Sqlite>,
+    id_to_update: Option<u32>,
+) {
+    let result = match id_to_update {
+        Some(id) => update_migration_to_history(transaction, id).await,
+        None => save_migration_to_history(migration_file, transaction).await,
+    };
+    match result {
+        Ok(_) => println!("Migration saved"),
+        Err(e) => println!("Could not save migration: {:?}", e),
     }
 }
 
@@ -225,8 +265,29 @@ async fn execute_migration<'a>(
     {
         Ok(row) => Ok(row.rows_affected()),
         Err(err) => {
-            println!("deleting: {:?}", err);
+            println!("execute_migration: {:?}", err);
             Err(MigrationError::Failed)
+        }
+    }
+}
+
+async fn update_migration_to_history<'a>(
+    transaction: &mut Transaction<'a, Sqlite>,
+    id_to_update: u32,
+) -> Result<u64, sqlx::Error> {
+    let query = Orm::update("migrations")
+        .set("ran = true")
+        .where_()
+        .equal("id", &format!("{}", id_to_update))
+        .ready();
+    match sqlx::query(&query)
+        .execute(transaction as &mut SqliteConnection)
+        .await
+    {
+        Ok(row) => Ok(row.rows_affected()),
+        Err(err) => {
+            println!("save_migration_to_history: {:?}", err);
+            Err(err)
         }
     }
 }
@@ -250,7 +311,7 @@ async fn save_migration_to_history<'a>(
     {
         Ok(row) => Ok(row.rows_affected()),
         Err(err) => {
-            println!("deleting: {:?}", err);
+            println!("save_migration_to_history: {:?}", err);
             Err(err)
         }
     }
@@ -259,7 +320,7 @@ async fn save_migration_to_history<'a>(
 async fn commit_transaction<'a>(transaction: Transaction<'a, Sqlite>) -> Result<(), sqlx::Error> {
     match transaction.commit().await {
         Ok(_) => {
-            info!("transacttion commit succeeded");
+            println!("transacttion commit succeeded");
             Ok(())
         }
         Err(err) => {
@@ -283,5 +344,32 @@ async fn connect() -> SqlitePool {
     match SqlitePool::connect(&get_env("DATABASE_URL")).await {
         Ok(db) => db,
         Err(e) => panic!("{}", e),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_skip_migration_skip_test_migrations() {
+        assert_eq!(skip_migration(false, "migration", false).await, false);
+
+        assert_eq!(skip_migration(true, "migration", false).await, true);
+
+        assert_eq!(skip_migration(false, "test_migration", false).await, true);
+
+        assert_eq!(skip_migration(true, "test_migration", false).await, true);
+    }
+
+    #[tokio::test]
+    async fn test_skip_migration_run_test_migrations() {
+        assert_eq!(skip_migration(false, "migration", true).await, false);
+
+        assert_eq!(skip_migration(true, "migration", true).await, true);
+
+        assert_eq!(skip_migration(false, "test_migration", true).await, false);
+
+        assert_eq!(skip_migration(true, "test_migration", true).await, true);
     }
 }

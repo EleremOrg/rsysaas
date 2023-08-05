@@ -6,10 +6,10 @@ mod web;
 use aromatic::migrate;
 use envy::read_env_file;
 
-use std::{net::SocketAddr, path::PathBuf};
+use std::net::SocketAddr;
 use web::routes::routes;
 
-use axum_server::tls_rustls::RustlsConfig;
+// use axum_server::tls_rustls::RustlsConfig;
 
 use tracing_appender::{non_blocking, rolling::hourly};
 use tracing_subscriber::{fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt};
@@ -45,7 +45,7 @@ async fn main() {
 
     migrate("migrations/sqlite").await;
 
-    // let addr = SocketAddr::from(([127, 0, 0, 1], 8001));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 8001));
 
     // // configure certificate and private key used by https
     // let _config = RustlsConfig::from_pem_file(
@@ -65,8 +65,8 @@ async fn main() {
     // //     .await
     // //     .unwrap();
 
-    // axum::Server::bind(&addr)
-    //     .serve(routes().into_make_service())
-    //     .await
-    //     .unwrap();
+    axum::Server::bind(&addr)
+        .serve(routes().into_make_service())
+        .await
+        .unwrap();
 }

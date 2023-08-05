@@ -7,10 +7,9 @@ use aromatic::Orm;
 use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
 
-
 use super::{
     interface::{RecommendationAdapter, RecommendationComparer},
-    requests::{RecommendationRequest},
+    requests::RecommendationRequest,
     ulid::Ulid,
 };
 use crate::data::{
@@ -57,12 +56,14 @@ impl Recommendation {
         }
     }
 
+    #[allow(dead_code)]
     async fn get_generic_recommendations(
         _request: &RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {
         todo!("TODO") //TODO
     }
 
+    #[allow(dead_code)]
     async fn get_user_recommendations(
         _request: &RecommendationRequest,
     ) -> Result<Vec<Recommendation>, CRUDError> {

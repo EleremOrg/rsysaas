@@ -8,6 +8,7 @@ pub struct Limit;
 pub struct Table;
 pub struct Insert;
 pub struct InsertColumns;
+pub struct Set;
 
 pub struct Orm<State = Select> {
     query: String,
@@ -44,9 +45,19 @@ impl Orm {
         }
     }
 
-    pub fn update(columns: &str) -> Orm<Where> {
+    pub fn update(columns: &str) -> Orm<Set> {
         Orm {
             query: format!("UPDATE {}", columns),
+            has_where_clause: false,
+            state: PhantomData,
+        }
+    }
+}
+
+impl Orm<Set> {
+    pub fn set(self, values: &str) -> Orm<Where> {
+        Orm {
+            query: format!("{} {values}", self.query),
             has_where_clause: false,
             state: PhantomData,
         }
