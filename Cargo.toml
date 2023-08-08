@@ -64,3 +64,14 @@ aromatic = { path = "aromatic" }
 
 [workspace]
 members = [".", "envy", "aromatic"]
+
+[profile.release]
+opt-level = "z"  # Use the highest optimization level for production builds
+lto = true       # Enable Link Time Optimization for better performance
+panic = "abort"  # Abort on panic to prevent unwinding overhead
+debug = false    # Disable debug symbols to reduce binary size
+
+
+[profile.dev]
+debug = true     # Enable debug symbols for development builds
+

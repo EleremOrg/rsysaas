@@ -17,3 +17,6 @@ clean-logs:
 
 clean:
 	cargo fix --bin "webservice" --allow-dirty
+
+build:
+	cargo build --release --timings --target-dir ./dist

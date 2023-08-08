@@ -19,7 +19,7 @@
 * [ ] Create migrations based on past and current models states 🟢
 
 #### ORM
-* [ ] Create custom ORM 🟢
+* [ ] Improve custom ORM 🟢
 * [ ] Add ORM as trait 🟢
 
 ### Recommendations

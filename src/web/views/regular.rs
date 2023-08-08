@@ -3,7 +3,6 @@ use axum::{
     http::StatusCode,
     response::{Html, IntoResponse, Redirect, Response},
 };
-use tracing::{event, instrument, Level};
 
 use envy::get_env;
 
@@ -12,9 +11,7 @@ use crate::{
     web::{forms::PotentialCustomerForm, requests::recommendation::RecommendationRedirect},
 };
 
-#[instrument]
 pub async fn home() -> Response {
-    event!(Level::INFO, "inside home!");
     (StatusCode::OK, Html(get_env("DATABASE_URL"))).into_response()
 }
 

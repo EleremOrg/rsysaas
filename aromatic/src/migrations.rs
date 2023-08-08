@@ -8,6 +8,7 @@ use envy::{get_bool_env, get_env};
 use sqlx::{
     migrate::MigrateDatabase, sqlite::SqliteConnection, FromRow, Sqlite, SqlitePool, Transaction,
 };
+use tracing::{event, info, span, Level};
 
 use super::Orm;
 
@@ -49,29 +50,49 @@ pub async fn migrate(folder_path: &str) {
 
     let mut transaction = match transaction().await {
         Ok(t) => t,
-        Err(e) => {
-            println!("Could not start transaction: {:?}", e);
+        Err(err) => {
+            event!(
+                Level::ERROR,
+                function = "migrate",
+                error_message = format!("{err}"),
+                message = "Could not start transaction",
+            );
             return;
         }
     };
     let _ = create_migrations_table(&mut transaction)
         .await
-        .map_err(|e| {
-            println!("Could not create_migrations_table: {:?}", e);
+        .map_err(|err| {
+            event!(
+                Level::ERROR,
+                function = "create_migrations_table",
+                error_message = format!("{err}"),
+                message = "Could not create the migrations table",
+            );
             return;
         });
     let migrations_history = match get_migrations_history(&mut transaction).await {
         Ok(m) => m,
-        Err(e) => {
-            println!("Could not get migrations history: {:?}", e);
+        Err(err) => {
+            event!(
+                Level::ERROR,
+                function = "get_migrations_history",
+                error_message = format!("{err}"),
+                message = "Could not get migrations history",
+            );
             return;
         }
     };
 
     let migrations_files = match get_migrations_files(folder_path).await {
         Ok(m) => m,
-        Err(e) => {
-            println!("Could not get migrations files: {:?}", e);
+        Err(err) => {
+            event!(
+                Level::ERROR,
+                function = "get_migrations_files",
+                error_message = format!("{err}"),
+                message = "Could not get migrations files",
+            );
             return;
         }
     };
@@ -83,7 +104,12 @@ pub async fn migrate(folder_path: &str) {
     }
     match commit_transaction(transaction).await {
         Ok(_) => println!("Migration completed"),
-        Err(e) => println!("Could not commit transaction: {:?}", e),
+        Err(err) => event!(
+            Level::ERROR,
+            function = "commit_transaction",
+            error_message = format!("{err}"),
+            message = "Could not commit migrations",
+        ),
     };
 }
 
@@ -91,7 +117,12 @@ async fn create_database(db_url: &str) {
     match Sqlite::create_database(db_url).await {
         Ok(_) => println!("database created"),
         Err(err) => {
-            println!("error creating db:  {err}");
+            event!(
+                Level::ERROR,
+                function = "create_database",
+                error_message = format!("{err}"),
+                message = "Error creating the database",
+            );
             return;
         }
     };
@@ -320,7 +351,7 @@ async fn save_migration_to_history<'a>(
 async fn commit_transaction<'a>(transaction: Transaction<'a, Sqlite>) -> Result<(), sqlx::Error> {
     match transaction.commit().await {
         Ok(_) => {
-            println!("transacttion commit succeeded");
+            span!(Level::INFO, "transacttion commit succeeded");
             Ok(())
         }
         Err(err) => {
