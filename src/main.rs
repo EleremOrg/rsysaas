@@ -4,12 +4,10 @@ mod data;
 mod web;
 
 use aromatic::run_cli;
-use envy::read_env_file;
+use envy::{get_env, read_env_file};
 
-use std::{env, net::SocketAddr, path::PathBuf};
+use std::{env, net::SocketAddr};
 use web::routes::routes;
-
-use axum_server::tls_rustls::RustlsConfig;
 
 use tracing_appender::{non_blocking, rolling::hourly};
 use tracing_subscriber::{fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt};
@@ -27,13 +25,11 @@ async fn main() {
         return;
     }
 
-    let (non_blocking, _guard) = non_blocking(hourly("logs", "webservice"));
+    let (non_blocking, _guard) = non_blocking(hourly(get_env("LOGS_PATH"), "webservice"));
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-                // axum logs rejections from built-in extractors with the `axum::rejection`
-                // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
-                "webservice=debug,aromatic=debug".into()
+                "webservice=error,aromatic=error,tower_http=error,axum::rejection=error".into()
             }),
         )
         .with(
@@ -54,20 +50,7 @@ async fn main() {
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
 
-    // // configure certificate and private key used by https
-    let config = RustlsConfig::from_pem_file(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("self_signed_certs")
-            .join("cert.pem"),
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("self_signed_certs")
-            .join("key.pem"),
-    )
-    .await
-    .unwrap();
-    // env!("CARGO_MANIFEST_DIR") /home/lucas/Dev/rusty/webservice
-
-    axum_server::bind_rustls(addr, config)
+    axum::Server::bind(&addr)
         .serve(routes().into_make_service())
         .await
         .unwrap();

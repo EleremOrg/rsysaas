@@ -1,6 +1,6 @@
 import requests
 
-url = f"http://localhost:8001/api/v1/recommendations/"
+url = f"https://api.elerem.com/api/v1/recommendations/"
 token = "invfin_token_123"
 headers = {
 	"Authorization": f"Bearer {token}"

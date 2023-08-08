@@ -1,4 +1,4 @@
-build:
+build-docker:
 	docker build -t my-redis-image .
 
 rrun:
@@ -20,3 +20,17 @@ clean:
 
 build:
 	cargo build --release --timings --target-dir ./dist
+
+minify:
+	./minify.sh
+
+deploy:
+	make build
+	rsync -chavzP --stats --progress "dist/release/webservice" "hetzner:~/recsys"
+
+full-deploy:
+	make build
+	make minify
+	rsync -chavzP --stats --progress "dist/release/webservice" "hetzner:~/recsys"
+	rsync -chavzP --stats --progress "migrations/sqlite" "hetzner:~/recsys/migrations"
+	rsync -chavzP --stats --progress "assets/embed-widget.js" "hetzner:~/recsys/assets"

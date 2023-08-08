@@ -6,3 +6,5 @@ logs/*
 test_api.py
 populate-redis.sh
 dist
+node_modules
+package-lock.json

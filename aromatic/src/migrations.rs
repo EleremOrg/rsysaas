@@ -8,7 +8,7 @@ use envy::{get_bool_env, get_env};
 use sqlx::{
     migrate::MigrateDatabase, sqlite::SqliteConnection, FromRow, Sqlite, SqlitePool, Transaction,
 };
-use tracing::{event, info, span, Level};
+use tracing::{event, span, Level};
 
 use super::Orm;
 
