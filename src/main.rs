@@ -1,35 +1,26 @@
 mod business;
+mod cli;
 mod data;
-
 mod web;
 
-use aromatic::run_cli;
+use cli::{is_cli_requested, run_cli};
 use envy::{get_env, read_env_file};
 
-use std::{env, net::SocketAddr};
+use std::net::SocketAddr;
 use web::routes::routes;
 
 use tracing_appender::{non_blocking, rolling::hourly};
 use tracing_subscriber::{fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt};
 
-async fn is_cli_requested() -> bool {
-    env::args().collect::<Vec<String>>().len() > 1
-}
-
 #[tokio::main]
 async fn main() {
     read_env_file();
-
-    if is_cli_requested().await {
-        run_cli().await;
-        return;
-    }
 
     let (non_blocking, _guard) = non_blocking(hourly(get_env("LOGS_PATH"), "webservice"));
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-                "webservice=error,aromatic=error,tower_http=error,axum::rejection=error".into()
+                "webservice=trace,aromatic=trace,tower_http=trace,axum::rejection=trace".into()
             }),
         )
         .with(
@@ -47,6 +38,11 @@ async fn main() {
                 .with_target(true),
         )
         .init();
+
+    if is_cli_requested().await {
+        run_cli().await;
+        return;
+    }
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
 

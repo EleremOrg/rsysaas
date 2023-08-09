@@ -27,6 +27,7 @@ impl Manager<'_> for PotentialCustomer {
 pub struct Customer {
     pub id: u32,
     pub name: String,
+    pub email: String,
     pub domain: String,
     pub token: String,
     pub public_token: String,

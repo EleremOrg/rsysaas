@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sqlx::{
-    sqlite::{SqliteConnection, SqlitePool, SqliteRow},
-    FromRow, Row, Sqlite, Transaction,
+    sqlite::{SqliteConnection, SqlitePool, SqlitePoolOptions, SqliteRow},
+    Connection, FromRow, Row, Sqlite, Transaction,
 };
 use tracing::{error, info};
 
@@ -61,13 +61,16 @@ where
             table = Self::table().await
         );
 
-        sqlx::query(&query)
+        match sqlx::query(&query)
             .execute(&mut transaction as &mut SqliteConnection)
             .await
-            .map_err(|err| {
+        {
+            Ok(_) => {}
+            Err(err) => {
                 error!("run insert inside create: {:?}", err);
-                CRUDError::InternalError
-            })?;
+                return Err(CRUDError::InternalError);
+            }
+        };
 
         let retreival_query = format!(
             "SELECT * FROM {} WHERE id = last_insert_rowid()",
@@ -246,7 +249,11 @@ where
     }
 
     async fn connect() -> SqlitePool {
-        match SqlitePool::connect(&get_env("DATABASE_URL")).await {
+        let options = SqlitePoolOptions::new()
+            .max_connections(20)
+            .idle_timeout(Duration::from_secs(30))
+            .max_lifetime(Duration::from_secs(3600));
+        match options.connect(&get_env("DATABASE_URL")).await {
             Ok(db) => db,
             Err(e) => panic!("{}", e),
         }

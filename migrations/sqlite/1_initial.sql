@@ -18,6 +18,7 @@ CREATE TABLE potential_customers (
 CREATE TABLE customers (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
+    email TEXT NOT NULL,
     domain TEXT NOT NULL,
     token TEXT NOT NULL,
     public_token TEXT NOT NULL,

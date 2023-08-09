@@ -1,9 +1,9 @@
 -- Insert data into customers table
-INSERT INTO customers (name, domain, token, public_token, models_related)
+INSERT INTO customers (name, domain, email, token, public_token, models_related)
 VALUES
-    ('InvFin', 'example.com:8000', 'invfin_token_123', 'public_invfin_token_123', 'users,terms,companies'),
-    ('XYZ Inc.', 'xyzinc.com', 'xyz_token_456', 'public_xyz_token_456', 'users'),
-    ('Tech Solutions Ltd.', 'techsolutions.com', 'tech_token_789', 'public_tech_token_789', 'users');
+    ('InvFin', 'example.com:8000', 'master@InvFin.com', 'invfin_token_123', 'public_invfin_token_123', 'users,terms,companies'),
+    ('XYZ Inc.', 'xyzinc.com', 'master@xyzinc.com', 'xyz_token_456', 'public_xyz_token_456', 'users'),
+    ('Tech Solutions Ltd.', 'techsolutions.com', 'master@techsolutions.com', 'tech_token_789', 'public_tech_token_789', 'users');
 
 -- Insert data into users table, associating them with their respective customers using customer_id
 INSERT INTO users (name, customer_id)

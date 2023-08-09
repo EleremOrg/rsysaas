@@ -11,9 +11,10 @@ up:
 run:
 	cargo watch -q -c -w src/ -x run
 
-clean-logs:
+clean-info:
 	rm -rf logs
 	mkdir logs
+	rm database.sqlite
 
 clean:
 	cargo fix --bin "webservice" --allow-dirty

@@ -4,19 +4,17 @@ use axum::{
     response::{Html, IntoResponse, Redirect, Response},
 };
 
-use envy::get_env;
-
 use crate::{
     business::requests::handle_recommendation_redirection,
     web::{forms::PotentialCustomerForm, requests::recommendation::RecommendationRedirect},
 };
 
 pub async fn home() -> Response {
-    (StatusCode::OK, Html(get_env("DATABASE_URL"))).into_response()
+    (StatusCode::OK, Html("<h1>Welcome to Elerem</h1>")).into_response()
 }
 
 pub async fn error_404() -> Response {
-    (StatusCode::NOT_FOUND, "nothing to see here").into_response()
+    (StatusCode::NOT_FOUND, Html("<h1>Nothing to see here</h1>")).into_response()
 }
 
 pub async fn new_potential_customer(Form(input): Form<PotentialCustomerForm>) -> Response {
@@ -26,5 +24,5 @@ pub async fn new_potential_customer(Form(input): Form<PotentialCustomerForm>) ->
 
 pub async fn redirect_recommendation(payload: RecommendationRedirect) -> Redirect {
     let new_url = handle_recommendation_redirection(&payload).await;
-    Redirect::to(&format!("http://{}/", new_url))
+    Redirect::to(&format!("https://{}/", new_url))
 }
