@@ -41,6 +41,10 @@ pub fn routes() -> Router {
         )
         .route("/", get(home))
         .nest_service(
+            "/assets/test-embed-widget.js",
+            ServeDir::new("assets/test-embed-widget.js"),
+        )
+        .nest_service(
             "/assets/embed-widget.js",
             ServeDir::new("assets/embed-widget.js"),
         )

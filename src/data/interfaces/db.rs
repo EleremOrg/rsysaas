@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sqlx::{
     sqlite::{SqliteConnection, SqlitePool, SqlitePoolOptions, SqliteRow},
-    Connection, FromRow, Row, Sqlite, Transaction,
+    FromRow, Row, Sqlite, Transaction,
 };
 use tracing::{error, info};
 

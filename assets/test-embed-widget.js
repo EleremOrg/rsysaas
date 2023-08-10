@@ -1,5 +1,5 @@
 async function sendGetRequestWithPayload() {
-  const endpoint = 'https://api.elerem.com/api/v1/embed-recommendations/';
+  const endpoint = 'http://localhost:8080/api/v1/embed-recommendations/';
   const configWidget = await getWidgetConfig();
   const token = configWidget.publicKey;
   delete configWidget.publicKey;

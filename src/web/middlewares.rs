@@ -3,7 +3,6 @@ use hyper::{http, Method};
 use tower_http::cors::{Any, CorsLayer};
 
 pub fn get_cors() -> CorsLayer {
-    //TODO: rename to get_cors
     CorsLayer::new()
         .allow_methods([Method::GET])
         .allow_headers([CONTENT_TYPE, AUTHORIZATION])

@@ -4,6 +4,7 @@ use std::{
 };
 
 use aromatic::Orm;
+use envy::get_env;
 use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
 
@@ -188,7 +189,7 @@ impl Recommendation {
     }
 
     fn get_url(url: &str) -> String {
-        format!("http://localhost:8001/redirect-recommendation/{url}/")
+        format!("{}/redirect-recommendation/{url}/", get_env("DOMAIN"))
     }
 }
 

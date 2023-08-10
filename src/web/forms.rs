@@ -26,11 +26,8 @@ impl PotentialCustomerForm {
         )
         .await
         {
-            Ok(result) => println!("succesfull result: {:?}", result),
-            Err(err) => {
-                error!("error executing sql: {:?}", err);
-                return;
-            }
+            Ok(_result) => {}
+            Err(err) => error!("error executing sql: {:?}", err),
         };
     }
 }

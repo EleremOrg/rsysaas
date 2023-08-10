@@ -29,14 +29,13 @@
 * [X] Create view to redirect to correct product on click 🔴
 * [X] Save metadata of clicks and redirects 🔴
 * [X] Ensure that the ULIDs are truly unique (query the database) 🔴
-* [ ] Create facades for the models that will be used directly 🟠
 * [ ] Finish the get_generic_recommendations 🟠
 * [ ] Finish the get_user_recommendations 🟠
 
 ### Models
 * [ ] Convert the correct fields/information to vectors 🟠
 * [ ] Improve tables relationship to retreive correct information 🟠
-* [ ] Create interface between raw model and views' model 🟠
+* [ ] Create facades between raw model and views' model 🟠
 
 ### Views
-* [ ] Mapp CrudErrors with default views' responses 🟠
+* [X] Mapp CrudErrors with default views' responses 🟠

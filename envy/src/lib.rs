@@ -6,8 +6,6 @@ use std::{
 
 pub fn read_env_file() {
     if let Ok(file) = File::open(".env") {
-        println!("Environment variables file found");
-        let mut total = 0;
         for line in BufReader::new(file).lines() {
             if let Ok(line) = line {
                 let trimmed_line = line.trim();
@@ -18,12 +16,10 @@ pub fn read_env_file() {
                         let key = parts[0].trim();
                         let value = parts[1].trim();
                         env::set_var(key, value);
-                        total += 1;
                     }
                 }
             }
         }
-        println!("{:?} Environment variables set", total);
     }
 }
 

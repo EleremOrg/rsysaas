@@ -15,6 +15,8 @@ clean-info:
 	rm -rf logs
 	mkdir logs
 	rm database.sqlite
+	rm database.sqlite-shm
+	rm database.sqlite-wal
 
 clean:
 	cargo fix --bin "webservice" --allow-dirty
@@ -25,11 +27,10 @@ build:
 minify:
 	./minify.sh
 
-deploy:
-	make build
-	rsync -chavzP --stats --progress "dist/release/webservice" "hetzner:~/recsys"
+js-apply-changes:
+	sed 's|http://localhost:8080|https://api.elerem.com|g' assets/test-embed-widget.js > assets/og-embed-widget.js
 
-full-deploy:
+deploy:
 	make build
 	make minify
 	rsync -chavzP --stats --progress "dist/release/webservice" "hetzner:~/recsys"

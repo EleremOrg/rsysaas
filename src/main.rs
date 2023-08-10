@@ -3,14 +3,15 @@ mod cli;
 mod data;
 mod web;
 
-use cli::{is_cli_requested, run_cli};
-use envy::{get_env, read_env_file};
-
 use std::net::SocketAddr;
-use web::routes::routes;
 
+use cli::{is_cli_requested, run_cli};
 use tracing_appender::{non_blocking, rolling::hourly};
 use tracing_subscriber::{fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt};
+
+use envy::{get_env, read_env_file};
+
+use web::routes::routes;
 
 #[tokio::main]
 async fn main() {
