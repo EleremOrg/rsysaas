@@ -123,9 +123,11 @@ checksum = "bddcadddf5e9015d310179a59bb28c4d4b9920ad0f11e8e14dbadf654890c9a6"
 [[package]]
 name = "aromatic"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9ab91d39277cb080e2f07110e6e7abfe0f957f9b52e9ae1c918a05df57edd2c"
 dependencies = [
  "clap 4.3.19",
- "envy",
+ "menva",
  "serde",
  "sqlx",
  "tokio",
@@ -689,10 +691,6 @@ checksum = "7fcaabb2fef8c910e7f4c7ce9f67a1283a1715879a7c230ca9d6d1ae31f16d91"
 dependencies = [
  "serde",
 ]
-
-[[package]]
-name = "envy"
-version = "0.1.0"
 
 [[package]]
 name = "equivalent"
@@ -1403,6 +1401,12 @@ checksum = "5a634b1c61a95585bd15607c6ab0c4e5b226e695ff2800ba0cdccddf208c406c"
 dependencies = [
  "autocfg",
 ]
+
+[[package]]
+name = "menva"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0a3e16585abb5284cee7918356c9a5e2f0c83d88d80ccd68864329701e3bbfbe"
 
 [[package]]
 name = "mime"
@@ -3217,12 +3221,12 @@ dependencies = [
  "axum-server",
  "chrono",
  "clap 4.3.19",
- "envy",
  "futures",
  "futures-util",
  "headers",
  "hyper",
  "jsonwebtoken",
+ "menva",
  "rec_rsys",
  "redis",
  "serde",

@@ -4,7 +4,7 @@ use std::{
 };
 
 use aromatic::Orm;
-use envy::get_env;
+use menva::get_env;
 use rec_rsys::{algorithms::knn::KNN, models::Item, similarity::SimilarityAlgos};
 use serde::{Deserialize, Serialize};
 

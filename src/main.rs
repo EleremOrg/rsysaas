@@ -9,13 +9,13 @@ use cli::{is_cli_requested, run_cli};
 use tracing_appender::{non_blocking, rolling::hourly};
 use tracing_subscriber::{fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt};
 
-use envy::{get_env, read_env_file};
+use menva::{get_env, read_env_file};
 
 use web::routes::routes;
 
 #[tokio::main]
 async fn main() {
-    read_env_file();
+    read_env_file(".env");
 
     let (non_blocking, _guard) = non_blocking(hourly(get_env("LOGS_PATH"), "webservice"));
     tracing_subscriber::registry()

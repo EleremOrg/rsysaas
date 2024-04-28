@@ -9,7 +9,7 @@ use sqlx::{
 };
 use tracing::{error, info};
 
-use envy::get_env;
+use menva::get_env;
 
 use crate::data::errors::CRUDError;
 

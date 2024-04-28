@@ -6,7 +6,7 @@ repository = "https://github.com/lucas-montes/rsysaas"
 authors = ["Lucas Montes <lluc23@hotmail.com>"]
 
 [workspace.dependencies]
-envy = { path = "envy" }
+menva = "0.1.0"
 serde = { version = "1.0.163", features = ["derive", "rc"] }
 serde_json = "1.0.96"
 sqlx = { version = "0.7.0", features = ["sqlite", "runtime-tokio", "tls-rustls"]}
@@ -59,19 +59,20 @@ serde_json = { workspace = true }
 clap = { workspace = true }
 
 # Custom
-envy = { workspace = true }
-aromatic = { path = "aromatic" }
+menva = { workspace = true }
+aromatic = "0.1.0"
 jsonwebtoken = "8.3.0"
 
 
 [workspace]
-members = [".", "envy", "aromatic"]
+members = ["."]
 
 [profile.release]
 opt-level = "z"  # Use the highest optimization level for production builds
 lto = true       # Enable Link Time Optimization for better performance
 panic = "abort"  # Abort on panic to prevent unwinding overhead
 debug = false    # Disable debug symbols to reduce binary size
+strip = "symbols"
 
 
 [profile.dev]

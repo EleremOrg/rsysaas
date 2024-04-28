@@ -1,8 +1,8 @@
 # RecSys as a Service
 
 ## TODO
-🔴 -> Important
-🟠 -> Can wait
+🔴 -> Important <br>
+🟠 -> Can wait <br>
 🟢 -> Nice to have
 
 ### Auth
