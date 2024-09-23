@@ -28,9 +28,7 @@ pub fn init_dev_tracing() {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-                // axum logs rejections from built-in extractors with the `axum::rejection`
-                // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
-                "webservice=debug".into()
+                "webservice=debug,tower_http=trace,axum::rejection=trace".into()
             }),
         )
         .with(

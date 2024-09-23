@@ -28,12 +28,10 @@ use tower_http::{
     LatencyUnit, ServiceBuilderExt,
 };
 use tracing::{info_span, Level};
-use utoipa::OpenApi;
-use utoipa_scalar::{Scalar, Servable as ScalarServable};
 
-use super::{api_docs::ApiDoc, auth::jwt_middleware, AppState, Config};
+use super::{AppState, Config};
 
-pub fn get_router(config: &Config, state: AppState) -> Router<()> {
+pub fn get_router(config: &Config, state: AppState, routes: Router<AppState>) -> Router<()> {
     let sensitive_headers: Arc<[_]> = vec![AUTHORIZATION, COOKIE].into();
     // Build our middleware stack
     let middleware = ServiceBuilder::new()
@@ -46,22 +44,15 @@ pub fn get_router(config: &Config, state: AppState) -> Router<()> {
         // Add high level tracing/logging to all requests
         .layer(
             TraceLayer::new_for_http()
-                .make_span_with(|request: &Request<_>| {
-                    // Log the matched route's path (with placeholders not filled in).
-                    // Use request.uri() or OriginalUri if you want the real path.
-                    let matched_path = request
-                        .extensions()
-                        .get::<MatchedPath>()
-                        .map(MatchedPath::as_str);
-
-                    info_span!(
-                        "http_request",
-                        method = ?request.method(),
-                        matched_path,
-                        some_other_field = tracing::field::Empty,
-                    )
+                .on_request(|request: &Request<_>, _span: &tracing::Span| {
+                    // Log the request with path, method, and any payload
+                    tracing::info!(
+                        method = %request.method(),
+                        path = %request.uri().path(),
+                        payload = ?request.body(),
+                        "received request"
+                    );
                 })
-                .on_request(DefaultOnRequest::new().level(Level::INFO))
                 .on_response(
                     DefaultOnResponse::new()
                         .level(Level::INFO)
@@ -86,9 +77,7 @@ pub fn get_router(config: &Config, state: AppState) -> Router<()> {
         .layer(std_cors(config));
 
     Router::new()
-        .route("/", get(home))
-        .merge(Scalar::with_url("/scalar", ApiDoc::openapi()))
-        .nest("/api/:version/", api_routes(state.clone()))
+        .nest("/", routes)
         .fallback(error_404)
         .layer(middleware)
         .with_state(state)
@@ -117,16 +106,6 @@ fn std_cors(config: &Config) -> CorsLayer {
         .allow_methods([Method::GET, Method::POST])
         .allow_headers([CONTENT_TYPE, AUTHORIZATION])
         .allow_origin(Any)
-}
-
-fn api_routes(state: AppState) -> Router<AppState> {
-    Router::new()
-        .layer(from_fn_with_state(state.clone(), jwt_middleware))
-        .with_state(state)
-}
-
-async fn home() -> Response {
-    (StatusCode::OK, Html("<h1>Welcome to Elerem</h1>")).into_response()
 }
 
 async fn error_404() -> Response {

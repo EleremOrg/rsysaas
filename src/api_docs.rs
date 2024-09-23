@@ -1,4 +1,4 @@
-use crate::server::ErrorMessage;
+use crate::{data, recommendation, server::ErrorMessage};
 
 use utoipa::{
     openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme},
@@ -18,11 +18,11 @@ use utoipa::{
                 ("version" = (default = "v1", enum_values("v1"), description = "Supported versions for API")),
             )
         )),
-    nest(),
-    components(
-        schemas(ErrorMessage),
-        responses(ErrorMessage)
+    nest(
+        (path = "/", api = recommendation::ApiDoc, tags = ["Recommendations"]),
+        (path = "/", api = data::ApiDoc, tags = ["Data"]),
     ),
+    components(schemas(ErrorMessage), responses(ErrorMessage)),
 )]
 pub struct ApiDoc;
 

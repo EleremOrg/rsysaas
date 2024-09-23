@@ -1,4 +1,3 @@
-mod api_docs;
 mod auth;
 mod config;
 mod responses;
@@ -8,7 +7,7 @@ mod tracing;
 
 mod versioning;
 
-pub use auth::{create_token, JWTUserRequest};
+pub use auth::{create_token, jwt_middleware, JWTUserRequest};
 pub use config::Config;
 pub use responses::{AppError, AppJson, AppResult, ErrorMessage};
 pub use router::get_router;
