@@ -1,12 +1,11 @@
 import requests
 
-# url = f"https://api.elerem.com/api/v1/recommendations/"
+url = "http://127.0.0.1:8000/api/v1/custom/products"
 # token = "invfin_token_123"
-# headers = {
-# 	"Authorization": f"Bearer {token}"
-# }
-# # invfin_token_123
-# # xyz_token_456
+headers = {
+    # "Authorization": f"Bearer {token}"
+}
+
 # data = {
 #     "entity": "companies",
 #     "target": "product",
@@ -15,19 +14,8 @@ import requests
 #     "numberRecommendations": "",
 # }
 
-# response = requests.get(url, params=data, headers=headers)
+payload = {"target": "Automotive", "products": []}
 
-# print(response.json())
-# print(response.status_code)
-
-payload = {
-	"action": "get_diplomes",
-	"params": "search=&type_directory=all&etat_fiche=&certification=&autorite=&numero_certif=&niveau_eu=&abrege=&code_nsf=&code_rome=",
-	"pager": "1"
-}
-
-r = requests.post("https://www.francecompetences.fr/wp/wp-admin/admin-ajax.php", data=payload)
-
-print(r.json())
-
-
+response = requests.post(url, json=payload, headers=headers)
+print(response.text)
+print(response.json())

@@ -55,6 +55,7 @@ pub enum AppError {
     ErrorHashingPassword(argon2::password_hash::Error),
     // The request body contained invalid JSON
     JsonRejection(JsonRejection),
+    JsonEnumDeserialization(serde_json::Error),
     //
     JWTError(jsonwebtoken::errors::Error),
     JWTModified(ParseIntError),
@@ -87,6 +88,7 @@ impl IntoResponse for AppError {
                 (StatusCode::NOT_FOUND, "Contraseña incorrecta".to_owned())
             }
             //
+            AppError::JsonEnumDeserialization(err) => (StatusCode::BAD_REQUEST, err.to_string()),
             AppError::JsonRejection(rejection) => (rejection.status(), rejection.body_text()),
 
             AppError::JWTError(err) => (StatusCode::UNAUTHORIZED, err.to_string()),
@@ -101,6 +103,12 @@ impl IntoResponse for AppError {
         };
 
         (status, Json(ErrorMessage { message })).into_response()
+    }
+}
+
+impl From<serde_json::Error> for AppError {
+    fn from(error: serde_json::Error) -> Self {
+        Self::JsonEnumDeserialization(error)
     }
 }
 

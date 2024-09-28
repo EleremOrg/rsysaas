@@ -1,54 +1,6 @@
-use crate::{
-    server::{AppError, AppResult, JWTUserRequest},
-    AppState,
-};
-
-use axum::{
-    routing::{get, post},
-    Extension, Json, Router,
-};
 use serde::{Deserialize, Serialize};
 
-use utoipa::{self, OpenApi, ToResponse, ToSchema};
-
-#[derive(OpenApi)]
-#[openapi(
-    paths(add_products),
-    components(schemas(
-        ElectronicsProduct,
-        ClothingProduct,
-        ProductCategory,
-        ElectronicsSpecs,
-        ClothingCategory,
-        ClothingType,
-        HomeGoodsProduct,
-        HomeGoodsCategory,
-        PersonalCareProduct,
-        PersonalCareCategory,
-        HealthAndWellnessProduct,
-        HealthAndWellnessCategory,
-        FoodAndBeveragesProduct,
-        FoodAndBeveragesCategory,
-        AutomotiveProduct,
-        AutomotiveCategory,
-        ToysAndGamesProduct,
-        ToysAndGamesCategory,
-        BooksAndMediaProduct,
-        BooksAndMediaCategory,
-        SportsAndOutdoorsProduct,
-        SportsAndOutdoorsCategory,
-        OfficeSuppliesProduct,
-        OfficeSuppliesCategory,
-    )),
-    security(("token_jwt" = []))
-)]
-pub struct ApiDoc;
-
-pub fn routes(state: AppState) -> Router<AppState> {
-    Router::new()
-        .route("/products", post(add_products))
-        .with_state(state)
-}
+use utoipa::{self, ToSchema};
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(tag = "target", content = "products")]
@@ -66,6 +18,23 @@ pub enum ProductCategory {
     OfficeSupplies(Vec<OfficeSuppliesProduct>),
 }
 
+impl ProductCategory {
+    pub fn len(&self) -> usize {
+        match self {
+            ProductCategory::Electronics(products) => products.len(),
+            ProductCategory::Clothing(products) => products.len(),
+            ProductCategory::HomeGoods(products) => products.len(),
+            ProductCategory::PersonalCare(products) => products.len(),
+            ProductCategory::HealthAndWellness(products) => products.len(),
+            ProductCategory::FoodAndBeverages(products) => products.len(),
+            ProductCategory::Automotive(products) => products.len(),
+            ProductCategory::ToysAndGames(products) => products.len(),
+            ProductCategory::BooksAndMedia(products) => products.len(),
+            ProductCategory::SportsAndOutdoors(products) => products.len(),
+            ProductCategory::OfficeSupplies(products) => products.len(),
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ElectronicsProduct {
@@ -85,7 +54,6 @@ pub struct ElectronicsSpecs {
     pub storage: Option<String>,
     pub color: Option<String>,
 }
-
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ClothingProduct {
@@ -118,7 +86,6 @@ pub enum ClothingType {
     Accessories,
 }
 
-
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct HomeGoodsProduct {
     pub category: HomeGoodsCategory,
@@ -139,7 +106,6 @@ pub enum HomeGoodsCategory {
     Lighting,
 }
 
-
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct PersonalCareProduct {
     pub category: PersonalCareCategory,
@@ -157,7 +123,6 @@ pub enum PersonalCareCategory {
     PersonalHygiene,
     Fragrance,
 }
-
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct HealthAndWellnessProduct {
@@ -177,7 +142,6 @@ pub enum HealthAndWellnessCategory {
     TherapyDevices,
 }
 
-
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct FoodAndBeveragesProduct {
     pub category: FoodAndBeveragesCategory,
@@ -196,7 +160,6 @@ pub enum FoodAndBeveragesCategory {
     CannedFood,
 }
 
-
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct AutomotiveProduct {
     pub category: AutomotiveCategory,
@@ -213,7 +176,6 @@ pub enum AutomotiveCategory {
     Tools,
     Electronics,
 }
-
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ToysAndGamesProduct {
@@ -284,22 +246,4 @@ pub enum OfficeSuppliesCategory {
     ComputersAndAccessories,
     OfficeTools,
     OrganizationalSupplies,
-}
-
-#[utoipa::path(
-    post,
-    path = "products",
-    request_body = ProductCategory,
-    responses(
-        (status = 200, body = u16, description = "Add products for a client"),
-        (status = "4XX", body = ErrorMessage, description = "Opusi daisy, you messed up"),
-        (status = "5XX", body = ErrorMessage, description = "Opusi daisy, we messed up, sorry"),
-    )
-)]
-async fn add_products(
-    state: AppState,
-    // Extension(current_user): Extension<JWTUserRequest>,
-    Json(rec): Json<ProductCategory>,
-) -> AppResult<u16> {
-    Ok(Json(200))
 }

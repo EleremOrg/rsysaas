@@ -1,11 +1,11 @@
 mod api_docs;
+mod customer;
 mod data;
 mod recommendation;
 mod routes;
 mod server;
-use std::net::SocketAddr;
-use std::sync::Arc;
 
+use std::{net::SocketAddr, sync::Arc};
 use tokio::{net::TcpListener, signal};
 
 use routes::custom_routes;
