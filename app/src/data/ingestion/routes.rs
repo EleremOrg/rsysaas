@@ -8,10 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use utoipa::{self, OpenApi, ToResponse, ToSchema};
 
-use crate::{
-    server::{AppError, AppResult},
-    AppState,
-};
+use stefn::{AppError, AppResult, AppState};
 
 use super::{custom, prestashop, shopify};
 

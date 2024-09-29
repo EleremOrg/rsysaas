@@ -1,4 +1,6 @@
-use crate::{data, recommendation, server::ErrorMessage};
+use crate::{data, recommendation};
+
+use stefn::ErrorMessage;
 
 use utoipa::{
     openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme},

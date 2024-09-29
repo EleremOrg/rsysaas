@@ -8,19 +8,16 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use utoipa::{self, OpenApi, ToResponse, ToSchema};
 
-use crate::{
-    data::models::{
-        AutomotiveCategory, AutomotiveProduct, BooksAndMediaCategory, BooksAndMediaProduct,
-        ClothingCategory, ClothingProduct, ClothingType, ElectronicsProduct, ElectronicsSpecs,
-        FoodAndBeveragesCategory, FoodAndBeveragesProduct, HealthAndWellnessCategory,
-        HealthAndWellnessProduct, HomeGoodsCategory, HomeGoodsProduct, OfficeSuppliesCategory,
-        OfficeSuppliesProduct, PersonalCareCategory, PersonalCareProduct, ProductCategory,
-        SportsAndOutdoorsCategory, SportsAndOutdoorsProduct, ToysAndGamesCategory,
-        ToysAndGamesProduct,
-    },
-    server::{AppError, AppResult},
-    AppState,
+use crate::data::models::{
+    AutomotiveCategory, AutomotiveProduct, BooksAndMediaCategory, BooksAndMediaProduct,
+    ClothingCategory, ClothingProduct, ClothingType, ElectronicsProduct, ElectronicsSpecs,
+    FoodAndBeveragesCategory, FoodAndBeveragesProduct, HealthAndWellnessCategory,
+    HealthAndWellnessProduct, HomeGoodsCategory, HomeGoodsProduct, OfficeSuppliesCategory,
+    OfficeSuppliesProduct, PersonalCareCategory, PersonalCareProduct, ProductCategory,
+    SportsAndOutdoorsCategory, SportsAndOutdoorsProduct, ToysAndGamesCategory, ToysAndGamesProduct,
 };
+
+use stefn::{AppError, AppResult, AppState};
 
 #[derive(OpenApi)]
 #[openapi(

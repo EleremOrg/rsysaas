@@ -3,11 +3,9 @@ use axum::{middleware::from_fn_with_state, Router};
 use utoipa::OpenApi;
 use utoipa_scalar::{Scalar, Servable as ScalarServable};
 
-use crate::{
-    api_docs::ApiDoc,
-    data, recommendation,
-    server::{jwt_middleware, AppState},
-};
+use stefn::{jwt_middleware, AppState};
+
+use crate::{api_docs::ApiDoc, data, recommendation};
 
 pub fn custom_routes(state: AppState) -> Router<AppState> {
     Router::new()

@@ -1,7 +1,4 @@
-use crate::{
-    server::{AppError, AppResult},
-    AppState,
-};
+use stefn::{AppError, AppResult, AppState};
 
 use axum::{
     routing::{get, post},
