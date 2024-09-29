@@ -61,5 +61,12 @@ async fn get_recommendations(
     state: AppState,
     Json(rec): Json<RecommendationRequest>,
 ) -> AppResult<Vec<Recommendation>> {
-    Ok(Json(vec![]))
+    Ok(Json(vec![Recommendation {
+        id: 1,
+        score: 1.1,
+        url: "String".to_owned(),
+        image: "String".to_owned(),
+        title: "String".to_owned(),
+        resume: "String".to_owned(),
+    }]))
 }

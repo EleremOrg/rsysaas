@@ -209,7 +209,7 @@ pub enum BooksAndMediaCategory {
     Books,
     MoviesAndTVShows,
     Music,
-    eBooks,
+    EBooks,
     Audiobooks,
 }
 

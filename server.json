@@ -1,5 +1,5 @@
 {
-    "env": "Dev",
+    "env": "Development",
     "threads": 4,
     "ip": "127.0.0.1",
     "port": 8000,
