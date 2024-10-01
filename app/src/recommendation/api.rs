@@ -29,7 +29,7 @@ enum RecommendationTarget {
     Generic,
 }
 
-#[derive(Debug, Serialize, Deserialize, ToResponse, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 struct RecommendationRequest {
     prod_id: Option<u32>,
     user_id: Option<u32>,
@@ -47,6 +47,7 @@ struct Recommendation {
     resume: String,
 }
 
+//TODO: change to get
 #[utoipa::path(
     post,
     path = "recommendations",
