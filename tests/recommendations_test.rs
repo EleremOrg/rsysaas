@@ -1,4 +1,5 @@
 mod common;
+mod ingestion_test;
 
 use axum::{
     body::Body,
@@ -8,6 +9,23 @@ use http_body_util::BodyExt;
 
 use serde_json::{json, Value};
 use tower::ServiceExt; // for `call`, `oneshot`, and `ready` // for `collect`
+
+#[tokio::test]
+async fn test_404() {
+    let app = common::setup();
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/not-found")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}
 
 #[tokio::test]
 async fn test_wrong_media_type() {

@@ -1,5 +1,3 @@
-mod common;
-
 use axum::{
     body::Body,
     http::{Request, StatusCode},
@@ -7,7 +5,9 @@ use axum::{
 use http_body_util::BodyExt;
 
 use serde_json::{json, Value};
-use tower::ServiceExt; // for `call`, `oneshot`, and `ready` // for `collect`
+use tower::ServiceExt;
+
+use crate::common;
 
 #[tokio::test]
 async fn test_wrong_media_type() {

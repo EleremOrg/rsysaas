@@ -1,6 +1,6 @@
-use app::custom_routes;
 use axum::Router;
 use stefn::{AppState, Config};
+use webservice::custom_routes;
 
 pub fn setup() -> Router<()> {
     let config = Config::stub();
