@@ -1,20 +1,18 @@
-use axum::{
-    extract::Query,
-    http::header::HeaderMap,
-    routing::{get, post},
-    Json, Router,
-};
+use axum::{routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use utoipa::{self, OpenApi, ToResponse, ToSchema};
+use utoipa::{self, OpenApi, ToSchema};
 
 use crate::data::models::{
-    AutomotiveCategory, AutomotiveProduct, BooksAndMediaCategory, BooksAndMediaProduct,
-    ClothingCategory, ClothingProduct, ClothingType, ElectronicsProduct, ElectronicsSpecs,
-    FoodAndBeveragesCategory, FoodAndBeveragesProduct, HealthAndWellnessCategory,
-    HealthAndWellnessProduct, HomeGoodsCategory, HomeGoodsProduct, OfficeSuppliesCategory,
-    OfficeSuppliesProduct, PersonalCareCategory, PersonalCareProduct, ProductCategory,
-    SportsAndOutdoorsCategory, SportsAndOutdoorsProduct, ToysAndGamesCategory, ToysAndGamesProduct,
+    complements::{Order, Refund},
+    products::{
+        AutomotiveCategory, AutomotiveProduct, BooksAndMediaCategory, BooksAndMediaProduct,
+        ClothingCategory, ClothingProduct, ClothingType, ElectronicsProduct, ElectronicsSpecs,
+        FoodAndBeveragesCategory, FoodAndBeveragesProduct, HealthAndWellnessCategory,
+        HealthAndWellnessProduct, HomeGoodsCategory, HomeGoodsProduct, OfficeSuppliesCategory,
+        OfficeSuppliesProduct, PersonalCareCategory, PersonalCareProduct, ProductCategory,
+        SportsAndOutdoorsCategory, SportsAndOutdoorsProduct, ToysAndGamesCategory,
+        ToysAndGamesProduct,
+    },
 };
 
 use stefn::{AppError, AppResult, AppState};
@@ -103,12 +101,6 @@ async fn handle_products(
     Ok(Json(ProductsResult::total_created(rec.len())))
 }
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-struct Order {
-    id: u64,
-    product_id: u64,
-}
-
 #[utoipa::path(
     post,
     path = "/orders",
@@ -122,13 +114,6 @@ struct Order {
 async fn handle_orders(state: AppState, Json(rec): Json<Order>) -> AppResult<usize> {
     println!("{rec:?}");
     Ok(Json(200))
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-struct Refund {
-    id: u64,
-    order_id: u64,
-    product_id: u64,
 }
 
 #[utoipa::path(

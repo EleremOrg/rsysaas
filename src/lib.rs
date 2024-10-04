@@ -1,5 +1,4 @@
 mod api_docs;
-mod customer;
 mod data;
 mod recommendation;
 mod routes;

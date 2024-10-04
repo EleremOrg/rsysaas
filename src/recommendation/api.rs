@@ -1,11 +1,10 @@
-use stefn::{AppError, AppResult, AppState};
+use stefn::{AppError, AppResult, AppState, JWTUserRequest};
 
 use axum::{
-    routing::{get, post},
-    Json, Router,
+    extract::Query, routing::{get, post}, Extension, Json, Router
 };
 use serde::{Deserialize, Serialize};
-use utoipa::{self, OpenApi, ToResponse, ToSchema};
+use utoipa::{self, IntoParams, OpenApi, ToResponse, ToSchema};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -18,7 +17,7 @@ pub struct ApiDoc;
 
 pub fn routes(state: AppState) -> Router<AppState> {
     Router::new()
-        .route("/recommendations", post(get_recommendations))
+        .route("/recommendations", get(get_recommendations))
         .with_state(state)
 }
 
@@ -29,8 +28,8 @@ enum RecommendationTarget {
     Generic,
 }
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-struct RecommendationRequest {
+#[derive(Debug, Serialize, Deserialize, IntoParams, ToSchema)]
+struct RecommendationParams {
     prod_id: Option<u32>,
     user_id: Option<u32>,
     number_recommendations: u8,
@@ -47,11 +46,10 @@ struct Recommendation {
     resume: String,
 }
 
-//TODO: change to get
 #[utoipa::path(
-    post,
+    get,
     path = "recommendations",
-    request_body = RecommendationRequest,
+    params(RecommendationParams),
     responses(
         (status = 200, body = Vec<Recommendation>, description = "Recommendations for a client"),
         (status = "4XX", body = ErrorMessage, description = "Opusi daisy, you messed up"),
@@ -60,7 +58,8 @@ struct Recommendation {
 )]
 async fn get_recommendations(
     state: AppState,
-    Json(rec): Json<RecommendationRequest>,
+    Extension(jwt_user): Extension<JWTUserRequest>,
+    Query(rec): Query<RecommendationParams>,
 ) -> AppResult<Vec<Recommendation>> {
     Ok(Json(vec![Recommendation {
         id: 1,

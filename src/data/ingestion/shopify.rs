@@ -1,12 +1,7 @@
-use axum::{
-    extract::Query,
-    http::header::HeaderMap,
-    routing::{get, post},
-    Json, Router,
-};
-use serde::{Deserialize, Serialize};
+use axum::{http::header::HeaderMap, routing::post, Json, Router};
+use serde::Deserialize;
 use serde_json::Value;
-use utoipa::{self, OpenApi, ToResponse, ToSchema};
+use utoipa::{self, OpenApi};
 
 use stefn::{AppError, AppResult, AppState};
 
