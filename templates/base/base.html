@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  {% block meta %}{% include "base/meta.html" %}{% endblock meta %}
+  {% block css %}
+  <!-- [Tabler Icons] https://tablericons.com -->
+  <link rel="stylesheet" href="dist/assets/fonts/tabler-icons.min.css">
+  <!-- [Feather Icons] https://feathericons.com -->
+  <link rel="stylesheet" href="dist/assets/fonts/feather.css">
+  <!-- [Font Awesome Icons] https://fontawesome.com/icons -->
+  <link rel="stylesheet" href="dist/assets/fonts/fontawesome.css">
+  <!-- [Material Icons] https://fonts.google.com/icons -->
+  <link rel="stylesheet" href="dist/assets/fonts/material.css">
+  <!-- [Template CSS Files] -->
+  <link rel="stylesheet" href="dist/assets/css/style.css" id="main-style-link">
+  <link rel="stylesheet" href="dist/assets/css/style-preset.css">
+  {% endblock css %}
+  {% block extra_head %}{% endblock extra_head %}
+</head>
+
+<body>
+  {% block master_body %}{% endblock master_body %}
+  {% block scripts %}{% include "base/scripts.html" %}{% endblock scripts %}
+</body>
+
+</html>

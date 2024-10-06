@@ -1,0 +1,26 @@
+{% extends "base/base.html" %}
+
+{% block css %}
+<style>
+    .cool-title {
+        color: blueviolet;
+    }
+</style>
+{% call super() %}
+{% endblock %}
+
+{% block master_body %}
+{% include "dashboard/sidebar.html" %}
+{% include "dashboard/navbar.html" %}
+<div class="pc-container">
+    <div class="pc-content">
+        <!-- [ Main Content ] start -->
+        <div class="row">
+            {% block dashboard_body %}{% endblock dashboard_body %}
+        </div>
+        <!-- [ Main Content ] end -->
+    </div>
+</div>
+{% include "dashboard/footer.html" %}
+{% call super() %}
+{% endblock %}
