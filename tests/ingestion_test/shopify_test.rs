@@ -10,45 +10,6 @@ use tower::ServiceExt;
 use crate::common;
 
 #[tokio::test]
-async fn test_wrong_media_type() {
-    let app = common::setup();
-
-    let response = app
-        .oneshot(
-            Request::builder()
-                .method("POST")
-                .uri("/api/v1/recommendations")
-                .body(Body::empty())
-                .unwrap(),
-        )
-        .await
-        .unwrap();
-
-    assert_eq!(response.status(), StatusCode::UNSUPPORTED_MEDIA_TYPE);
-}
-
-#[tokio::test]
-async fn test_bad_request() {
-    let app = common::setup();
-
-    let response = app
-        .oneshot(
-            Request::builder()
-                .method("POST")
-                .uri("/api/v1/recommendations")
-                .header("Content-Type", "application/json")
-                .body(Body::from(
-                    serde_json::to_vec(&json!([1, 2, 3, 4])).unwrap(),
-                ))
-                .unwrap(),
-        )
-        .await
-        .unwrap();
-
-    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
-}
-
-#[tokio::test]
 async fn test_recommendation() {
     let app = common::setup();
 

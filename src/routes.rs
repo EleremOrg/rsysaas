@@ -6,12 +6,12 @@ use utoipa_scalar::{Scalar, Servable as ScalarServable};
 
 use stefn::{jwt_middleware, AppState};
 
-use crate::{api_docs::ApiDoc, dashboard::hello, data, recommendation};
+use crate::{api_docs::ApiDoc, dashboard, data, recommendation};
 
 pub fn custom_routes(state: AppState) -> Router<AppState> {
     Router::new()
-        .route("/dashboard", get(hello))
         .nest_service("/dist", ServeDir::new("dist"))
+        .nest("/dashboard", dashboard::routes(state.clone()))
         .merge(Scalar::with_url("/scalar", ApiDoc::openapi()))
         .nest("/api/:version/", api_routes(state.clone()))
         .with_state(state)

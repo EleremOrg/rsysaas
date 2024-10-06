@@ -10,8 +10,8 @@
 {% endblock %}
 
 {% block master_body %}
-{% include "dashboard/sidebar.html" %}
-{% include "dashboard/navbar.html" %}
+{% include "layout/sidebar.html" %}
+{% include "layout/navbar.html" %}
 <div class="pc-container">
     <div class="pc-content">
         <!-- [ Main Content ] start -->
@@ -21,6 +21,6 @@
         <!-- [ Main Content ] end -->
     </div>
 </div>
-{% include "dashboard/footer.html" %}
+{% include "layout/footer.html" %}
 {% call super() %}
 {% endblock %}
