@@ -15,7 +15,7 @@ use crate::data::models::{
     },
 };
 
-use stefn::{AppError, AppResult, AppState};
+use stefn::{AppResult, AppState};
 
 #[derive(OpenApi)]
 #[openapi(

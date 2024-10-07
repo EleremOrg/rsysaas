@@ -1,5 +1,5 @@
 mod auth;
-mod products;
+mod graphql;
 mod webhooks;
 
 use axum::{
@@ -9,7 +9,7 @@ use axum::{
 use stefn::AppState;
 
 use auth::{handle_authentication, handle_initial_verification};
-use webhooks::{handle_app, handle_products};
+use webhooks::{handle_app, handle_bulk_operations, handle_products};
 
 pub fn routes(state: AppState) -> Router<AppState> {
     Router::new()
@@ -17,5 +17,6 @@ pub fn routes(state: AppState) -> Router<AppState> {
         .route("/auth/callback", get(handle_authentication))
         .route("/app/uninstalled", post(handle_app))
         .route("/products", post(handle_products))
+        .route("/handle_bulk_operations", post(handle_bulk_operations))
         .with_state(state)
 }

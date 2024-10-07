@@ -1,9 +1,43 @@
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::json;
 
-use stefn::{AppError, AppResult, AppState};
+use stefn::AppError;
 
-pub async fn get_products(
+const STORE_INFO: &str = r#"{
+  shop {
+    name
+    email
+    id
+    url
+    contactEmail
+    createdAt
+    currencyCode
+    unitSystem
+    weightUnit
+    shopOwnerName
+    billingAddress {
+      id
+      company
+      country
+      countryCodeV2
+      formattedArea
+      address1
+      address2
+      zip
+      provinceCode
+      province
+    }
+    timezoneAbbreviation
+    timezoneOffset
+    description
+  }
+}"#;
+
+async fn import_products() {
+    let token = "shpua_7799bec5e18408d4f0ca0f78d52ee051";
+    // let prods = get_products(client, access_token, shop_url);
+}
+
+async fn get_products(
     client: &reqwest::Client,
     access_token: &str,
     shop_url: &str,

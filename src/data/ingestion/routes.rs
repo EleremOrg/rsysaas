@@ -8,7 +8,6 @@ use super::{custom, prestashop, shopify};
 #[derive(OpenApi)]
 #[openapi(
     nest(
-        // (path = "shopify", api = shopify::ApiDoc, tags = ["Shopify"]),
         (path = "prestashop", api = prestashop::ApiDoc, tags = ["Prestashop"]),
         (path = "custom", api = custom::ApiDoc, tags = ["Custom"]),
     ),

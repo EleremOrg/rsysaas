@@ -1,10 +1,10 @@
-use axum::{middleware::from_fn_with_state, routing::get, Router};
+use axum::Router;
 
 use tower_http::services::ServeDir;
 use utoipa::OpenApi;
 use utoipa_scalar::{Scalar, Servable as ScalarServable};
 
-use stefn::{jwt_middleware, AppState};
+use stefn::AppState;
 
 use crate::{api_docs::ApiDoc, dashboard, data, recommendation};
 
@@ -21,6 +21,5 @@ fn api_routes(state: AppState) -> Router<AppState> {
     Router::new()
         .merge(recommendation::routes(state.clone()))
         .merge(data::routes(state.clone()))
-        //.layer(from_fn_with_state(state.clone(), jwt_middleware))
         .with_state(state)
 }

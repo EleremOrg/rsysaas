@@ -1,24 +1,33 @@
-use std::collections::HashMap;
+use axum::{http::header::HeaderMap, Json};
+use serde::Deserialize;
+use serde_json::Value;
 
-use axum::{
-    async_trait,
-    extract::{FromRequestParts, Query},
-    http::{header::HeaderMap, request::Parts, HeaderValue},
-    response::{IntoResponse, Redirect, Response},
-    routing::{get, post},
-    Json, RequestPartsExt, Router,
-};
+use stefn::{AppResult, AppState};
 
-use hmac::{Hmac, Mac};
-use menva::get_env;
-use regex::Regex;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use serde_json::{json, Value};
-use sha2::Sha256;
+/// https://shopify.dev/docs/api/admin-graphql/2024-10/objects/BulkOperation
+#[derive(Debug, Deserialize)]
+pub struct BulkOperation {
+    id: String,
+    completed_at: String,
+    created_at: String,
+    error_code: Option<String>,
+    object_count: u64,
+    status: String,
+    type_: String,
+    url: String,
+}
 
-use stefn::{AppError, AppResult, AppState};
+pub async fn handle_bulk_operations(
+    headers: HeaderMap,
+    state: AppState,
+    Json(rec): Json<BulkOperation>,
+) -> AppResult<Vec<Value>> {
+    println!("{rec:?}");
+    Ok(Json(vec![]))
+}
 
-struct AppUninstalledPayload {
+#[derive(Debug, Deserialize)]
+pub struct AppUninstalledPayload {
     id: u64,
     name: String,
     email: String,
@@ -31,22 +40,12 @@ struct AppUninstalledPayload {
 pub async fn handle_app(
     headers: HeaderMap,
     state: AppState,
-    Json(rec): Json<Value>,
+    Json(rec): Json<AppUninstalledPayload>,
 ) -> AppResult<Vec<Value>> {
     println!("{rec:?}");
     Ok(Json(vec![]))
 }
 
-#[utoipa::path(
-    post,
-    path = "/products",
-    request_body = RecommendationRequest,
-    responses(
-        (status = 200, body = Vec<Recommendation>, description = "Recommendations for a client"),
-        (status = "4XX", body = ErrorMessage, description = "Opusi daisy, you messed up"),
-        (status = "5XX", body = ErrorMessage, description = "Opusi daisy, we messed up, sorry"),
-    )
-)]
 pub async fn handle_products(
     headers: HeaderMap,
     state: AppState,

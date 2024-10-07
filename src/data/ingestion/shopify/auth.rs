@@ -3,21 +3,20 @@ use std::collections::HashMap;
 use axum::{
     async_trait,
     extract::{FromRequestParts, Query},
-    http::{header::HeaderMap, request::Parts, HeaderValue},
+    http::{request::Parts, HeaderValue},
     response::{IntoResponse, Redirect, Response},
-    routing::{get, post},
-    Json, RequestPartsExt, Router,
+    RequestPartsExt,
 };
 
 use hmac::{Hmac, Mac};
 use menva::get_env;
 use regex::Regex;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde::{Deserialize, Serialize};
 use sha2::Sha256;
-use utoipa::{self, OpenApi};
 
-use stefn::{AppError, AppResult, AppState};
+use stefn::{AppError, AppState};
+
+use crate::utils::post_request;
 
 type HmacSha256 = Hmac<Sha256>;
 const SHOPIFY_CLIENT_ID: &str = "adb12b988310f4121054c09996645143";
@@ -77,7 +76,7 @@ pub async fn handle_initial_verification(params: ShopifyQuery) -> Result<Respons
 		shop = "quickstart-f533348c.myshopify.com",
 		client_id = SHOPIFY_CLIENT_ID,
 		scopes = "",
-		redirect_uri = "https://357f-90-9-172-56.ngrok-free.app/api/v1/shopify/auth/callback",
+		redirect_uri = "https://ac1f-90-9-172-56.ngrok-free.app/api/v1/shopify/auth/callback",
 		nonce = "nonce",
 		access_mode = "per-user");
 
@@ -110,6 +109,7 @@ impl ShopifyRedirectAuth {
         let re = Regex::new(r"^[a-zA-Z0-9][a-zA-Z0-9\-]*\.myshopify\.com$").unwrap();
         re.is_match(&self.shop)
     }
+
     fn validate_hmac(&self, secret: &str) -> bool {
         let query = format!(
             "code={}&host={}&shop={}&state={}&timestamp={}",
@@ -118,6 +118,7 @@ impl ShopifyRedirectAuth {
         let calculated_hmac = calculate_hmac(secret, &query);
         calculated_hmac == self.hmac
     }
+
     fn validate_state(&self, secret: &str) -> bool {
         self.state == secret
     }
@@ -138,8 +139,9 @@ pub async fn handle_authentication(
         &query.shop,
     )
     .await?;
+    //TODO: save and or check if the user exists
 
-    let redirection = format!("/dashboard/?token={}", token.access_token);
+    let redirection = format!("/dashboard?token={}", token.access_token);
     Ok(Redirect::to(&redirection))
 }
 
@@ -174,22 +176,6 @@ async fn get_auth_token<'a>(
 ) -> Result<ShopifyAccessTokenResponse, AppError> {
     let access_token_uri = format!("https://{}/admin/oauth/access_token", shop);
     post_request(client, paylod, &access_token_uri).await
-}
-
-async fn post_request<T: Serialize, R: DeserializeOwned>(
-    client: &reqwest::Client,
-    paylod: &T,
-    url: &str,
-) -> Result<R, AppError> {
-    client
-        .post(url)
-        .json(paylod)
-        .send()
-        .await
-        .map_err(|err| AppError::custom_internal(&err.to_string()))? //TODO: only log the errors do not do that
-        .json()
-        .await
-        .map_err(|err| AppError::custom_internal(&err.to_string()))
 }
 
 fn calculate_hmac(secret: &str, data: &str) -> String {
