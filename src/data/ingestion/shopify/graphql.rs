@@ -2,6 +2,76 @@ use serde_json::json;
 
 use stefn::AppError;
 
+const BULK_PRODUCTS: &str = r#"
+mutation {
+  bulkOperationRunQuery(
+    query:"""
+    {
+      products {
+        edges {
+          node {
+            vendor
+      status
+      priceRangeV2 {
+        maxVariantPrice {
+          amount
+          currencyCode
+        }
+        minVariantPrice {
+          amount
+          currencyCode
+        }
+      }
+      category {
+        ancestorIds
+        childrenIds
+        fullName
+        id
+        isArchived
+        isLeaf
+        isRoot
+        level
+        name
+        parentId
+      }
+      createdAt
+      id
+      productType
+      publishedAt
+      requiresSellingPlan
+      tags
+      title
+      updatedAt
+      feedback {
+        summary
+      }
+      totalInventory
+      variantsCount {
+        count
+        precision
+      }
+      isGiftCard
+      legacyResourceId
+      description
+      descriptionHtml
+          }
+        }
+      }
+    }
+    """
+  ) {
+    bulkOperation {
+      id
+      status
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+"#;
+
 const STORE_INFO: &str = r#"{
   shop {
     name
