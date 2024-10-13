@@ -24,4 +24,8 @@ pub struct Client {
 pub struct Customer {
     id: u64,
     name: String,
+    email: String,
+    url: String,
+    token: String,
+    shopify_token: String,
 }

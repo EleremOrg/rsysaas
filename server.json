@@ -9,6 +9,6 @@
         "*"
     ],
     "ips_database": "../../GeoLite2-City_20240827/GeoLite2-City.mmdb",
-    "database_url": "./database.sqlite",
+    "database_url": "../database.sqlite",
     "session_key": "session_key"
 }

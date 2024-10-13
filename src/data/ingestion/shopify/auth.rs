@@ -145,6 +145,20 @@ pub async fn handle_authentication(
     Ok(Redirect::to(&redirection))
 }
 
+async fn create_new_user(
+    state: AppState,
+    query: ShopifyRedirectAuth,
+    token: ShopifyAccessTokenResponse,
+) -> Result<(), AppError> {
+    let conn = state
+        .primary_database
+        .acquire()
+        .await
+        .map_err(|err| AppError::custom_internal(&err.to_string()))?;
+    // conn.
+    todo!()
+}
+
 /// https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/offline-access-tokens
 #[derive(Debug, Serialize)]
 struct ShopifyAccessTokenPayload<'a> {

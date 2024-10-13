@@ -22,6 +22,7 @@ pub async fn handle_bulk_operations(
     state: AppState,
     Json(rec): Json<BulkOperation>,
 ) -> AppResult<Vec<Value>> {
+    // TODO: when bulk operation ends read file
     println!("{rec:?}");
     Ok(Json(vec![]))
 }
@@ -51,6 +52,7 @@ pub async fn handle_products(
     state: AppState,
     Json(rec): Json<Value>,
 ) -> AppResult<Vec<Value>> {
+    //TODO: add type to object recieved.
     println!("{rec:?}");
     println!("{headers:?}");
     Ok(Json(vec![]))

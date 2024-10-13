@@ -3,19 +3,26 @@ use serde::{Deserialize, Serialize};
 use utoipa::{self, ToSchema};
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct Product<T> {
+    pub id: String,
+    #[serde(flatten)]
+    pub meta: T,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(tag = "target", content = "products")]
 pub enum ProductCategory {
-    Electronics(Vec<ElectronicsProduct>),
-    Clothing(Vec<ClothingProduct>),
-    HomeGoods(Vec<HomeGoodsProduct>),
-    PersonalCare(Vec<PersonalCareProduct>),
-    HealthAndWellness(Vec<HealthAndWellnessProduct>),
-    FoodAndBeverages(Vec<FoodAndBeveragesProduct>),
-    Automotive(Vec<AutomotiveProduct>),
-    ToysAndGames(Vec<ToysAndGamesProduct>),
-    BooksAndMedia(Vec<BooksAndMediaProduct>),
-    SportsAndOutdoors(Vec<SportsAndOutdoorsProduct>),
-    OfficeSupplies(Vec<OfficeSuppliesProduct>),
+    Electronics(Vec<Product<ElectronicsProduct>>),
+    Clothing(Vec<Product<ClothingProduct>>),
+    HomeGoods(Vec<Product<HomeGoodsProduct>>),
+    PersonalCare(Vec<Product<PersonalCareProduct>>),
+    HealthAndWellness(Vec<Product<HealthAndWellnessProduct>>),
+    FoodAndBeverages(Vec<Product<FoodAndBeveragesProduct>>),
+    Automotive(Vec<Product<AutomotiveProduct>>),
+    ToysAndGames(Vec<Product<ToysAndGamesProduct>>),
+    BooksAndMedia(Vec<Product<BooksAndMediaProduct>>),
+    SportsAndOutdoors(Vec<Product<SportsAndOutdoorsProduct>>),
+    OfficeSupplies(Vec<Product<OfficeSuppliesProduct>>),
 }
 
 impl ProductCategory {
