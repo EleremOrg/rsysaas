@@ -1,18 +1,16 @@
-use axum::{routing::post, Json, Router};
+use axum::{extract::Path, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use sqlx::{QueryBuilder, Sqlite};
 use utoipa::{self, OpenApi, ToSchema};
 
-use crate::data::models::{
-    complements::{Order, Refund},
-    products::{
-        AutomotiveCategory, AutomotiveProduct, BooksAndMediaCategory, BooksAndMediaProduct,
-        ClothingCategory, ClothingProduct, ClothingType, ElectronicsProduct, ElectronicsSpecs,
-        FoodAndBeveragesCategory, FoodAndBeveragesProduct, HealthAndWellnessCategory,
-        HealthAndWellnessProduct, HomeGoodsCategory, HomeGoodsProduct, OfficeSuppliesCategory,
-        OfficeSuppliesProduct, PersonalCareCategory, PersonalCareProduct, ProductCategory,
-        SportsAndOutdoorsCategory, SportsAndOutdoorsProduct, ToysAndGamesCategory,
-        ToysAndGamesProduct,
+use super::{
+    controllers::run_transaction,
+    models::{
+        complements::{Order, Refund},
+        products::{
+            BooksAndMediaCategory, BooksAndMediaProduct, ClothingCategory, ClothingGender,
+            ClothingProduct, ProductCategory, SportsAndOutdoorsCategory, SportsAndOutdoorsProduct,
+        },
     },
 };
 
@@ -22,30 +20,14 @@ use stefn::{AppError, AppResult, AppState};
 #[openapi(
     paths(handle_products, handle_orders, handle_refunds),
     components(schemas(
-        ElectronicsProduct,
-        ClothingProduct,
         ProductCategory,
-        ElectronicsSpecs,
+        ClothingProduct,
         ClothingCategory,
-        ClothingType,
-        HomeGoodsProduct,
-        HomeGoodsCategory,
-        PersonalCareProduct,
-        PersonalCareCategory,
-        HealthAndWellnessProduct,
-        HealthAndWellnessCategory,
-        FoodAndBeveragesProduct,
-        FoodAndBeveragesCategory,
-        AutomotiveProduct,
-        AutomotiveCategory,
-        ToysAndGamesProduct,
-        ToysAndGamesCategory,
+        ClothingGender,
         BooksAndMediaProduct,
         BooksAndMediaCategory,
         SportsAndOutdoorsProduct,
         SportsAndOutdoorsCategory,
-        OfficeSuppliesProduct,
-        OfficeSuppliesCategory,
         Order,
         Refund
     ),
@@ -76,12 +58,6 @@ impl ProductsResult {
             updated: 0,
         }
     }
-    fn total_updated(num: u64) -> Self {
-        Self {
-            created: 0,
-            updated: num,
-        }
-    }
 }
 
 #[utoipa::path(
@@ -98,36 +74,7 @@ async fn handle_products(
     state: AppState,
     Json(payload): Json<ProductCategory>,
 ) -> AppResult<ProductsResult> {
-    let mut tx = state
-        .primary_database
-        .begin()
-        .await
-        .map_err(|e| AppError::custom_internal(&e.to_string()))?;
-    let mut query_builder: QueryBuilder<Sqlite> =
-        QueryBuilder::new("INSERT INTO products(id, company_pk, meta) ");
-
-    // Note that `.into_iter()` wasn't needed here since `users` is already an iterator.
-    // query_builder.push_values(payload, |mut b, user| {
-    //     // If you wanted to bind these by-reference instead of by-value,
-    //     // you'd need an iterator that yields references that live as long as `query_builder`,
-    //     // e.g. collect it to a `Vec` first.
-    //     b.push_bind(user.id)
-    //         .push_bind(user.username)
-    //         .push_bind(user.email)
-    //         .push_bind(user.password);
-    // });
-
-    let result = query_builder
-        .build()
-        .execute(&mut *tx)
-        .await
-        .map_err(|e| AppError::custom_internal(&e.to_string()))?
-        .rows_affected();
-
-    let _ = tx
-        .commit()
-        .await
-        .map_err(|e| AppError::custom_internal(&e.to_string()))?;
+    let result = run_transaction(state, payload).await?;
     Ok(Json(ProductsResult::total_created(result)))
 }
 

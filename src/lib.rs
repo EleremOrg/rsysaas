@@ -1,5 +1,5 @@
 mod api_docs;
-mod dashboard;
+mod core;
 mod data;
 mod recommendation;
 mod routes;

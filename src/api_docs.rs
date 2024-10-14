@@ -22,7 +22,7 @@ use utoipa::{
         )),
     nest(
         (path = "/", api = recommendation::ApiDoc, tags = ["Recommendations"]),
-        (path = "/", api = data::ApiDoc, tags = ["Shopify", "Prestashop", "Custom"]),
+        (path = "/", api = data::ApiDoc),
     ),
     components(schemas(ErrorMessage), responses(ErrorMessage)),
 )]

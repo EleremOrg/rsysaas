@@ -6,7 +6,7 @@ use utoipa_scalar::{Scalar, Servable as ScalarServable};
 
 use stefn::AppState;
 
-use crate::{api_docs::ApiDoc, dashboard, data, recommendation};
+use crate::{api_docs::ApiDoc, core::dashboard, data, recommendation};
 
 pub fn custom_routes(state: AppState) -> Router<AppState> {
     Router::new()
