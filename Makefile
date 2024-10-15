@@ -1,25 +1,13 @@
-build-docker:
-	docker build -t my-redis-image .
-
-rrun:
-	docker run -p 6379:6379 --rm -it my-redis-image
-
-up:
-	make build
-	make rrun	
-
 run:
 	cargo watch -q -c -w src/ -x run
 
 clean-info:
-	rm -rf logs
-	mkdir logs
 	rm database.sqlite
 	rm database.sqlite-shm
 	rm database.sqlite-wal
 
 clean:
-	cargo fix --bin "webservice" --allow-dirty
+	cargo fix --bin "rsysaas" --allow-dirty
 
 build:
 	cargo build --release --timings --target-dir ./dist

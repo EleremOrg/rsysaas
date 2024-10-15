@@ -51,23 +51,41 @@ pub fn validate_hmac<Q: ShopifyQueryInterface>(query: &Q, secret: &str) -> bool 
     calculate_hmac(secret, &query.query_to_string()).eq(query.get_hmac())
 }
 
-pub fn validate_shop(query: &ShopifyRedirectAuthQuery) -> bool {
+pub fn validate_shop(shop: &str) -> bool {
     let re = Regex::new(r"^[a-zA-Z0-9][a-zA-Z0-9\-]*\.myshopify\.com$").unwrap();
-    re.is_match(&query.shop)
+    re.is_match(&shop)
 }
 
 pub async fn update_profile(
     state: &AppState,
     token: &ShopifyAccessTokenResponse,
-    query: &ShopifyRedirectAuthQuery,
-    profile: &ShopifyProfile,
+    pk: i64,
 ) -> Result<String, AppError> {
+    let mut tx = state
+        .primary_database
+        .begin()
+        .await
+        .map_err(|e| AppError::custom_internal(&e.to_string()))?;
+
+    let _ = sqlx::query("UPDATE shopify_profiles SET token = $1, scope = $2 WHERE pk = $3)")
+        .bind(&token.access_token)
+        .bind(&token.scope)
+        .bind(pk)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| AppError::custom_internal(&e.to_string()))?;
+
+    let _ = tx
+        .commit()
+        .await
+        .map_err(|e| AppError::custom_internal(&e.to_string()))?;
     Ok("login".into())
 }
+
 pub async fn create_customer(
     state: &AppState,
     token: &ShopifyAccessTokenResponse,
-    query: &ShopifyRedirectAuthQuery,
+    shop: &str,
 ) -> Result<String, AppError> {
     let mut tx = state
         .primary_database
@@ -77,8 +95,8 @@ pub async fn create_customer(
 
     let customer_company_pk =
         sqlx::query("INSERT INTO customers_companies(name, domain) VALUES ($1, $2)")
-            .bind(&query.shop)
-            .bind(&query.shop)
+            .bind(shop)
+            .bind(shop)
             .execute(&mut *tx)
             .await
             .map_err(|e| AppError::custom_internal(&e.to_string()))?
@@ -86,7 +104,7 @@ pub async fn create_customer(
 
     let shopify_profile_pk =
         sqlx::query("INSERT INTO shopify_profiles(shop, token, scope) VALUES ($1, $2, $3)")
-            .bind(&query.shop)
+            .bind(shop)
             .bind(&token.access_token)
             .bind(&token.scope)
             .execute(&mut *tx)
@@ -163,5 +181,15 @@ mod tests {
         let data = "shop=example.myshopify.com&timestamp=1625151600";
 
         assert!(calculate_hmac(secret, data).eq(hmac));
+    }
+
+    #[test]
+    fn test_validate_shop_valid() {
+        assert!(validate_shop("valid-shop.myshopify.com"));
+    }
+
+    #[test]
+    fn test_validate_shop_invalid() {
+        assert!(!validate_shop("invalid_shop.com"));
     }
 }

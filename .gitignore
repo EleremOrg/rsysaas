@@ -1,5 +1,5 @@
 **/**/target
-database.sqlite*
+*.sqlite*
 logs/*
 1_test_data.sql
 .env

@@ -1,5 +1,4 @@
 mod controllers;
-mod graphql;
 mod models;
 mod views;
 

@@ -111,37 +111,8 @@ async fn get_products(
     client: &reqwest::Client,
     access_token: &str,
     shop_url: &str,
+    graphql_query: &str,
 ) -> Result<serde_json::Value, AppError> {
-    let graphql_query = r#"
-    {
-        products(first: 100) {
-            edges {
-                node {
-                    id
-                    title
-                    descriptionHtml
-                    handle
-                    createdAt
-                    updatedAt
-                    productType
-                    tags
-                    vendor
-                    variants(first: 10) {
-                        edges {
-                            node {
-                                id
-                                title
-                                price
-                                sku
-                                availableForSale
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    "#;
     client
         .post(&format!(
             "https://{}/admin/api/2024-07/graphql.json",

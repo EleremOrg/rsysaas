@@ -184,7 +184,7 @@ pub struct ShopifyAccessTokenResponse {
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct ShopifyProfile {
-    pk: String,
+    pub pk: i64,
     shop: String,
     token: String,
     created_at: String,

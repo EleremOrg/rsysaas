@@ -53,7 +53,7 @@ pub async fn handle_authentication(
     query: ShopifyRedirectAuthQuery,
 ) -> Result<Redirect, AppError> {
     let secret = get_env("SHOPIFY_SECRET");
-    if !(query.state.eq("nonce") && validate_shop(&query) && validate_hmac(&query, &secret)) {
+    if !(query.state.eq("nonce") && validate_shop(&query.shop) && validate_hmac(&query, &secret)) {
         return Err(AppError::RoleError);
     };
     let client = reqwest::Client::new();
@@ -65,8 +65,8 @@ pub async fn handle_authentication(
     .await?;
 
     let redirect = match find_customer_from_shopify(&state, &query.shop).await? {
-        Some(profile) => update_profile(&state, &token, &query, &profile).await?,
-        None => create_customer(&state, &token, &query).await?,
+        Some(profile) => update_profile(&state, &token, profile.pk).await?,
+        None => create_customer(&state, &token, &query.shop).await?,
     };
 
     Ok(Redirect::to(&format!(
