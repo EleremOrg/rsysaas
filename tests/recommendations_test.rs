@@ -1,5 +1,5 @@
 mod common;
-mod ingestion_test;
+mod data_tests;
 
 use axum::{
     body::Body,

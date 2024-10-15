@@ -1,6 +1,7 @@
-mod auth;
+mod controllers;
 mod graphql;
-mod webhooks;
+mod models;
+mod views;
 
 use axum::{
     routing::{get, post},
@@ -8,8 +9,10 @@ use axum::{
 };
 use stefn::AppState;
 
-use auth::{handle_authentication, handle_initial_verification};
-use webhooks::{handle_app, handle_bulk_operations, handle_products};
+use views::{
+    auth::{handle_authentication, handle_initial_verification},
+    webhooks::{handle_app, handle_bulk_operations, handle_products},
+};
 
 pub fn routes(state: AppState) -> Router<AppState> {
     Router::new()

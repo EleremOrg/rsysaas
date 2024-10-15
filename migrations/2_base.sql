@@ -3,9 +3,23 @@ CREATE TABLE IF NOT EXISTS customers_companies (
     name TEXT NOT NULL,
     domain TEXT NOT NULL,
     parent_company_pk INTEGER,
-    user_pk INTEGER NOT NULL,
-    FOREIGN KEY (user_pk) REFERENCES users (pk),
     FOREIGN KEY (parent_company_pk) REFERENCES customers_companies (pk)
+);
+
+CREATE TABLE IF NOT EXISTS shopify_profiles (
+    pk INTEGER PRIMARY KEY,
+    shop TEXT NOT NULL UNIQUE,
+    token TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    scope TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS shopify_profiles_customers_companies_m2m (
+    shopify_profile_pk INTEGER NOT NULL,
+    company_pk INTEGER NOT NULL,
+    PRIMARY KEY (shopify_profile_pk, company_pk),
+    FOREIGN KEY (shopify_profile_pk) REFERENCES shopify_profiles (pk),
+    FOREIGN KEY (company_pk) REFERENCES customers_companies (pk)
 );
 
 CREATE TABLE IF NOT EXISTS customers (
@@ -58,3 +72,4 @@ CREATE TABLE IF NOT EXISTS refunds (
 CREATE UNIQUE INDEX idx_products_id ON products(id, company_pk);
 CREATE UNIQUE INDEX idx_orders_id ON orders(id, company_pk);
 CREATE UNIQUE INDEX idx_refunds_id ON refunds(id, company_pk);
+CREATE UNIQUE INDEX idx_shopify_profiles_shop ON shopify_profiles(shop);

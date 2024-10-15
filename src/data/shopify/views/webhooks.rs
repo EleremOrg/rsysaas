@@ -1,21 +1,10 @@
 use axum::{http::header::HeaderMap, Json};
-use serde::Deserialize;
+
 use serde_json::Value;
 
 use stefn::{AppResult, AppState};
 
-/// https://shopify.dev/docs/api/admin-graphql/2024-10/objects/BulkOperation
-#[derive(Debug, Deserialize)]
-pub struct BulkOperation {
-    id: String,
-    completed_at: String,
-    created_at: String,
-    error_code: Option<String>,
-    object_count: u64,
-    status: String,
-    type_: String,
-    url: String,
-}
+use crate::data::shopify::models::webhooks::{AppUninstalledPayload, BulkOperation};
 
 pub async fn handle_bulk_operations(
     headers: HeaderMap,
@@ -25,17 +14,6 @@ pub async fn handle_bulk_operations(
     // TODO: when bulk operation ends read file
     println!("{rec:?}");
     Ok(Json(vec![]))
-}
-
-#[derive(Debug, Deserialize)]
-pub struct AppUninstalledPayload {
-    id: u64,
-    name: String,
-    email: String,
-    domain: Option<String>,
-    province: String,
-    country: String,
-    address1: String,
 }
 
 pub async fn handle_app(

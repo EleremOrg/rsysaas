@@ -6,7 +6,7 @@ use super::seo::Meta;
 
 pub fn routes(state: AppState) -> Router<AppState> {
     Router::new()
-        .route("/", get(index))
+        .route("/dashboard", get(index))
         .route("/login", get(login))
         .route("/register", get(register))
         .route("/import-data", get(import_data))
@@ -46,7 +46,7 @@ async fn login() -> LoginTemplate {
         "elerem.com".into(),
         "imafge.com".into(),
     );
-   LoginTemplate { meta }
+    LoginTemplate { meta }
 }
 #[derive(Template)]
 #[template(path = "auth/register.html")]

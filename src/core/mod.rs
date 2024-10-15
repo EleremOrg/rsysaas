@@ -1,2 +1,3 @@
 mod auth;
-pub mod dashboard;
+mod dashboard;
+pub use dashboard::routes;
