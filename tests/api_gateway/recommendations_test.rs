@@ -1,6 +1,3 @@
-mod common;
-mod data_tests;
-
 use axum::{
     body::Body,
     http::{Request, StatusCode},
@@ -8,12 +5,12 @@ use axum::{
 use http_body_util::BodyExt;
 
 use serde_json::{json, Value};
-use tower::ServiceExt; // for `call`, `oneshot`, and `ready` // for `collect`
+use tower::ServiceExt;
 
 //TODO: fix tests
 #[tokio::test]
 async fn test_404() {
-    let app = common::setup();
+    let app = super::common::setup();
 
     let response = app
         .oneshot(
@@ -30,7 +27,7 @@ async fn test_404() {
 
 #[tokio::test]
 async fn test_wrong_media_type() {
-    let app = common::setup();
+    let app = super::common::setup();
 
     let response = app
         .oneshot(
@@ -48,7 +45,7 @@ async fn test_wrong_media_type() {
 
 #[tokio::test]
 async fn test_bad_request() {
-    let app = common::setup();
+    let app = super::common::setup();
 
     let response = app
         .oneshot(
@@ -69,7 +66,7 @@ async fn test_bad_request() {
 
 #[tokio::test]
 async fn test_recommendation() {
-    let app = common::setup();
+    let app = super::common::setup();
 
     let response = app
         .oneshot(

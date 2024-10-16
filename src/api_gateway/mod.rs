@@ -1,5 +1,6 @@
 mod api_docs;
-mod core;
+mod integration;
+mod recommendation;
 mod routes;
 mod shopify;
 

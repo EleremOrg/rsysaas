@@ -1,7 +1,7 @@
 use sqlx::{QueryBuilder, Sqlite};
 use stefn::{AppError, AppState};
 
-use super::models::products::ProductCategory;
+use super::models::ProductCategory;
 
 pub async fn run_transaction(state: AppState, payload: ProductCategory) -> Result<u64, AppError> {
     let mut tx = state

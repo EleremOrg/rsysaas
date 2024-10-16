@@ -14,7 +14,7 @@ use utoipa::{
             variables(
                 ("protocol" = (default = "http", enum_values("http", "https"), description = "Protocl used to request")),
                 ("domain" = (default = "127.0.0.1", enum_values("127.0.0.1", "elerem.com"), description = "Default domain for API")),
-                ("port" = (default = "8000", enum_values("8000", ""), description = "Supported ports for API")),
+                ("port" = (default = "8002", enum_values("8000", "8001", "8002"), description = "Supported ports for API")),
                 ("version" = (default = "v1", enum_values("v1"), description = "Supported versions for API")),
             )
         )),

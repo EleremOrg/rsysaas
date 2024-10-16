@@ -7,7 +7,7 @@ use http_body_util::BodyExt;
 use serde_json::{json, Value};
 use tower::ServiceExt;
 
-use crate::common;
+use super::common;
 
 #[tokio::test]
 async fn test_handle_initial_verification_invalid() {

@@ -5,11 +5,9 @@ use utoipa::{self, OpenApi, ToSchema};
 use super::{
     controllers::run_transaction,
     models::{
-        complements::{Order, Refund},
-        products::{
-            BooksAndMediaCategory, BooksAndMediaProduct, ClothingCategory, ClothingGender,
-            ClothingProduct, ProductCategory, SportsAndOutdoorsCategory, SportsAndOutdoorsProduct,
-        },
+        BooksAndMediaCategory, BooksAndMediaProduct, ClothingCategory, ClothingGender,
+        ClothingProduct, Order, ProductCategory, Refund, SportsAndOutdoorsCategory,
+        SportsAndOutdoorsProduct,
     },
 };
 
@@ -61,7 +59,7 @@ impl ProductsResult {
 
 #[utoipa::path(
     post,
-    path = "/products",
+    path = "products",
     request_body = ProductCategory,
     responses(
         (status = 200, body = ProductsResult, description = "Ingest products"),
@@ -79,7 +77,7 @@ async fn handle_products(
 
 #[utoipa::path(
     post,
-    path = "/orders",
+    path = "orders",
     request_body = Order,
     responses(
         (status = 200, body = usize, description = "Ingest orders"),
@@ -94,7 +92,7 @@ async fn handle_orders(state: AppState, Json(rec): Json<Order>) -> AppResult<usi
 
 #[utoipa::path(
     post,
-    path = "/refunds",
+    path = "refunds",
     request_body = Refund,
     responses(
         (status = 200, body = usize, description = "Ingest refunds"),

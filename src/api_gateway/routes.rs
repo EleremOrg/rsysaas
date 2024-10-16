@@ -5,7 +5,7 @@ use utoipa_scalar::{Scalar, Servable as ScalarServable};
 
 use stefn::AppState;
 
-use super::{api_docs::ApiDoc, core, shopify};
+use super::{api_docs::ApiDoc, integration, recommendation, shopify};
 
 pub fn routes(state: AppState) -> Router<AppState> {
     Router::new()
@@ -17,6 +17,7 @@ pub fn routes(state: AppState) -> Router<AppState> {
 fn api_routes(state: AppState) -> Router<AppState> {
     Router::new()
         .nest("/shopify", shopify::routes(state.clone()))
-        .merge(core::routes(state.clone()))
+        .merge(integration::routes(state.clone()))
+        .merge(recommendation::routes(state.clone()))
         .with_state(state)
 }
