@@ -1,4 +1,4 @@
-use stefn::{AppResult, AppState, JWTUserRequest};
+use stefn::{AppResult, AppState, ErrorMessage, JWTUserRequest};
 
 use axum::{extract::Query, routing::get, Extension, Json, Router};
 use serde::{Deserialize, Serialize};
@@ -19,7 +19,7 @@ pub fn routes(state: AppState) -> Router<AppState> {
         .with_state(state)
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 enum RecommendationTarget {
     User,
     Product,

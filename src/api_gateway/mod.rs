@@ -4,8 +4,8 @@ mod routes;
 mod shopify;
 
 use routes::routes;
-use stefn::HttpService;
+use stefn::Service;
 
-pub fn create_service() -> HttpService {
-    HttpService::new("api_gateway.json", routes)
+pub fn create_service() -> Service {
+    Service::new("api_gateway.json", routes)
 }

@@ -16,6 +16,6 @@ pub fn routes(state: AppState) -> Router<AppState> {
 
 fn api_routes(state: AppState) -> Router<AppState> {
     Router::new()
-        .route("test", get(|| async { "hello" }))
+        .route("/test", get(|| async { "hello" }))
         .with_state(state)
 }

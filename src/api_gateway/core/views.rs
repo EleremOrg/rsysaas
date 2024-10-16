@@ -13,7 +13,7 @@ use super::{
     },
 };
 
-use stefn::{AppError, AppResult, AppState};
+use stefn::{AppError, AppResult, AppState, ErrorMessage};
 
 #[derive(OpenApi)]
 #[openapi(

@@ -16,7 +16,7 @@ pub fn routes(state: AppState) -> Router<AppState> {
 
 fn api_routes(state: AppState) -> Router<AppState> {
     Router::new()
-        .merge(shopify::routes(state.clone()))
+        .nest("/shopify", shopify::routes(state.clone()))
         .merge(core::routes(state.clone()))
         .with_state(state)
 }

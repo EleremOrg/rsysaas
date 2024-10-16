@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use utoipa::{self, OpenApi, ToResponse, ToSchema};
 
-use stefn::{AppError, AppResult, AppState};
+use stefn::{AppError, AppResult, AppState, ErrorMessage};
 
 #[derive(OpenApi)]
 #[openapi(
