@@ -4,7 +4,7 @@ use serde_json::Value;
 
 use stefn::{AppResult, AppState};
 
-use crate::data::shopify::models::webhooks::{AppUninstalledPayload, BulkOperation};
+use crate::api_gateway::shopify::models::webhooks::{AppUninstalledPayload, BulkOperation};
 
 pub async fn handle_bulk_operations(
     headers: HeaderMap,

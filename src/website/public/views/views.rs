@@ -1,11 +1,13 @@
 use askama_axum::Template;
 use axum::{routing::get, Router};
 use stefn::AppState;
+use tower_http::services::ServeDir;
 
 use super::seo::Meta;
 
 pub fn routes(state: AppState) -> Router<AppState> {
     Router::new()
+        .nest_service("/dist", ServeDir::new("dist"))
         .route("/dashboard", get(index))
         .route("/login", get(login))
         .route("/register", get(register))

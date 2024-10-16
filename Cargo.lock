@@ -1777,6 +1777,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "rsysaas"
+version = "0.1.0"
+dependencies = [
+ "argon2",
+ "askama",
+ "askama_axum",
+ "axum",
+ "axum-extra",
+ "chrono",
+ "hex",
+ "hmac",
+ "http-body-util",
+ "hyper",
+ "jsonwebtoken",
+ "menva",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "stefn",
+ "tokio",
+ "tower 0.5.1",
+ "tower-http",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-scalar",
+ "utoipauto",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2839,9 +2873,9 @@ checksum = "09cc8ee72d2a9becf2f2febe0205bbed8fc6615b7cb429ad062dc7b7ddd036a9"
 
 [[package]]
 name = "utoipa"
-version = "5.0.0-beta.0"
+version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86fac56d240b49c629b9083c932ac20a23d926937e67c21ba209f836e2983d4f"
+checksum = "5e2b34fc58a72021914a5745832024b2baa638fe771df5a35f3d1b69266bd92c"
 dependencies = [
  "indexmap",
  "serde",
@@ -2851,9 +2885,9 @@ dependencies = [
 
 [[package]]
 name = "utoipa-gen"
-version = "5.0.0-beta.0"
+version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31d88270777931b8133b119c953062bd41665bb8507841f7d433f46d2765e9d4"
+checksum = "866f11b33be38a747542f435578a164674b8922d958cc065d7f19319c19d4784"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3035,40 +3069,6 @@ name = "webpki-roots"
 version = "0.25.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5f20c57d8d7db6d3b86154206ae5d8fba62dd39573114de97c2cb0578251f8e1"
-
-[[package]]
-name = "webservice"
-version = "0.1.0"
-dependencies = [
- "argon2",
- "askama",
- "askama_axum",
- "axum",
- "axum-extra",
- "chrono",
- "hex",
- "hmac",
- "http-body-util",
- "hyper",
- "jsonwebtoken",
- "menva",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "sha2",
- "sqlx",
- "stefn",
- "tokio",
- "tower 0.5.1",
- "tower-http",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
- "utoipa",
- "utoipa-scalar",
- "utoipauto",
-]
 
 [[package]]
 name = "whoami"

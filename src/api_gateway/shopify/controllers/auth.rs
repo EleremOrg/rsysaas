@@ -17,7 +17,7 @@ use sqlx::Acquire;
 use stefn::{AppError, AppState};
 
 use crate::{
-    data::shopify::models::auth::{
+    api_gateway::shopify::models::auth::{
         ShopifyAccessTokenPayload, ShopifyAccessTokenResponse, ShopifyProfile,
         ShopifyQueryInterface, ShopifyRedirectAuthQuery,
     },

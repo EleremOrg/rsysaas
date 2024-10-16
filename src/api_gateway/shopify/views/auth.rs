@@ -7,7 +7,7 @@ use menva::get_env;
 
 use stefn::{AppError, AppState};
 
-use crate::data::shopify::{
+use crate::api_gateway::shopify::{
     controllers::auth::{
         create_customer, elegible_to_redirect_to_ouath_flow, elegible_to_redirect_to_profile,
         find_customer_from_shopify, get_auth_token, update_profile, validate_hmac, validate_shop,

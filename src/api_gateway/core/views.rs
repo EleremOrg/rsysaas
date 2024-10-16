@@ -1,6 +1,5 @@
-use axum::{extract::Path, routing::post, Json, Router};
+use axum::{routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
-use sqlx::{QueryBuilder, Sqlite};
 use utoipa::{self, OpenApi, ToSchema};
 
 use super::{

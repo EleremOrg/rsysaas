@@ -1,8 +1,10 @@
-mod api_docs;
-mod core;
+mod api_gateway;
 mod data;
+mod data_gateway;
 mod recommendation;
-mod routes;
 mod utils;
+mod website;
 
-pub use routes::custom_routes;
+pub use api_gateway::create_service as api_gateway_service;
+pub use data_gateway::create_service as data_gateway_service;
+pub use website::create_service as website_service;

@@ -10,6 +10,7 @@ use http_body_util::BodyExt;
 use serde_json::{json, Value};
 use tower::ServiceExt; // for `call`, `oneshot`, and `ready` // for `collect`
 
+//TODO: fix tests
 #[tokio::test]
 async fn test_404() {
     let app = common::setup();
