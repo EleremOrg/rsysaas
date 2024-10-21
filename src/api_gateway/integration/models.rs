@@ -3,23 +3,44 @@ use std::fmt::Debug;
 use utoipa::{self, ToSchema};
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct Product<T> {
+    pub id: String,
+    price: f64,
+    currency: String,
+    image: String,
+    url: String,
+    description: String,
+    specs: T,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct ProductUpdate<T> {
+    id: String,
+    values: T,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[serde(tag = "target", content = "products")]
+pub enum ProductUpdateCategory {
+    Clothing(Vec<ProductUpdate<ClothingProduct>>),
+    SportsAndOutdoors(Vec<ProductUpdate<SportsAndOutdoorsProduct>>),
+    BooksAndMedia(Vec<ProductUpdate<BooksAndMediaProduct>>),
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(tag = "target", content = "products")]
 pub enum ProductCategory {
-    Clothing(Vec<ClothingProduct>),
-    SportsAndOutdoors(Vec<SportsAndOutdoorsProduct>),
-    BooksAndMedia(Vec<BooksAndMediaProduct>),
+    Clothing(Vec<Product<ClothingProduct>>),
+    SportsAndOutdoors(Vec<Product<SportsAndOutdoorsProduct>>),
+    BooksAndMedia(Vec<Product<BooksAndMediaProduct>>),
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ClothingProduct {
-    pub id: String,
     pub category: ClothingCategory,
     pub gender: ClothingGender,
     pub size: Option<String>,
-    pub image: String,
-    pub url: String,
     pub material: Option<String>,
-    pub price: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
@@ -47,12 +68,10 @@ pub enum ClothingCategory {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct BooksAndMediaProduct {
-    pub id: String,
     pub category: BooksAndMediaCategory,
     pub title: String,
     pub author: Option<String>,
     pub format: Option<String>,
-    pub price: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
@@ -66,12 +85,10 @@ pub enum BooksAndMediaCategory {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct SportsAndOutdoorsProduct {
-    pub id: String,
     pub category: SportsAndOutdoorsCategory,
     pub name: String,
     pub type_: Option<String>,
     pub material: Option<String>,
-    pub price: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

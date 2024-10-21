@@ -2,8 +2,8 @@ mod admin;
 mod public;
 use public::routes;
 
-use stefn::Service;
+use stefn::HttpService;
 
-pub fn create_service() -> Service {
-    Service::new("server.json", routes)
+pub fn create_service() -> HttpService {
+    HttpService::new("server.json", routes)
 }

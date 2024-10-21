@@ -1,5 +1,5 @@
 use menva::read_default_file;
-use rsysaas::{api_gateway_service, data_gateway_service, website_service};
+use rsysaas::{api_gateway_service, website_service};
 use stefn::ServicesOrquestrator;
 
 fn main() {
@@ -7,7 +7,7 @@ fn main() {
 
     ServicesOrquestrator::new(4, 4)
         .add_service(api_gateway_service())
-        .add_service(data_gateway_service())
         .add_service(website_service())
+        .init_dev_tracing()
         .run();
 }

@@ -11,3 +11,4 @@ package-lock.json
 backups
 emailing.py
 venv
+__pycache__

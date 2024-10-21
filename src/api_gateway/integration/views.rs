@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::{self, OpenApi, ToSchema};
 
 use super::{
-    controllers::run_transaction,
+    controllers::{run_insert_transaction, run_upsert_transaction},
     models::{
         BooksAndMediaCategory, BooksAndMediaProduct, ClothingCategory, ClothingGender,
         ClothingProduct, Order, ProductCategory, Refund, SportsAndOutdoorsCategory,
@@ -11,11 +11,11 @@ use super::{
     },
 };
 
-use stefn::{AppError, AppResult, AppState, ErrorMessage};
+use stefn::{AppResult, AppState, ErrorMessage};
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(handle_products, handle_orders, handle_refunds),
+    paths(handle_insert_products, handle_upsert_products, handle_orders, handle_refunds),
     components(schemas(
         ProductCategory,
         ClothingProduct,
@@ -36,7 +36,10 @@ pub struct ApiDoc;
 
 pub fn routes(state: AppState) -> Router<AppState> {
     Router::new()
-        .route("/products", post(handle_products))
+        .route(
+            "/products",
+            post(handle_insert_products).put(handle_upsert_products),
+        )
         .route("/orders", post(handle_orders))
         .route("/refunds", post(handle_refunds))
         .with_state(state)
@@ -55,6 +58,13 @@ impl ProductsResult {
             updated: 0,
         }
     }
+
+    fn total_updated(num: u64) -> Self {
+        Self {
+            created: 0,
+            updated: num,
+        }
+    }
 }
 
 #[utoipa::path(
@@ -67,12 +77,30 @@ impl ProductsResult {
         (status = "5XX", body = ErrorMessage, description = "Opusi daisy, we messed up, sorry"),
     )
 )]
-async fn handle_products(
+async fn handle_insert_products(
     state: AppState,
     Json(payload): Json<ProductCategory>,
 ) -> AppResult<ProductsResult> {
-    let result = run_transaction(state, payload).await?;
+    let result = run_insert_transaction(state, payload).await?;
     Ok(Json(ProductsResult::total_created(result)))
+}
+
+#[utoipa::path(
+    put,
+    path = "products",
+    request_body = ProductCategory,
+    responses(
+        (status = 200, body = ProductsResult, description = "Ingest products"),
+        (status = "4XX", body = ErrorMessage, description = "Opusi daisy, you messed up"),
+        (status = "5XX", body = ErrorMessage, description = "Opusi daisy, we messed up, sorry"),
+    )
+)]
+async fn handle_upsert_products(
+    state: AppState,
+    Json(payload): Json<ProductCategory>,
+) -> AppResult<ProductsResult> {
+    let result = run_upsert_transaction(state, payload).await?;
+    Ok(Json(ProductsResult::total_updated(result)))
 }
 
 #[utoipa::path(
