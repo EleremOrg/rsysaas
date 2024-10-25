@@ -11,5 +11,5 @@ pub fn setup() -> Router<()> {
     });
     print!("hello from the not once");
     let service = api_gateway_service().stub();
-    service.router()
+    service.router().unwrap()
 }

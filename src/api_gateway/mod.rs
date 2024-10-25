@@ -1,12 +1,12 @@
 mod api_docs;
-mod integration;
+mod ingestion;
 mod recommendation;
 mod routes;
 mod shopify;
 
 use routes::routes;
-use stefn::HttpService;
+use stefn::Services;
 
-pub fn create_service() -> HttpService {
-    HttpService::new("api_gateway.json", routes)
+pub fn create_service() -> Services {
+    Services::new_http_service("api_gateway.json", routes)
 }

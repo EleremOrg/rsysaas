@@ -5,7 +5,7 @@ use utoipa::{
     Modify, OpenApi,
 };
 
-use super::{integration, recommendation};
+use super::{ingestion, recommendation};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -22,7 +22,7 @@ use super::{integration, recommendation};
         )),
     nest(
         (path = "/", api = recommendation::ApiDoc, tags = ["Recommendations"]),
-        (path = "/", api = integration::ApiDoc),
+        (path = "/", api = ingestion::ApiDoc),
     ),
     components(schemas(ErrorMessage), responses(ErrorMessage)),
 )]

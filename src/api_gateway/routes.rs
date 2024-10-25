@@ -1,11 +1,12 @@
-use axum::Router;
+use axum::{middleware::from_fn_with_state, Router};
 
+use serde::Deserialize;
 use utoipa::OpenApi;
 use utoipa_scalar::{Scalar, Servable as ScalarServable};
 
-use stefn::AppState;
+use stefn::{jwt_middleware, AppState};
 
-use super::{api_docs::ApiDoc, integration, recommendation, shopify};
+use super::{api_docs::ApiDoc, ingestion, recommendation, shopify};
 
 pub fn routes(state: AppState) -> Router<AppState> {
     Router::new()
@@ -14,10 +15,15 @@ pub fn routes(state: AppState) -> Router<AppState> {
         .with_state(state)
 }
 
+#[derive(Clone, Deserialize)]
+pub struct Tes;
+//TODO: remove and fix this struct
+
 fn api_routes(state: AppState) -> Router<AppState> {
     Router::new()
-        .nest("/shopify", shopify::routes(state.clone()))
-        .merge(integration::routes(state.clone()))
+        .merge(ingestion::routes(state.clone()))
         .merge(recommendation::routes(state.clone()))
+        .layer(from_fn_with_state(state.clone(), jwt_middleware::<Tes>))
+        .nest("/shopify", shopify::routes(state.clone()))
         .with_state(state)
 }
