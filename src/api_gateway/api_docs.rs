@@ -5,6 +5,8 @@ use utoipa::{
     Modify, OpenApi,
 };
 
+use crate::api_gateway::auth;
+
 use super::{ingestion, recommendation};
 
 #[derive(OpenApi)]
@@ -22,7 +24,8 @@ use super::{ingestion, recommendation};
         )),
     nest(
         (path = "/", api = recommendation::ApiDoc, tags = ["Recommendations"]),
-        (path = "/", api = ingestion::ApiDoc),
+        (path = "/", api = ingestion::ApiDoc, tags = ["Ingestion"]),
+        (path = "/auth/", api = auth::ApiDoc, tags = ["Authorization"]),
     ),
     components(schemas(ErrorMessage), responses(ErrorMessage)),
 )]

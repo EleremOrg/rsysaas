@@ -1280,9 +1280,18 @@ checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 
 [[package]]
 name = "menva"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4aeff87b67e4d739eb2d917e442228415d8282d039e0bb09c13daca8349f682c"
+version = "1.1.0"
+dependencies = [
+ "menva-macros",
+]
+
+[[package]]
+name = "menva-macros"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "mime"
@@ -1866,8 +1875,8 @@ dependencies = [
  "tracing-appender",
  "tracing-subscriber",
  "utoipa",
+ "utoipa-rapidoc",
  "utoipa-scalar",
- "utoipauto",
 ]
 
 [[package]]
@@ -2900,10 +2909,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "utoipa-scalar"
-version = "0.2.0-alpha.0"
+name = "utoipa-rapidoc"
+version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c851bc855ea797c92d61de0cd4d36195c01657bc92e42a02fd1373897d6bfe7"
+checksum = "2f5e784e313457e79d65c378bdfc2f74275f0db91a72252be7d34360ec2afbe1"
 dependencies = [
  "axum",
  "serde",
@@ -2912,35 +2921,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "utoipauto"
-version = "0.1.14"
+name = "utoipa-scalar"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "608b8f2279483be386261655b562e40877ea434eb92093c894a644fda2021860"
+checksum = "c1291aa7a2223c2f8399d1c6627ca0ba57ca0d7ecac762a2094a9dfd6376445a"
 dependencies = [
- "utoipauto-macro",
-]
-
-[[package]]
-name = "utoipauto-core"
-version = "0.1.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39449c1c0079e06bca01fd954736a9cd8a1c999540c9c2c404eb74ce63e8eb73"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "utoipauto-macro"
-version = "0.1.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1521871bcd9cb5024e0ec86437e014f8ac8cf36c15a177d4b8f97560a1699fa"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "utoipauto-core",
+ "axum",
+ "serde",
+ "serde_json",
+ "utoipa",
 ]
 
 [[package]]

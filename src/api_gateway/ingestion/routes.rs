@@ -1,13 +1,10 @@
-use std::env::current_exe;
-
 use axum::{routing::post, Extension, Json, Router};
-use serde::{Deserialize, Serialize};
-use utoipa::{self, OpenApi, ToSchema};
+use utoipa::{self, OpenApi};
 
 use crate::{
-    api_gateway::routes::Tes,
+    api_gateway::auth::JWTUser,
     entities::{
-        events::{Command, Source},
+        events::Command,
         products::{
             BooksAndMediaCategory, BooksAndMediaProduct, ClothingCategory, ClothingGender,
             ClothingProduct, Order, ProductCategory, Refund, SportsAndOutdoorsCategory,
@@ -16,11 +13,9 @@ use crate::{
     },
 };
 
-use stefn::{
-    AppResult, AppState, Broker, ErrorMessage, EventFactory, EventMetadata, JWTUserRequest,
-};
+use stefn::{AppResult, AppState, ErrorMessage};
 
-use super::applications::send_events;
+use super::{applications::send_events, dtos::IngestionResult};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -38,9 +33,9 @@ use super::applications::send_events;
         Order,
         Refund
     ),
-    responses()),
+    responses(IngestionResult)),
     security(("token_jwt" = [])),
-    tags((name = "Custom"))
+    tags()
 )]
 pub struct ApiDoc;
 
@@ -55,17 +50,6 @@ pub fn routes(state: AppState) -> Router<AppState> {
         .with_state(state)
 }
 
-#[derive(Serialize, Deserialize, ToSchema)]
-struct IngestionResult {
-    results_affected: u64,
-}
-
-impl IngestionResult {
-    fn new(results_affected: u64) -> Self {
-        Self { results_affected }
-    }
-}
-
 #[utoipa::path(
     post,
     path = "products",
@@ -78,7 +62,7 @@ impl IngestionResult {
 )]
 async fn handle_insert_products(
     state: AppState,
-    Extension(current_user): Extension<JWTUserRequest<Tes>>,
+    Extension(current_user): JWTUser,
     Json(payload): Json<ProductCategory>,
 ) -> AppResult<IngestionResult> {
     let payload = payload.to_events(current_user.id, current_user.id);
@@ -98,7 +82,7 @@ async fn handle_insert_products(
 )]
 async fn handle_upsert_products(
     state: AppState,
-    Extension(current_user): Extension<JWTUserRequest<Tes>>,
+    Extension(current_user): JWTUser,
     Json(payload): Json<ProductCategory>,
 ) -> AppResult<IngestionResult> {
     let payload = payload.to_events(current_user.id, current_user.id);

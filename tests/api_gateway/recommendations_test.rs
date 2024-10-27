@@ -10,7 +10,7 @@ use tower::ServiceExt;
 //TODO: fix tests
 #[tokio::test]
 async fn test_404() {
-    let app = super::common::setup();
+    let app = super::common::setup().await;
 
     let response = app
         .oneshot(
@@ -27,7 +27,7 @@ async fn test_404() {
 
 #[tokio::test]
 async fn test_wrong_media_type() {
-    let app = super::common::setup();
+    let app = super::common::setup().await;
 
     let response = app
         .oneshot(
@@ -45,7 +45,7 @@ async fn test_wrong_media_type() {
 
 #[tokio::test]
 async fn test_bad_request() {
-    let app = super::common::setup();
+    let app = super::common::setup().await;
 
     let response = app
         .oneshot(
@@ -66,12 +66,12 @@ async fn test_bad_request() {
 
 #[tokio::test]
 async fn test_recommendation() {
-    let app = super::common::setup();
+    let app = super::common::setup().await;
 
     let response = app
         .oneshot(
             Request::builder()
-                .method("POST")
+                .method("GET")
                 .uri("/api/v1/recommendations")
                 .header("Content-Type", "application/json")
                 .body(Body::from(

@@ -11,7 +11,7 @@ use super::common;
 
 #[tokio::test]
 async fn test_handle_initial_verification_invalid() {
-    let app = common::setup();
+    let app = common::setup().await;
 
     let response = app
         .oneshot(
@@ -29,7 +29,7 @@ async fn test_handle_initial_verification_invalid() {
 
 #[tokio::test]
 async fn test_handle_initial_verification_valid() {
-    let app = common::setup();
+    let app = common::setup().await;
 
     let response = app
         .oneshot(

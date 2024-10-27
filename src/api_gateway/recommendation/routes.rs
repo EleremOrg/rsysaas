@@ -1,6 +1,6 @@
-use stefn::{AppResult, AppState, ErrorMessage, JWTUserRequest};
+use stefn::{AppResult, AppState, ErrorMessage};
 
-use axum::{extract::Query, routing::get, Extension, Json, Router};
+use axum::{extract::Query, routing::get, Json, Router};
 use serde::{Deserialize, Serialize};
 use utoipa::{self, IntoParams, OpenApi, ToResponse, ToSchema};
 

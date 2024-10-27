@@ -31,10 +31,10 @@ INSERT INTO customers_companies (pk, name, domain, created_at, parent_company_pk
 (3, 'SoftSolutions', 'softsolutions.com', strftime('%Y-%m-%d %H:%M:%S', 'now') - 200000, 1);
 
 -- Insert mock data for customers
-INSERT INTO customers (pk, name, email, created_at, user_pk) VALUES
-(1, 'Michael Brown', 'michael.brown@example.com', strftime('%s','now') - 150000, 1),
-(2, 'Sarah White', 'sarah.white@example.com', strftime('%s','now') - 120000, 2),
-(3, 'David Green', 'david.green@example.com', strftime('%s','now') - 110000, 3);
+INSERT INTO customers (pk, first_name, last_name, created_at, user_pk) VALUES
+(1, 'Michael', 'Brown',  strftime('%s','now') - 150000, 1),
+(2, 'Sarah', 'White', strftime('%s','now') - 120000, 2),
+(3, 'David', 'Green', strftime('%s','now') - 110000, 3);
 
 -- Insert mock data for customers_companies_m2m
 INSERT INTO customers_companies_m2m (customer_pk, company_pk) VALUES

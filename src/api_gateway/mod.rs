@@ -1,4 +1,5 @@
 mod api_docs;
+mod auth;
 mod ingestion;
 mod recommendation;
 mod routes;

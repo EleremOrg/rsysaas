@@ -3,14 +3,11 @@ use axum::{routing::get, Router};
 use stefn::AppState;
 use tower_http::services::ServeDir;
 
-use super::seo::Meta;
+use crate::website::public::seo::Meta;
 
 pub fn routes(state: AppState) -> Router<AppState> {
     Router::new()
-        .nest_service("/dist", ServeDir::new("dist"))
         .route("/dashboard", get(index))
-        .route("/login", get(login))
-        .route("/register", get(register))
         .route("/import-data", get(import_data))
         .with_state(state)
 }
@@ -33,40 +30,6 @@ async fn index() -> IndexTemplate {
     IndexTemplate { meta }
 }
 
-#[derive(Template)]
-#[template(path = "auth/login.html")]
-pub struct LoginTemplate {
-    meta: Meta,
-}
-
-async fn login() -> LoginTemplate {
-    let meta = Meta::new(
-        "import data".into(),
-        "elerem mola".into(),
-        "recsys,mola".into(),
-        "lucas montes".into(),
-        "elerem.com".into(),
-        "imafge.com".into(),
-    );
-    LoginTemplate { meta }
-}
-#[derive(Template)]
-#[template(path = "auth/register.html")]
-pub struct RegisterTemplate {
-    meta: Meta,
-}
-
-async fn register() -> RegisterTemplate {
-    let meta = Meta::new(
-        "import data".into(),
-        "elerem mola".into(),
-        "recsys,mola".into(),
-        "lucas montes".into(),
-        "elerem.com".into(),
-        "imafge.com".into(),
-    );
-    RegisterTemplate { meta }
-}
 #[derive(Template)]
 #[template(path = "import_data.html")]
 pub struct BaseTemplate {

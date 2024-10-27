@@ -1,8 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     pk INTEGER PRIMARY KEY,
-    username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    activated_at INTEGER,
+    is_active INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL
 );
 
@@ -19,7 +18,7 @@ CREATE TABLE IF NOT EXISTS emails (
 CREATE TABLE IF NOT EXISTS groups (
     pk INTEGER PRIMARY KEY,
     created_at INTEGER NOT NULL,
-    name TEXT NOT NULL
+    name TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS users_groups_m2m (

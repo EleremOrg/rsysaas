@@ -9,7 +9,7 @@ pub async fn post_request<T: Serialize, R: DeserializeOwned>(
     request(client.post(url).json(paylod)).await
 }
 
-async fn request<R: DeserializeOwned>(request: reqwest::RequestBuilder) -> Result<R, AppError> {
+pub async fn request<R: DeserializeOwned>(request: reqwest::RequestBuilder) -> Result<R, AppError> {
     request
         .send()
         .await
