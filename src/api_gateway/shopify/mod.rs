@@ -7,10 +7,10 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use stefn::AppState;
+use stefn::APIState;
 use webhooks::{handle_app, handle_bulk_operations, handle_products};
 
-pub fn routes(state: AppState) -> Router<AppState> {
+pub fn routes(state: APIState) -> Router<APIState> {
     Router::new()
         .route("/", get(handle_initial_verification))
         .route("/auth/callback", get(handle_authentication))

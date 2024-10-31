@@ -1,21 +1,19 @@
-use sqlx::{Acquire, SqliteConnection};
-use stefn::{hash_password, AppError, AppState};
+use sqlx::SqliteConnection;
+use stefn::{AppError, Database};
 
-use crate::{
-    api_gateway::shopify::auth::dtos::{
-        entities::ShopifyProfile,
-        graphql::{Shop, ShopifyAccessTokenResponse, StoreInfoResponse},
-    },
-    entities::customers::{self, UserBuilder},
+use crate::api_gateway::shopify::auth::dtos::{
+    entities::ShopifyProfile,
+    graphql::{Shop, ShopifyAccessTokenResponse},
 };
 
 pub async fn update_profile(
-    state: &AppState,
+    database: &Database,
     token: &ShopifyAccessTokenResponse,
     pk: i64,
 ) -> Result<String, AppError> {
-    let mut tx = state
-        .primary_database
+    let mut tx = database
+        .get_connection()
+        .await
         .begin()
         .await
         .map_err(|e| AppError::custom_internal(&e.to_string()))?;
@@ -65,18 +63,10 @@ pub async fn create_shop(
 }
 
 pub async fn find_customer_from_shopify(
-    state: &AppState,
+    database: &Database,
     shop: &str,
 ) -> Result<Option<ShopifyProfile>, AppError> {
-    let mut conn = state
-        .primary_database
-        .acquire()
-        .await
-        .map_err(|e| AppError::custom_internal(&e.to_string()))?;
-    let conn = conn
-        .acquire()
-        .await
-        .map_err(|e| AppError::custom_internal(&e.to_string()))?;
+    let conn = database.get_connection().await;
 
     sqlx::query_as(
         r#"select pk, token, scopes, created_at from "shopify_profiles" where shop = $1"#,

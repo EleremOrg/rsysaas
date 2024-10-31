@@ -2,7 +2,7 @@ use axum::{http::header::HeaderMap, Json};
 use serde::Deserialize;
 use serde_json::Value;
 
-use stefn::{AppResult, AppState};
+use stefn::AppResult;
 
 /// https://shopify.dev/docs/api/admin-graphql/2024-10/objects/BulkOperation
 #[derive(Debug, Deserialize)]

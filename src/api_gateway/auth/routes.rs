@@ -1,9 +1,9 @@
-use axum::{routing::post, Json, Router};
+use axum::{extract::State, routing::post, Json, Router};
 use axum_extra::{
     headers::{authorization::Basic, Authorization},
     TypedHeader,
 };
-use stefn::{AppResult, AppState, ErrorMessage};
+use stefn::{APIState, AppResult, ErrorMessage};
 use utoipa::{self, OpenApi};
 
 use super::{dtos::JWTResponse, services::get_token};
@@ -17,7 +17,7 @@ use super::{dtos::JWTResponse, services::get_token};
 )]
 pub struct ApiDoc;
 
-pub fn routes(state: AppState) -> Router<AppState> {
+pub fn routes(state: APIState) -> Router<APIState> {
     Router::new()
         .route("/token", post(handle_get_token))
         .with_state(state)
@@ -33,10 +33,15 @@ pub fn routes(state: AppState) -> Router<AppState> {
     )
 )]
 async fn handle_get_token(
-    state: AppState,
+    state: State<APIState>,
     // TypedHeader(basic): TypedHeader<Authorization<Basic>>,
 ) -> AppResult<JWTResponse> {
-    get_token(&state, "basic.username()", "basic.password()")
-        .await
-        .map(|t| Json(JWTResponse::new(t)))
+    get_token(
+        state.database(),
+        state.encoding(),
+        "basic.username()",
+        "basic.password()",
+    )
+    .await
+    .map(|t| Json(JWTResponse::new(t)))
 }

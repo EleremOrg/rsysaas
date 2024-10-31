@@ -5,9 +5,79 @@ use crate::{
     },
     utils,
 };
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::json;
 use stefn::AppError;
+
+const BULK_PRODUCTS: &str = r#"
+mutation {
+  bulkOperationRunQuery(
+    query:"""
+    {
+      products {
+        edges {
+          node {
+            vendor
+      status
+      priceRangeV2 {
+        maxVariantPrice {
+          amount
+          currencyCode
+        }
+        minVariantPrice {
+          amount
+          currencyCode
+        }
+      }
+      category {
+        ancestorIds
+        childrenIds
+        fullName
+        id
+        isArchived
+        isLeaf
+        isRoot
+        level
+        name
+        parentId
+      }
+      createdAt
+      id
+      productType
+      publishedAt
+      requiresSellingPlan
+      tags
+      title
+      updatedAt
+      feedback {
+        summary
+      }
+      totalInventory
+      variantsCount {
+        count
+        precision
+      }
+      isGiftCard
+      legacyResourceId
+      description
+      descriptionHtml
+          }
+        }
+      }
+    }
+    """
+  ) {
+    bulkOperation {
+      id
+      status
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+"#;
 
 const STORE_INFO: &str = r#"{
     shop {
@@ -28,6 +98,12 @@ const STORE_INFO: &str = r#"{
       description
     }
   }"#;
+
+#[derive(Debug, Deserialize)]
+pub struct BulkOperationResponse {
+    id: String,
+    status: String,
+}
 
 pub struct ShopifyClient<'a> {
     client: reqwest::Client,
@@ -54,6 +130,10 @@ impl<'a> ShopifyClient<'a> {
 
     pub async fn get_shop_information(&self) -> Result<StoreInfoResponse, AppError> {
         self.request(STORE_INFO).await
+    }
+
+    pub async fn request_bulk_products(&self) -> Result<BulkOperationResponse, AppError> {
+        self.request(BULK_PRODUCTS).await
     }
 
     async fn request<T: DeserializeOwned>(&self, query: &str) -> Result<T, AppError> {

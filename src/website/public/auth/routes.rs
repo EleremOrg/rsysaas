@@ -1,11 +1,11 @@
 use askama_axum::Template;
 use axum::{response::Redirect, routing::get, Form, Router};
 use serde::Deserialize;
-use stefn::{AppError, AppState};
+use stefn::{AppError, WebsiteState};
 
 use crate::website::public::seo::Meta;
 
-pub fn routes(state: AppState) -> Router<AppState> {
+pub fn routes(state: WebsiteState) -> Router<WebsiteState> {
     Router::new()
         .route("/login", get(login).post(post_login))
         .route("/register", get(register).post(post_register))

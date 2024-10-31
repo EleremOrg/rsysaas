@@ -29,5 +29,3 @@ CREATE TABLE IF NOT EXISTS users_groups_m2m (
     FOREIGN KEY (user_pk) REFERENCES users (pk),
     FOREIGN KEY (group_pk) REFERENCES groups (pk)
 );
-
-CREATE UNIQUE INDEX idx_users_username ON users(username);

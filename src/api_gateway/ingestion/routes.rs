@@ -1,4 +1,4 @@
-use axum::{routing::post, Extension, Json, Router};
+use axum::{extract::State, routing::post, Extension, Json, Router};
 use utoipa::{self, OpenApi};
 
 use crate::{
@@ -13,7 +13,7 @@ use crate::{
     },
 };
 
-use stefn::{AppResult, AppState, ErrorMessage};
+use stefn::{APIState, AppResult, Broker, ErrorMessage};
 
 use super::{applications::send_events, dtos::IngestionResult};
 
@@ -39,7 +39,7 @@ use super::{applications::send_events, dtos::IngestionResult};
 )]
 pub struct ApiDoc;
 
-pub fn routes(state: AppState) -> Router<AppState> {
+pub fn routes(state: APIState) -> Router<APIState> {
     Router::new()
         .route(
             "/products",
@@ -61,12 +61,12 @@ pub fn routes(state: AppState) -> Router<AppState> {
     )
 )]
 async fn handle_insert_products(
-    state: AppState,
+    events_broker: State<Broker>,
     Extension(current_user): JWTUser,
     Json(payload): Json<ProductCategory>,
 ) -> AppResult<IngestionResult> {
     let payload = payload.to_events(current_user.id, current_user.id);
-    let result = send_events(Command::Create, &state.events_broker, payload).await?;
+    let result = send_events(Command::Create, &events_broker, payload).await?;
     Ok(Json(IngestionResult::new(result)))
 }
 
@@ -81,12 +81,12 @@ async fn handle_insert_products(
     )
 )]
 async fn handle_upsert_products(
-    state: AppState,
+    events_broker: State<Broker>,
     Extension(current_user): JWTUser,
     Json(payload): Json<ProductCategory>,
 ) -> AppResult<IngestionResult> {
     let payload = payload.to_events(current_user.id, current_user.id);
-    let result = send_events(Command::Upsert, &state.events_broker, payload).await?;
+    let result = send_events(Command::Upsert, &events_broker, payload).await?;
     Ok(Json(IngestionResult::new(result)))
 }
 
@@ -100,7 +100,7 @@ async fn handle_upsert_products(
         (status = "5XX", body = ErrorMessage, description = "Opusi daisy, we messed up, sorry"),
     )
 )]
-async fn handle_orders(state: AppState, Json(rec): Json<Order>) -> AppResult<usize> {
+async fn handle_orders(state: State<APIState>, Json(rec): Json<Order>) -> AppResult<usize> {
     println!("{rec:?}");
     Ok(Json(200))
 }
@@ -115,7 +115,7 @@ async fn handle_orders(state: AppState, Json(rec): Json<Order>) -> AppResult<usi
         (status = "5XX", body = ErrorMessage, description = "Opusi daisy, we messed up, sorry"),
     )
 )]
-async fn handle_refunds(state: AppState, Json(rec): Json<Refund>) -> AppResult<usize> {
+async fn handle_refunds(state: State<APIState>, Json(rec): Json<Refund>) -> AppResult<usize> {
     println!("{rec:?}");
     Ok(Json(200))
 }

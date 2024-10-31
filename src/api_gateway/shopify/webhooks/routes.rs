@@ -2,13 +2,13 @@ use axum::{http::header::HeaderMap, Json};
 
 use serde_json::Value;
 
-use stefn::{AppResult, AppState};
+use stefn::{APIState, AppResult};
 
 use super::applications::{AppUninstalledPayload, BulkOperation};
 
 pub async fn handle_bulk_operations(
     headers: HeaderMap,
-    state: AppState,
+    // state: APIState,
     Json(rec): Json<BulkOperation>,
 ) -> AppResult<Vec<Value>> {
     // TODO: when bulk operation ends read file
@@ -18,7 +18,7 @@ pub async fn handle_bulk_operations(
 
 pub async fn handle_app(
     headers: HeaderMap,
-    state: AppState,
+    // state: APIState,
     Json(rec): Json<AppUninstalledPayload>,
 ) -> AppResult<Vec<Value>> {
     println!("{rec:?}");
@@ -27,7 +27,7 @@ pub async fn handle_app(
 
 pub async fn handle_products(
     headers: HeaderMap,
-    state: AppState,
+    // state: APIState,
     Json(rec): Json<Value>,
 ) -> AppResult<Vec<Value>> {
     //TODO: add type to object recieved.

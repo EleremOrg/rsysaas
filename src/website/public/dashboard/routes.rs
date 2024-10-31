@@ -1,11 +1,10 @@
 use askama_axum::Template;
 use axum::{routing::get, Router};
-use stefn::AppState;
-use tower_http::services::ServeDir;
+use stefn::WebsiteState;
 
 use crate::website::public::seo::Meta;
 
-pub fn routes(state: AppState) -> Router<AppState> {
+pub fn routes(state: WebsiteState) -> Router<WebsiteState> {
     Router::new()
         .route("/dashboard", get(index))
         .route("/import-data", get(import_data))

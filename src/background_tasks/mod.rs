@@ -1,7 +1,7 @@
-use stefn::Services;
+use stefn::Service;
 
 mod core;
 
-pub fn create_service() -> Services {
-    Services::new_background_service("server.json", core::run)
+pub fn create_service() -> Service {
+    Service::background("DATA_", core::run)
 }

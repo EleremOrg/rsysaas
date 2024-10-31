@@ -2,7 +2,7 @@ use hmac::{Hmac, Mac};
 
 use regex::Regex;
 use sha2::Sha256;
-use stefn::{hash_password, AppError, AppState};
+use stefn::{hash_password, AppError, APIState, Database};
 
 use crate::entities::customers;
 
@@ -22,7 +22,7 @@ const REDIRECT_URI: &str = "https://ac1f-90-9-172-56.ngrok-free.app/api/v1/shopi
 pub async fn get_redirect_for_authentication(
     query: ShopifyRedirectAuthQuery,
     secret: String,
-    state: &AppState,
+    database: &Database,
 ) -> Result<String, AppError> {
     if !(query.state.eq("nonce") && validate_shop(&query.shop) && validate_hmac(&query, &secret)) {
         return Err(AppError::RoleError);
@@ -32,21 +32,22 @@ pub async fn get_redirect_for_authentication(
     let access_token_payload =
         ShopifyAccessTokenPayload::new(SHOPIFY_CLIENT_ID, &secret, &query.code);
 
-    match find_customer_from_shopify(&state, &query.shop).await? {
-        Some(profile) => update_customer(&state, &client, &access_token_payload, profile).await,
-        None => create_new_customer(&state, &client, &access_token_payload).await,
+    match find_customer_from_shopify(database, &query.shop).await? {
+        Some(profile) => update_customer(database, &client, &access_token_payload, profile).await,
+        None => create_new_customer(database, &client, &access_token_payload).await,
     }
 }
 
 async fn create_new_customer<'a>(
-    state: &AppState,
+    database: &Database,
     client: &ShopifyClient<'a>,
     access_token_payload: &ShopifyAccessTokenPayload<'a>,
 ) -> Result<String, AppError> {
     let token = client.get_auth_token(access_token_payload).await?;
     let store = client.get_shop_information().await?;
-    let tx = state
-        .primary_database
+    let tx = database
+        .get_connection()
+        .await
         .begin()
         .await
         .map_err(|e| AppError::custom_internal(&e.to_string()))?;
@@ -80,25 +81,29 @@ async fn create_new_customer<'a>(
         .await
         .map_err(|e| AppError::custom_internal(&e.to_string()))?;
 
+    let _ = client.request_bulk_products().await;
+    // let _ = client.request_bulk_orders().await;
+    // let _ = client.request_bulk_returns().await;
+
     //TODO: send some info so we can link the user to the shopify app
     Ok("register".into())
 }
 
 async fn update_customer<'a>(
-    state: &AppState,
+    database: &Database,
     client: &ShopifyClient<'a>,
     access_token_payload: &ShopifyAccessTokenPayload<'a>,
     profile: ShopifyProfile,
 ) -> Result<String, AppError> {
     let token = client.get_auth_token(access_token_payload).await?;
 
-    update_profile(&state, &token, profile.pk).await
+    update_profile(database, &token, profile.pk).await
 }
 
 pub async fn get_redirect_for_inital_validation(
     query: ShopifyInitialValidationQuery,
     secret: String,
-    state: &AppState,
+    database: &Database,
 ) -> Result<String, AppError> {
     if !validate_hmac(&query, &secret) {
         return Err(AppError::custom_bad_request(
@@ -106,7 +111,7 @@ pub async fn get_redirect_for_inital_validation(
         ));
     }
     //TODO: look at the shopify docs and add better names for the steps
-    Ok(find_customer_from_shopify(state, &query.shop)
+    Ok(find_customer_from_shopify(database, &query.shop)
         .await?
         .and_then(redirect_to_profile)
         .unwrap_or(redirect_to_ouath_flow(

@@ -1,20 +1,23 @@
-use stefn::{create_token, verify_password, AppError, AppState};
+use jsonwebtoken::EncodingKey;
+use stefn::{create_token, verify_password, AppError, Database};
 
 use super::PrivateClaims;
 
 pub async fn get_token(
-    state: &AppState,
+    database: &Database,
+    encoding_keys: &EncodingKey,
     username: &str,
     password: &str,
 ) -> Result<String, AppError> {
-    let user = find_user_password(state, username).await?;
+    let user = find_user_password(database, username).await?;
+    //TODO: finish
     tracing::info!("{:?}", &user);
     verify_password(password, &user.password)?;
     create_token(
         user.pk,
         PrivateClaims::new(user.groups, user.company_pk),
         &user.domain,
-        &state.keys.encoding,
+        encoding_keys,
     )
 }
 
@@ -27,7 +30,7 @@ struct User {
     groups: String,
 }
 
-async fn find_user_password(state: &AppState, username: &str) -> Result<User, AppError> {
+async fn find_user_password(database: &Database, username: &str) -> Result<User, AppError> {
     let result: Option<User> =
         sqlx::query_as(r#"
             SELECT users.pk, users.password, customers_companies.pk as company_pk, customers_companies.domain, GROUP_CONCAT(groups.name, ', ') AS groups
@@ -40,7 +43,7 @@ async fn find_user_password(state: &AppState, username: &str) -> Result<User, Ap
             HAVING count(users.pk) > 0;
         "#)
             .bind(username)
-            .fetch_optional(&state.primary_database)
+            .fetch_optional(database.get_connection().await)
             .await
             .map_err(|e| AppError::custom_internal("error during desiarialization"))?;
     result.ok_or(AppError::DoesNotExist)

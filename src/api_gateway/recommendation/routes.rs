@@ -1,6 +1,10 @@
-use stefn::{AppResult, AppState, ErrorMessage};
+use stefn::{APIState, AppResult, ErrorMessage};
 
-use axum::{extract::Query, routing::get, Json, Router};
+use axum::{
+    extract::{Query, State},
+    routing::get,
+    Json, Router,
+};
 use serde::{Deserialize, Serialize};
 use utoipa::{self, IntoParams, OpenApi, ToResponse, ToSchema};
 
@@ -13,7 +17,7 @@ use utoipa::{self, IntoParams, OpenApi, ToResponse, ToSchema};
 )]
 pub struct ApiDoc;
 
-pub fn routes(state: AppState) -> Router<AppState> {
+pub fn routes(state: APIState) -> Router<APIState> {
     Router::new()
         .route("/recommendations", get(get_recommendations))
         .with_state(state)
@@ -55,7 +59,7 @@ struct Recommendation {
     )
 )]
 async fn get_recommendations(
-    state: AppState,
+    state: State<APIState>,
     // Extension(jwt_user): Extension<JWTUserRequest>,
     Query(rec): Query<RecommendationParams>,
 ) -> AppResult<Vec<Recommendation>> {
