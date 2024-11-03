@@ -41,6 +41,7 @@ menva = { version = "1.1.0", path = "../../menva" }
 bigdecimal = "0.4"
 tokio-stream = "0.1.16"
 futures = "0.3.31"
+uuid = { version = "1.11.0", features = ["v7", "fast-rng"] }
 
 
 [dev-dependencies]

@@ -1,9 +1,9 @@
-use axum::Router;
+use axum::{middleware::from_fn_with_state, Router};
 use hyper::{
     header::{AUTHORIZATION, CONTENT_TYPE, COOKIE},
     Method,
 };
-use stefn::WebsiteState;
+use stefn::{login_required_middleware, sessions_middleware, WebsiteState};
 use tower_http::{
     cors::{Any, CorsLayer},
     services::ServeDir,
@@ -15,9 +15,11 @@ mod seo;
 
 pub fn routes(state: WebsiteState) -> Router<WebsiteState> {
     Router::new()
-        .nest_service("/dist", ServeDir::new("dist"))
-        .merge(auth::routes(state.clone()))
         .merge(dashboard::routes(state.clone()))
+        .layer(from_fn_with_state(state.clone(), login_required_middleware))
+        .merge(auth::routes(state.clone()))
+        .layer(from_fn_with_state(state.clone(), sessions_middleware))
+        .nest_service("/dist", ServeDir::new("dist"))
         .layer(
             CorsLayer::new()
                 .allow_methods([Method::GET, Method::POST, Method::POST])

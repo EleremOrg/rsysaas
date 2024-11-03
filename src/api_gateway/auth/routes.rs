@@ -1,12 +1,12 @@
-use axum::{extract::State, routing::post, Json, Router};
+use axum::{extract::State, response::IntoResponse, routing::get, Json, Router};
 use axum_extra::{
     headers::{authorization::Basic, Authorization},
     TypedHeader,
 };
-use stefn::{APIState, AppResult, ErrorMessage};
+use stefn::{APIState, ErrorMessage};
 use utoipa::{self, OpenApi};
 
-use super::{dtos::JWTResponse, services::get_token};
+use super::{dtos::JWTResponse, services::generate_token};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -19,12 +19,12 @@ pub struct ApiDoc;
 
 pub fn routes(state: APIState) -> Router<APIState> {
     Router::new()
-        .route("/token", post(handle_get_token))
+        .route("/token", get(handle_get_token))
         .with_state(state)
 }
 
 #[utoipa::path(
-    post,
+    get,
     path = "token",
     responses(
         (status = 200, body = JWTResponse, description = "Login to get a token"),
@@ -34,13 +34,13 @@ pub fn routes(state: APIState) -> Router<APIState> {
 )]
 async fn handle_get_token(
     state: State<APIState>,
-    // TypedHeader(basic): TypedHeader<Authorization<Basic>>,
-) -> AppResult<JWTResponse> {
-    get_token(
+    TypedHeader(basic): TypedHeader<Authorization<Basic>>,
+) -> impl IntoResponse {
+    generate_token(
         state.database(),
         state.encoding(),
-        "basic.username()",
-        "basic.password()",
+        basic.username(),
+        basic.password(),
     )
     .await
     .map(|t| Json(JWTResponse::new(t)))

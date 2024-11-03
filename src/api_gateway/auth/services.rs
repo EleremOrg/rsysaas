@@ -3,13 +3,13 @@ use stefn::{create_token, verify_password, AppError, Database};
 
 use super::PrivateClaims;
 
-pub async fn get_token(
+pub async fn generate_token(
     database: &Database,
     encoding_keys: &EncodingKey,
-    username: &str,
+    email: &str,
     password: &str,
 ) -> Result<String, AppError> {
-    let user = find_user_password(database, username).await?;
+    let user = find_user_by_email(database, email).await?;
     //TODO: finish
     tracing::info!("{:?}", &user);
     verify_password(password, &user.password)?;
@@ -30,21 +30,22 @@ struct User {
     groups: String,
 }
 
-async fn find_user_password(database: &Database, username: &str) -> Result<User, AppError> {
+async fn find_user_by_email(database: &Database, email: &str) -> Result<User, AppError> {
     let result: Option<User> =
         sqlx::query_as(r#"
-            SELECT users.pk, users.password, customers_companies.pk as company_pk, customers_companies.domain, GROUP_CONCAT(groups.name, ', ') AS groups
-            FROM users
-            INNER JOIN customers ON users.pk = customers.user_pk
+            SELECT emails.user_pk as pk, users.password, customers_companies.pk as company_pk, customers_companies.domain, GROUP_CONCAT(groups.name, ', ') AS groups
+            FROM emails
+            INNER JOIN users ON emails.user_pk = users.pk
+            INNER JOIN customers ON emails.user_pk = customers.user_pk
             INNER JOIN customers_companies ON customers_companies.pk = customers.pk
-            LEFT JOIN users_groups_m2m ON users.pk = users_groups_m2m.user_pk
+            LEFT JOIN users_groups_m2m ON emails.user_pk = users_groups_m2m.user_pk
             LEFT JOIN groups ON users_groups_m2m.group_pk = groups.pk
-            WHERE users.username = $1
-            HAVING count(users.pk) > 0;
+            WHERE emails.email = $1
+            HAVING count(emails.user_pk) > 0;
         "#)
-            .bind(username)
+            .bind(email)
             .fetch_optional(database.get_connection().await)
             .await
-            .map_err(|e| AppError::custom_internal("error during desiarialization"))?;
+            .map_err(|e| AppError::custom_internal(&e.to_string()))?;
     result.ok_or(AppError::DoesNotExist)
 }

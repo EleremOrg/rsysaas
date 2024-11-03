@@ -12,7 +12,7 @@ use super::{ingestion, recommendation};
 #[derive(OpenApi)]
 #[openapi(
     modifiers(&SecurityAddon),
-    security(("jwt" = ["*"])),
+    security(("jwt" = ["Recommendations", "Ingestion"])),
     servers(
         (url = "{protocol}://{domain}:{port}/api/{version}", description = "Local server",
             variables(

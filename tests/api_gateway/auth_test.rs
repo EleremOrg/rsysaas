@@ -8,18 +8,20 @@ use serde_json::{json, Value};
 use tower::ServiceExt;
 
 #[tokio::test]
-async fn test_404() {
+async fn test_get_token() {
     let app = super::common::setup().await;
 
     let response = app
         .oneshot(
             Request::builder()
-                .uri("/not-found")
+            .method("GET")
+            .uri("/api/v1/auth/token")
+            .header("Authorization", "Basic dXNlcjFAZXhhbXBsZS5jb206cGFzc3dvcmQxMjM")
                 .body(Body::empty())
                 .unwrap(),
         )
         .await
         .unwrap();
 
-    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    assert_eq!(response.status(), StatusCode::OK);
 }

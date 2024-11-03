@@ -8,12 +8,12 @@ pub type JWTUser = Extension<JWTUserRequest<PrivateClaims>>;
 #[derive(Clone, Deserialize, Serialize)]
 pub struct PrivateClaims {
     groups: String,
-    comp_pk: i64,
+    company: i64,
 }
 
 impl PrivateClaims {
-    pub fn new(groups: String, comp_pk: i64) -> Self {
-        Self { groups, comp_pk }
+    pub fn new(groups: String, company: i64) -> Self {
+        Self { groups, company }
     }
 }
 
