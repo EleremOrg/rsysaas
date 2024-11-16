@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::ser::to_vec;
 use std::fmt::Debug;
@@ -128,15 +129,23 @@ pub enum SportsAndOutdoorsCategory {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct Order {
-    id: u64,
-    product_id: u64,
+    id: String,
+    product_id: String,
+    date: NaiveDateTime,
+    quantity: u64,
+    price: f64,
+    currency: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct Refund {
-    id: u64,
-    order_id: u64,
-    product_id: u64,
+    id: String,
+    order_id: String,
+    product_id: String,
+    date: NaiveDateTime,
+    quantity: u64,
+    price: f64,
+    reason: String
 }
 
 #[derive(Debug, Deserialize)]

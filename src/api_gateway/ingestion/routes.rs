@@ -56,8 +56,8 @@ pub fn routes(state: APIState) -> Router<APIState> {
     request_body = ProductCategory,
     responses(
         (status = 200, body = IngestionResult, description = "Ingest products"),
-        (status = "4XX", body = ErrorMessage, description = "Opusi daisy, you messed up"),
-        (status = "5XX", body = ErrorMessage, description = "Opusi daisy, we messed up, sorry"),
+        (status = "4XX", body = ErrorMessage, description = "Oupsi daisy, you messed up"),
+        (status = "5XX", body = ErrorMessage, description = "Oupsi daisy, we messed up, sorry"),
     )
 )]
 async fn handle_insert_products(
@@ -76,8 +76,8 @@ async fn handle_insert_products(
     request_body = ProductCategory,
     responses(
         (status = 200, body = IngestionResult, description = "Ingest products"),
-        (status = "4XX", body = ErrorMessage, description = "Opusi daisy, you messed up"),
-        (status = "5XX", body = ErrorMessage, description = "Opusi daisy, we messed up, sorry"),
+        (status = "4XX", body = ErrorMessage, description = "Oupsi daisy, you messed up"),
+        (status = "5XX", body = ErrorMessage, description = "Oupsi daisy, we messed up, sorry"),
     )
 )]
 async fn handle_upsert_products(
@@ -95,9 +95,9 @@ async fn handle_upsert_products(
     path = "orders",
     request_body = Order,
     responses(
-        (status = 200, body = usize, description = "Ingest orders"),
-        (status = "4XX", body = ErrorMessage, description = "Opusi daisy, you messed up"),
-        (status = "5XX", body = ErrorMessage, description = "Opusi daisy, we messed up, sorry"),
+        (status = 200, body = IngestionResult, description = "Ingest orders"),
+        (status = "4XX", body = ErrorMessage, description = "Oupsi daisy, you messed up"),
+        (status = "5XX", body = ErrorMessage, description = "Oupsi daisy, we messed up, sorry"),
     )
 )]
 async fn handle_orders(state: State<APIState>, Json(rec): Json<Order>) -> AppResult<usize> {
@@ -110,9 +110,9 @@ async fn handle_orders(state: State<APIState>, Json(rec): Json<Order>) -> AppRes
     path = "refunds",
     request_body = Refund,
     responses(
-        (status = 200, body = usize, description = "Ingest refunds"),
-        (status = "4XX", body = ErrorMessage, description = "Opusi daisy, you messed up"),
-        (status = "5XX", body = ErrorMessage, description = "Opusi daisy, we messed up, sorry"),
+        (status = 200, body = IngestionResult, description = "Ingest refunds"),
+        (status = "4XX", body = ErrorMessage, description = "Oupsi daisy, you messed up"),
+        (status = "5XX", body = ErrorMessage, description = "Oupsi daisy, we messed up, sorry"),
     )
 )]
 async fn handle_refunds(state: State<APIState>, Json(rec): Json<Refund>) -> AppResult<usize> {

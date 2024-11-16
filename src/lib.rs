@@ -1,6 +1,7 @@
 mod api_gateway;
 mod background_tasks;
 mod entities;
+mod rec_service;
 mod utils;
 mod website;
 
