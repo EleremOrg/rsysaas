@@ -32,7 +32,7 @@ pub fn routes(state: APIState) -> Router<APIState> {
 fn api_routes(state: APIState) -> Router<APIState> {
     Router::new()
         .merge(ingestion::routes(state.clone()))
-        .merge(recommendation::routes(state.clone()))
+        .nest("/recommendations", recommendation::routes(state.clone()))
         .layer(from_fn_with_state(
             state.clone(),
             jwt_middleware::<PrivateClaims>,

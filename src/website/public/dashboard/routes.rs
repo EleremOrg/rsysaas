@@ -5,7 +5,7 @@ use axum::{
     async_trait,
     extract::State,
     response::IntoResponse,
-    routing::{get, post},
+    routing::get,
     Form, Router,
 };
 use sqlx::prelude::FromRow;
@@ -60,7 +60,7 @@ where
     fn routes(&self, state: WebsiteState) -> Router<WebsiteState> {
         let path = self.path();
         Router::new()
-            .route("/dashboard", post(Self::post).put(Self::put))
+            // .route("/dashboard", post(Self::post).put(Self::put))
             .route("/import-data", get(import_data))
             .with_state(state)
     }

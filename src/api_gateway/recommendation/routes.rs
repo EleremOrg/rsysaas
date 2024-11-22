@@ -1,16 +1,22 @@
 use stefn::{APIState, AppResult, ErrorMessage};
 
 use axum::{
-    extract::{Query, State},
+    extract::{Path, Query, State},
     routing::get,
-    Json, Router,
+    Extension, Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use utoipa::{self, IntoParams, OpenApi, ToResponse, ToSchema};
 
+use crate::{
+    api_gateway::auth::JWTUser,
+    entities::products::Category,
+    rec_service::{Recommendation, RecommendationClient},
+};
+
 #[derive(OpenApi)]
 #[openapi(
-    paths(get_recommendations),
+    paths(get_recommendation),
     components(schemas(Recommendation),
     responses(Recommendation)),
     security(("token_jwt" = []))
@@ -19,56 +25,38 @@ pub struct ApiDoc;
 
 pub fn routes(state: APIState) -> Router<APIState> {
     Router::new()
-        .route("/recommendations", get(get_recommendations))
+        .route("/:product", get(get_recommendation))
         .with_state(state)
 }
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-enum RecommendationTarget {
-    User,
-    Product,
-    Generic,
-}
-
 #[derive(Debug, Serialize, Deserialize, IntoParams, ToSchema)]
-struct RecommendationParams {
-    prod_id: Option<u32>,
-    user_id: Option<u32>,
-    number_recommendations: u8,
-    target: RecommendationTarget,
-}
-
-#[derive(Debug, Serialize, Deserialize, ToResponse, ToSchema)]
-struct Recommendation {
-    id: u32,
-    score: f32,
-    url: String,
-    image: String,
-    title: String,
-    resume: String,
+struct RecommendationQuery {
+    prod_id: Option<String>,
+    user_id: Option<String>,
+    quantity: u8,
 }
 
 #[utoipa::path(
     get,
-    path = "recommendations",
-    params(RecommendationParams),
+    path = "/movies",
+    params(RecommendationQuery),
     responses(
         (status = 200, body = Vec<Recommendation>, description = "Recommendations for a client"),
         (status = "4XX", body = ErrorMessage, description = "Opusi daisy, you messed up"),
         (status = "5XX", body = ErrorMessage, description = "Opusi daisy, we messed up, sorry"),
     )
 )]
-async fn get_recommendations(
-    state: State<APIState>,
-    // Extension(jwt_user): Extension<JWTUserRequest>,
-    Query(rec): Query<RecommendationParams>,
+async fn get_recommendation(
+    Extension(user): JWTUser,
+    Path((_version, category)): Path<(String, Category)>,
+    Query(query): Query<RecommendationQuery>,
 ) -> AppResult<Vec<Recommendation>> {
-    Ok(Json(vec![Recommendation {
-        id: 1,
-        score: 1.1,
-        url: "String".to_owned(),
-        image: "String".to_owned(),
-        title: "String".to_owned(),
-        resume: "String".to_owned(),
-    }]))
+    let mut rec = RecommendationClient::new(category, user.id);
+    if let Some(target_id) = query.user_id {
+        rec = rec.set_target_id(target_id);
+    }
+    if let Some(prod_id) = query.prod_id {
+        rec = rec.set_product_id(prod_id);
+    }
+    rec.recommend().await.map(Json)
 }

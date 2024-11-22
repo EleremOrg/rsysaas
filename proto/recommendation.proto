@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package recommender;
+
+service Recommender {
+  rpc getRecommendations (Query) returns (Recommendations) {}
+}
+
+message Query {
+  string version = 1;
+  string id = 2;
+  optional string target_id = 3;
+  optional string product_id = 4;
+  int64 user_id = 5;
+  int32 quantity = 6;
+}
+message Recommendations {
+  string version = 1;
+  string id = 2;
+  repeated Recommendation results = 3;
+}
+message Recommendation {
+  string id = 1;
+  float score = 2;
+}

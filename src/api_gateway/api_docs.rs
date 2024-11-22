@@ -23,9 +23,9 @@ use super::{ingestion, recommendation};
             )
         )),
     nest(
-        (path = "/", api = recommendation::ApiDoc, tags = ["Recommendations"]),
-        (path = "/", api = ingestion::ApiDoc, tags = ["Ingestion"]),
-        (path = "/auth/", api = auth::ApiDoc, tags = ["Authorization"]),
+        (path = "/recommendations", api = recommendation::ApiDoc, tags = ["Recommendations"]),
+        (path = "/ingestion", api = ingestion::ApiDoc, tags = ["Ingestion"]),
+        (path = "/auth", api = auth::ApiDoc, tags = ["Authorization"]),
     ),
     components(schemas(ErrorMessage), responses(ErrorMessage)),
 )]

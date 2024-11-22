@@ -41,6 +41,7 @@ async fn handle_get_token(
         state.encoding(),
         basic.username(),
         basic.password(),
+        state.domain(),
     )
     .await
     .map(|t| Json(JWTResponse::new(t)))

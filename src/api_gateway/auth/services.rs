@@ -8,15 +8,17 @@ pub async fn generate_token(
     encoding_keys: &EncodingKey,
     email: &str,
     password: &str,
+    domain: &str,
 ) -> Result<String, AppError> {
     let user = find_user_by_email(database, email).await?;
-    //TODO: finish
+    //TODO: finish instead of using the state domain use also the domain from the user
+    // it will require to update the validator from the
     tracing::info!("{:?}", &user);
     verify_password(password, &user.password)?;
     create_token(
         user.pk,
         PrivateClaims::new(user.groups, user.company_pk),
-        &user.domain,
+        domain,
         encoding_keys,
     )
 }

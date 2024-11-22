@@ -6,9 +6,8 @@ use crate::{
     entities::{
         events::Command,
         products::{
-            BooksAndMediaCategory, BooksAndMediaProduct, ClothingCategory, ClothingGender,
-            ClothingProduct, Order, ProductCategory, Refund, SportsAndOutdoorsCategory,
-            SportsAndOutdoorsProduct,
+            ClothingCategory, ClothingGender, ClothingProduct, Order, ProductPayload, Refund,
+            SportsAndOutdoorsCategory, SportsAndOutdoorsProduct,
         },
     },
 };
@@ -21,12 +20,10 @@ use super::{applications::send_events, dtos::IngestionResult};
 #[openapi(
     paths(handle_insert_products, handle_upsert_products, handle_orders, handle_refunds),
     components(schemas(
-        ProductCategory,
+        ProductPayload,
         ClothingProduct,
         ClothingCategory,
         ClothingGender,
-        BooksAndMediaProduct,
-        BooksAndMediaCategory,
         SportsAndOutdoorsProduct,
         SportsAndOutdoorsCategory,
         IngestionResult,
@@ -52,8 +49,8 @@ pub fn routes(state: APIState) -> Router<APIState> {
 
 #[utoipa::path(
     post,
-    path = "products",
-    request_body = ProductCategory,
+    path = "/products",
+    request_body = ProductPayload,
     responses(
         (status = 200, body = IngestionResult, description = "Ingest products"),
         (status = "4XX", body = ErrorMessage, description = "Oupsi daisy, you messed up"),
@@ -63,7 +60,7 @@ pub fn routes(state: APIState) -> Router<APIState> {
 async fn handle_insert_products(
     events_broker: State<Broker>,
     Extension(current_user): JWTUser,
-    Json(payload): Json<ProductCategory>,
+    Json(payload): Json<ProductPayload>,
 ) -> AppResult<IngestionResult> {
     let payload = payload.to_events(current_user.id, current_user.id);
     let result = send_events(Command::Create, &events_broker, payload).await?;
@@ -72,8 +69,8 @@ async fn handle_insert_products(
 
 #[utoipa::path(
     put,
-    path = "products",
-    request_body = ProductCategory,
+    path = "/products",
+    request_body = ProductPayload,
     responses(
         (status = 200, body = IngestionResult, description = "Ingest products"),
         (status = "4XX", body = ErrorMessage, description = "Oupsi daisy, you messed up"),
@@ -83,7 +80,7 @@ async fn handle_insert_products(
 async fn handle_upsert_products(
     events_broker: State<Broker>,
     Extension(current_user): JWTUser,
-    Json(payload): Json<ProductCategory>,
+    Json(payload): Json<ProductPayload>,
 ) -> AppResult<IngestionResult> {
     let payload = payload.to_events(current_user.id, current_user.id);
     let result = send_events(Command::Upsert, &events_broker, payload).await?;
@@ -92,7 +89,7 @@ async fn handle_upsert_products(
 
 #[utoipa::path(
     post,
-    path = "orders",
+    path = "/orders",
     request_body = Order,
     responses(
         (status = 200, body = IngestionResult, description = "Ingest orders"),
@@ -107,7 +104,7 @@ async fn handle_orders(state: State<APIState>, Json(rec): Json<Order>) -> AppRes
 
 #[utoipa::path(
     post,
-    path = "refunds",
+    path = "/refunds",
     request_body = Refund,
     responses(
         (status = 200, body = IngestionResult, description = "Ingest refunds"),

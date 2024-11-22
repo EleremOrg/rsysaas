@@ -9,6 +9,7 @@ name = "rsysaas"
 [dependencies]
 stefn = { path = "../stefn" }
 tokio = { version = "1.38.0", features = ["full"] }
+tokio-util = { version = "0.7.4", features = ["compat"] }
 
 axum = { version = "0.7.5", features = ["multipart", "json", "query", "http2", "macros", "tracing", "ws"] }
 axum-extra = { version = "0.9.4", features = ["typed-header", "cookie"] }
@@ -42,10 +43,17 @@ bigdecimal = "0.4"
 tokio-stream = "0.1.16"
 futures = "0.3.31"
 uuid = { version = "1.11.0", features = ["v7", "fast-rng"] }
+rec_rsys = { version = "2.0.0", path = "../rec_rsys"}
 
+prost = "0.13.3"
+tonic = { version = "0.12.3", features = ["zstd"] }
+tonic-health = "0.12.3"
 
 [dev-dependencies]
 http-body-util = "0.1.0"
+
+[build-dependencies]
+tonic-build = "0.12.3"
 
 [profile.release]
 opt-level = "z"  # Use the highest optimization level for production builds
