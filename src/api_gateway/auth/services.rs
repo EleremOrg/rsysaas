@@ -13,7 +13,6 @@ pub async fn generate_token(
     let user = find_user_by_email(database, email).await?;
     //TODO: finish instead of using the state domain use also the domain from the user
     // it will require to update the validator from the
-    tracing::info!("{:?}", &user);
     verify_password(password, &user.password)?;
     create_token(
         user.pk,
@@ -28,7 +27,7 @@ struct User {
     pk: i64,
     password: String,
     company_pk: i64,
-    domain: String,
+    _domain: String,
     groups: String,
 }
 

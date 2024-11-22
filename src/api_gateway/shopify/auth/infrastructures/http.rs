@@ -101,8 +101,8 @@ const STORE_INFO: &str = r#"{
 
 #[derive(Debug, Deserialize)]
 pub struct BulkOperationResponse {
-    id: String,
-    status: String,
+    _id: String,
+    _status: String,
 }
 
 pub struct ShopifyClient<'a> {

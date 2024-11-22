@@ -1,12 +1,12 @@
 use stefn::{APIState, AppResult, ErrorMessage};
 
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, Query},
     routing::get,
     Extension, Json, Router,
 };
 use serde::{Deserialize, Serialize};
-use utoipa::{self, IntoParams, OpenApi, ToResponse, ToSchema};
+use utoipa::{self, IntoParams, OpenApi, ToSchema};
 
 use crate::{
     api_gateway::auth::JWTUser,

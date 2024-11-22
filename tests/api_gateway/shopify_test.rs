@@ -2,9 +2,7 @@ use axum::{
     body::Body,
     http::{Request, StatusCode},
 };
-use http_body_util::BodyExt;
 
-use serde_json::{json, Value};
 use tower::ServiceExt;
 
 use super::common;

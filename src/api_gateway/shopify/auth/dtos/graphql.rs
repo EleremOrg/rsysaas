@@ -28,7 +28,7 @@ pub struct Shop {
 
 #[derive(Debug, Deserialize)]
 pub struct BillingAddress {
-    pub company: Option<String>,
-    pub country: String,
+    _company: Option<String>,
+    _country: String,
     pub country_code_v2: String,
 }

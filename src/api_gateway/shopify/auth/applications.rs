@@ -2,7 +2,7 @@ use hmac::{Hmac, Mac};
 
 use regex::Regex;
 use sha2::Sha256;
-use stefn::{hash_password, AppError, APIState, Database};
+use stefn::{hash_password, AppError, Database};
 
 use crate::entities::customers;
 

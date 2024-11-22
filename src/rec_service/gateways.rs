@@ -6,15 +6,11 @@ use crate::entities::products::Category;
 
 use stefn::shutdown_signal;
 
-use recommender::recommender_client::RecommenderClient;
-use recommender::recommender_server::{Recommender, RecommenderServer};
-use recommender::{Query, Recommendations};
+use super::recommender::recommender_client::RecommenderClient;
+use super::recommender::recommender_server::{Recommender, RecommenderServer};
+use super::recommender::{Query, Recommendations};
 
 use super::Recommendation;
-
-mod recommender {
-    tonic::include_proto!("recommender");
-}
 
 #[derive(Default)]
 pub struct RecommenderProxy;
@@ -70,11 +66,6 @@ impl RecommendationClient {
     pub fn set_product_id(mut self, product_id: String) -> Self {
         self.0.product_id = Some(product_id);
         self
-    }
-
-    fn track_request(&self) {
-        // save that the user has done a request with x params
-        // save also the response sent with metadata and track further
     }
 
     pub async fn recommend(self) -> Result<Vec<Recommendation>, AppError> {

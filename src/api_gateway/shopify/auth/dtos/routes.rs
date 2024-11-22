@@ -5,7 +5,7 @@ use axum::{
     response::{IntoResponse, Response},
     RequestPartsExt,
 };
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::collections::HashMap;
 
 use stefn::AppError;
@@ -55,19 +55,6 @@ impl ShopifyQueryInterface for ShopifyInitialValidationQuery {
     }
 }
 
-impl ShopifyInitialValidationQuery {
-    fn query_to_string(&self) -> String {
-        let mut sorted_params: Vec<_> = self.query.iter().collect();
-        sorted_params.sort_by(|a, b| a.0.cmp(b.0));
-
-        sorted_params
-            .into_iter()
-            .map(|(key, value)| format!("{}={}", key, value))
-            .collect::<Vec<String>>()
-            .join("&")
-    }
-}
-
 #[async_trait]
 impl<S> FromRequestParts<S> for ShopifyInitialValidationQuery
 where
@@ -103,7 +90,7 @@ where
 pub struct ShopifyRedirectAuthQuery {
     hmac: String,
     pub code: String, //authorization_code
-    host: String,     //base64_encoded_hostname
+    _host: String,    //base64_encoded_hostname
     pub shop: String,
     pub state: String,
     query: HashMap<String, String>,
@@ -166,7 +153,7 @@ where
         Ok(ShopifyRedirectAuthQuery {
             hmac,
             code,
-            host,
+            _host: host,
             shop,
             state,
             query: query_params.0,
@@ -180,24 +167,11 @@ mod tests {
 
     #[test]
     fn test_query_to_string() {
-        let mut query = HashMap::new();
-        query.insert("acode".to_string(), "first".to_string());
-        query.insert(
-            "code".to_string(),
-            "0907a61c0c8d55e99db179b68161bc00".to_string(),
-        );
-        query.insert("shop".to_string(), "test-shop.myshopify.com".to_string());
-        query.insert("timestamp".to_string(), "1337178173".to_string());
-
-        let query = ShopifyInitialValidationQuery {
-            hmac: "700e2dadb827fcc8609e9d5ce208b2e9cdaab9df07390d2cbca10d7c328fc4bf".to_string(),
-            shop: "test-shop.myshopify.com".to_string(),
-            query,
-        };
+        let query = ShopifyInitialValidationQuery::stub();
 
         assert_eq!(
             query.query_to_string(),
-            "acode=first&code=0907a61c0c8d55e99db179b68161bc00&shop=test-shop.myshopify.com&timestamp=1337178173"
+            "shop=example.myshopify.com&timestamp=1625151600"
         );
     }
 }

@@ -97,8 +97,7 @@ async fn handle_upsert_products(
         (status = "5XX", body = ErrorMessage, description = "Oupsi daisy, we messed up, sorry"),
     )
 )]
-async fn handle_orders(state: State<APIState>, Json(rec): Json<Order>) -> AppResult<usize> {
-    println!("{rec:?}");
+async fn handle_orders(_state: State<APIState>, Json(_order): Json<Order>) -> AppResult<usize> {
     Ok(Json(200))
 }
 
@@ -112,7 +111,7 @@ async fn handle_orders(state: State<APIState>, Json(rec): Json<Order>) -> AppRes
         (status = "5XX", body = ErrorMessage, description = "Oupsi daisy, we messed up, sorry"),
     )
 )]
-async fn handle_refunds(state: State<APIState>, Json(rec): Json<Refund>) -> AppResult<usize> {
-    println!("{rec:?}");
+async fn handle_refunds(_state: State<APIState>, Json(_rec): Json<Refund>) -> AppResult<usize> {
+    //TODO
     Ok(Json(200))
 }

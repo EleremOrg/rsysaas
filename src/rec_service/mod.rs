@@ -1,7 +1,11 @@
 mod dtos;
+mod entities;
 mod gateways;
 mod movies;
 mod skate;
+mod recommender {
+    tonic::include_proto!("recommender");
+}
 
 use futures::future::BoxFuture;
 use stefn::Service;

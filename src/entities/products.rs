@@ -30,13 +30,13 @@ macro_rules! define_products {
 
         impl ProductPayload {
             // Create a helper to get the category
-            pub fn category(&self) -> Category {
-                match self {
-                    $(
-                        Self::$variant(_) => Category::$variant,
-                    )*
-                }
-            }
+            // pub fn category(&self) -> Category {
+            //     match self {
+            //         $(
+            //             Self::$variant(_) => Category::$variant,
+            //         )*
+            //     }
+            // }
 
             pub fn to_events(&self, customer_id: i64, client_id: i64) -> Vec<Vec<u8>> {
                 match self {
@@ -173,20 +173,4 @@ pub struct Refund {
     quantity: u64,
     price: f64,
     reason: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Client {
-    id: u64,
-    name: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Customer {
-    id: u64,
-    name: String,
-    email: String,
-    url: String,
-    token: String,
-    shopify_token: String,
 }

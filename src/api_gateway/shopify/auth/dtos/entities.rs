@@ -1,10 +1,6 @@
 use serde::Serialize;
 use sqlx::prelude::FromRow;
 
-use crate::entities::{customers::Builder, products::Customer};
-
-use super::graphql::Shop;
-
 /// https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/offline-access-tokens
 #[derive(Debug, Serialize)]
 pub struct ShopifyAccessTokenPayload<'a> {
@@ -26,7 +22,7 @@ impl<'a> ShopifyAccessTokenPayload<'a> {
 #[derive(Debug, FromRow)]
 pub struct ShopifyProfile {
     pub pk: i64,
-    token: String,
+    _token: String,
     pub scopes: String,
-    created_at: String,
+    _created_at: String,
 }

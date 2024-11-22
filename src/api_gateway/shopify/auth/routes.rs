@@ -6,7 +6,7 @@ use axum::{
 
 use menva::get_env;
 
-use stefn::{APIState, AppError, Database};
+use stefn::{AppError, Database};
 
 use super::{
     applications::{get_redirect_for_authentication, get_redirect_for_inital_validation},
