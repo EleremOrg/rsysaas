@@ -6,6 +6,7 @@ use crate::entities::products::Category;
 
 use stefn::shutdown_signal;
 
+use super::entities::RecommendationEngine;
 use super::recommender::recommender_client::RecommenderClient;
 use super::recommender::recommender_server::{Recommender, RecommenderServer};
 use super::recommender::{Query, Recommendations};
@@ -40,8 +41,11 @@ impl Recommender for RecommenderProxy {
         &self,
         request: Request<Query>,
     ) -> Result<Response<Recommendations>, Status> {
-        let reply = Recommendations::default();
-        Ok(Response::new(reply))
+        Ok(Response::new(
+            RecommendationEngine::new(request.into_inner())
+                .result()
+                .await,
+        ))
     }
 }
 

@@ -157,13 +157,22 @@ fn calculate_hmac(secret: &str, data: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use super::*;
 
     #[test]
     fn test_validate_hmac() {
         let secret = "mysecret";
-        let query = ShopifyInitialValidationQuery::stub();
+        let mut query = HashMap::new();
+        query.insert("shop".to_string(), "example.myshopify.com".to_string());
+        query.insert("timestamp".to_string(), "1625151600".to_string());
 
+        let query = ShopifyInitialValidationQuery {
+            hmac: "60bfb5d37197fa25e128368cc3f0bc6119c26455d7a3fadbbbaba14108825cc2".to_string(),
+            shop: "example.myshopify.com".to_string(),
+            query,
+        };
         assert!(validate_hmac(&query, secret));
     }
 

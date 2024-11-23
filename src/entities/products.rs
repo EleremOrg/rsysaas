@@ -10,7 +10,7 @@ macro_rules! define_products {
             $variant:ident => $data_type:ty,
         )*
     ) => {
-        // Generate the Category enum
+
         #[derive(Debug, Deserialize, Serialize)]
         #[serde(rename_all = "kebab-case")]
         pub enum Category {
@@ -19,7 +19,6 @@ macro_rules! define_products {
             )*
         }
 
-        // Generate the ProductPayload enum
         #[derive(Debug, Serialize, Deserialize, ToSchema)]
         #[serde(tag = "category", content = "products")]
         pub enum ProductPayload {
@@ -29,15 +28,6 @@ macro_rules! define_products {
         }
 
         impl ProductPayload {
-            // Create a helper to get the category
-            // pub fn category(&self) -> Category {
-            //     match self {
-            //         $(
-            //             Self::$variant(_) => Category::$variant,
-            //         )*
-            //     }
-            // }
-
             pub fn to_events(&self, customer_id: i64, client_id: i64) -> Vec<Vec<u8>> {
                 match self {
                     $(
@@ -45,18 +35,6 @@ macro_rules! define_products {
                     )*
                 }
             }
-
-            // Create a helper to deserialize dynamically based on Category
-            // pub fn from_category_and_data(category: Category, data: serde_json::Value) -> Result<Self, serde_json::Error> {
-            //     match category {
-            //         $(
-            //             Category::$variant => {
-            //                 let payload: $data_type = serde_json::from_value(data)?;
-            //                 Ok(ProductPayload::$variant(payload))
-            //             }
-            //         )*
-            //     }
-            // }
         }
     };
 }

@@ -4,7 +4,6 @@ pub struct Meta {
     pub meta_keywords: String,
     pub meta_author: String,
     pub meta_url: String,
-    pub meta_image: String,
     pub twitter: TwitterMetadata,
 }
 
@@ -22,7 +21,7 @@ impl Meta {
             meta_title.clone(),
             meta_description.clone(),
             meta_author.clone(),
-            meta_image.clone(),
+            meta_image,
         );
         Self {
             meta_title: meta_title.clone(),
@@ -30,7 +29,6 @@ impl Meta {
             meta_keywords: meta_keywords.clone(),
             meta_author: meta_author.clone(),
             meta_url: meta_url.into(),
-            meta_image: meta_image.clone(),
             twitter,
         }
     }

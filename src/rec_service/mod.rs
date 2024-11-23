@@ -16,7 +16,7 @@ pub use dtos::Recommendation;
 pub use gateways::RecommendationClient;
 
 pub fn create_service() -> Service {
-    Service::background("REC_", run)
+    Service::background(run)
 }
 
 fn run() -> BoxFuture<'static, Result<(), std::io::Error>> {
