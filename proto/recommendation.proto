@@ -13,6 +13,7 @@ message Query {
   optional string product_id = 4;
   int64 user_id = 5;
   int32 quantity = 6;
+  repeated string categories = 7;
 }
 message Recommendations {
   string version = 1;

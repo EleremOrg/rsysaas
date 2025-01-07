@@ -22,7 +22,7 @@ pub fn routes(state: WebsiteState) -> Router<WebsiteState> {
         .nest_service("/dist", ServeDir::new("dist"))
         .layer(
             CorsLayer::new()
-                .allow_methods([Method::GET, Method::POST, Method::POST])
+                .allow_methods([Method::GET, Method::POST, Method::PUT])
                 .allow_headers([CONTENT_TYPE, AUTHORIZATION])
                 .allow_origin(Any),
         )

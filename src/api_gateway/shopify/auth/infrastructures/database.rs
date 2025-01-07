@@ -13,7 +13,6 @@ pub async fn update_profile(
 ) -> Result<String, AppError> {
     let mut tx = database
         .get_connection()
-        .await
         .begin()
         .await
         .map_err(|e| AppError::custom_internal(&e.to_string()))?;
@@ -66,13 +65,11 @@ pub async fn find_customer_from_shopify(
     database: &Database,
     shop: &str,
 ) -> Result<Option<ShopifyProfile>, AppError> {
-    let conn = database.get_connection().await;
-
     sqlx::query_as(
         r#"select pk, token, scopes, created_at from "shopify_profiles" where shop = $1"#,
     )
     .bind(shop)
-    .fetch_optional(conn)
+    .fetch_optional(database.get_connection())
     .await
     .map_err(|e| AppError::custom_internal(&e.to_string()))
 }

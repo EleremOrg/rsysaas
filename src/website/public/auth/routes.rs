@@ -49,7 +49,6 @@ async fn post_register(
 ) -> Result<Redirect, AppError> {
     let tx = database
         .get_connection()
-        .await
         .begin()
         .await
         .map_err(|e| AppError::custom_internal(&e.to_string()))?;

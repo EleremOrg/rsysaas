@@ -60,6 +60,7 @@ impl RecommendationClient {
             target_id: None,
             user_id,
             quantity: 10,
+            categories: vec![],
         })
     }
     pub fn set_target_id(mut self, target_id: String) -> Self {

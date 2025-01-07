@@ -9,6 +9,10 @@ impl RecommendationEngine {
         Self { query }
     }
 
+    fn fetch(&self) {
+        // match (self.query.categories)
+    }
+
     pub async fn result(self) -> Recommendations {
         Recommendations::default()
     }

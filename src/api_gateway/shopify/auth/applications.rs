@@ -47,7 +47,6 @@ async fn create_new_customer<'a>(
     let store = client.get_shop_information().await?;
     let tx = database
         .get_connection()
-        .await
         .begin()
         .await
         .map_err(|e| AppError::custom_internal(&e.to_string()))?;

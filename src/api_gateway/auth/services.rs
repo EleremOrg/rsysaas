@@ -45,7 +45,7 @@ async fn find_user_by_email(database: &Database, email: &str) -> Result<User, Ap
             HAVING count(emails.user_pk) > 0;
         "#)
             .bind(email)
-            .fetch_optional(database.get_connection().await)
+            .fetch_optional(database.get_connection())
             .await
             .map_err(|e| AppError::custom_internal(&e.to_string()))?;
     result.ok_or(AppError::DoesNotExist)
